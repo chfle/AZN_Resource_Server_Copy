@@ -60,7 +60,7 @@ API-Backend AZN_Spring
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/AZN_Spring_ResourceServer.git
+   git clone https://github.com:LokCenter/AZN_Spring_ResourceServer.git
    ```
 2. Build Project
    ```sh
