@@ -7,6 +7,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 
+/**
+ * Resource Server with Microsoft AAD
+ *
+ * @version 1.03 2022-06-26
+ */
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class AadOAuth2ResourceServerSecurityConfig extends AadResourceServerWebSecurityConfigurerAdapter {
@@ -17,6 +22,7 @@ public class AadOAuth2ResourceServerSecurityConfig extends AadResourceServerWebS
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         super.configure(http);
+        // allow only authenticated users
         http.authorizeRequests((requests) -> requests.anyRequest().authenticated());
     }
 }
