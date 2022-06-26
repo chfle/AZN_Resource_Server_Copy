@@ -72,7 +72,7 @@ API-Backend AZN_Spring
 
 - [X] OAuth 2.0 integration
 - [ ] Rest API
-  - [ ] Scopes
+  - [X] Scopes
   - [ ] DB integration
 
 
