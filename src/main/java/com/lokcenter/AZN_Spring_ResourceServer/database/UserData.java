@@ -2,6 +2,11 @@ package com.lokcenter.AZN_Spring_ResourceServer.database;
 
 
 import com.lokcenter.AZN_Spring_ResourceServer.helper.UserDepending;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 
 /**
@@ -9,27 +14,33 @@ import javax.persistence.*;
  */
 @UserDepending
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "user_data")
 public class UserData {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter @Getter
     private Long id;
 
     /**
      * id from User table
      */
     @ManyToOne
+    @Setter @Getter
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
     private User user_id;
 
     /**
      * Select if handicapped
      */
+    @Setter @Getter
     private int handicap;
 
     /**
      * Job length
      */
+    @Setter @Getter
     private int job_length;
 
     /**
@@ -39,143 +50,34 @@ public class UserData {
      * for mysql
      */
     @Column(nullable = false, columnDefinition = "ENUM('NEGATIVE', 'POSITIVE')", name = "balance_time")
+    @Setter @Getter
     private Balance a_balanceTime;
 
+    /**
+     * All vacation days used so far
+     */
     @Column(nullable = false, name = "used_vacationDays")
+    @Setter @Getter
     private Long b_usedVacationDays;
 
+    /**
+     * All sick days
+     */
     @Column(nullable = false, name = "sick_days")
+    @Setter @Getter
     private int c_sickDays;
 
+    /**
+     * All GLAZ days
+     */
     @Column(nullable = false, name = "glaz_days")
+    @Setter @Getter
     private int d_glazDays;
 
+    /**
+     * Count all vacation days while sick to get them back
+     */
     @Column(nullable = false, name = "vacation_while_sick")
+    @Setter @Getter
     private Long e_vacationWhileSick;
-
-    public UserData() {}
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser_id() {
-        return user_id;
-    }
-
-    public void setUser_id(User user_id) {
-        this.user_id = user_id;
-    }
-
-    public Balance getBalanceTime() {
-        return a_balanceTime;
-    }
-
-    public void setBalanceTime(Balance balanceTime) {
-        this.a_balanceTime = balanceTime;
-    }
-
-    public Long getUsedVacationDays() {
-        return b_usedVacationDays;
-    }
-
-    public void setUsedVacationDays(Long usedVacationDays) {
-        this.b_usedVacationDays = usedVacationDays;
-    }
-
-    public int getSickDays() {
-        return c_sickDays;
-    }
-
-    public void setSickDays(int sickDays) {
-        this.c_sickDays = sickDays;
-    }
-
-    public int getGlazDays() {
-        return d_glazDays;
-    }
-
-    public void setGlazDays(int glazDays) {
-        this.d_glazDays = glazDays;
-    }
-
-    public Long getVacationWhileSick() {
-        return e_vacationWhileSick;
-    }
-
-    public void setVacationWhileSick(Long vacationWhileSick) {
-        this.e_vacationWhileSick = vacationWhileSick;
-    }
-
-    public UserData(Long id, User user_id, int handicap, int job_length, Balance a_balanceTime, Long b_usedVacationDays, int c_sickDays, int d_glazDays, Long e_vacationWhileSick) {
-        this.id = id;
-        this.user_id = user_id;
-        this.handicap = handicap;
-        this.job_length = job_length;
-        this.a_balanceTime = a_balanceTime;
-        this.b_usedVacationDays = b_usedVacationDays;
-        this.c_sickDays = c_sickDays;
-        this.d_glazDays = d_glazDays;
-        this.e_vacationWhileSick = e_vacationWhileSick;
-    }
-
-    public int getHandicap() {
-        return handicap;
-    }
-
-    public void setHandicap(int handicap) {
-        this.handicap = handicap;
-    }
-
-    public double getJob_length() {
-        return job_length;
-    }
-
-    public void setJob_length(int job_length) {
-        this.job_length = job_length;
-    }
-
-    public Balance getA_balanceTime() {
-        return a_balanceTime;
-    }
-
-    public void setA_balanceTime(Balance a_balanceTime) {
-        this.a_balanceTime = a_balanceTime;
-    }
-
-    public Long getB_usedVacationDays() {
-        return b_usedVacationDays;
-    }
-
-    public void setB_usedVacationDays(Long b_usedVacationDays) {
-        this.b_usedVacationDays = b_usedVacationDays;
-    }
-
-    public int getC_sickDays() {
-        return c_sickDays;
-    }
-
-    public void setC_sickDays(int c_sickDays) {
-        this.c_sickDays = c_sickDays;
-    }
-
-    public int getD_glazDays() {
-        return d_glazDays;
-    }
-
-    public void setD_glazDays(int d_glazDays) {
-        this.d_glazDays = d_glazDays;
-    }
-
-    public Long getE_vacationWhileSick() {
-        return e_vacationWhileSick;
-    }
-
-    public void setE_vacationWhileSick(Long e_vacationWhileSick) {
-        this.e_vacationWhileSick = e_vacationWhileSick;
-    }
 }

@@ -1,5 +1,8 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database;
 
+import com.azure.core.annotation.Get;
+import lombok.*;
+
 import javax.persistence.*;
 import java.sql.Date;
 
@@ -9,6 +12,8 @@ import java.sql.Date;
  * @version 1.05 2022-06-04
  */
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
     /**
      * Table id
@@ -17,6 +22,7 @@ public class User {
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter @Getter
     private Long id;
     /**
      * username
@@ -24,6 +30,7 @@ public class User {
      * @implNote NOT NULL
      */
     @Column(nullable = false, unique = true)
+    @Setter @Getter
     private String username;
     /**
      * password
@@ -34,40 +41,7 @@ public class User {
     /**
      * Save first login
      */
+    @Column(nullable = false)
+    @Setter @Getter
     private Date firstLogin;
-
-    public User(Long id, String username, Date firstLogin) {
-        this.id = id;
-        this.username = username;
-        this.firstLogin = firstLogin;
-    }
-
-    // must be set
-    public User(){}
-
-    public Date getFirstLogin() {
-        return firstLogin;
-    }
-
-    public void setFirstLogin(Date firstLogin) {
-        this.firstLogin = firstLogin;
-    }
-
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
  }
