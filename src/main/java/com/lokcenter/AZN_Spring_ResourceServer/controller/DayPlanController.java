@@ -12,11 +12,13 @@ import java.util.Map;
  */
 
 @RestController
+@CrossOrigin("http://localhost:8880")
 @RequestMapping("/dayplan")
 @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
 public class DayPlanController {
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data) {
+        System.out.println(data.toString());
         return true;
     }
 }
