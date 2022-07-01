@@ -1,4 +1,4 @@
-package com.lokcenter.AZN_Spring_ResourceServer.database;
+package com.lokcenter.AZN_Spring_ResourceServer.database.sql;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
