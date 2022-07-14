@@ -7,10 +7,19 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
+/**
+ * Redis UserDayplanData Hash
+ *
+ * @version 05-07-2022
+ */
+
 @Data
 @RedisHash
 @RequiredArgsConstructor
 public class UserDayPlanData {
+    /**
+     * NOTE: Must be a String
+     */
     @Id
     @Setter @Getter
     String id;
