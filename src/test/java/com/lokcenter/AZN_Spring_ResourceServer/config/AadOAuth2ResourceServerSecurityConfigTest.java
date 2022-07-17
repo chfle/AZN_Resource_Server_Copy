@@ -39,7 +39,7 @@ class AadOAuth2ResourceServerSecurityConfigTest {
 
     @Test
     @DisplayName("CSRF should be disabled")
-    @WithMockUser(authorities = {"SCOPE_UserApi.Read"})
+    @WithMockUser(authorities = {"SCOPE_UserApi.Write"})
     void csrf_should_be_disabled() throws Exception {
         // create object
         Map<String, Object> data = new HashMap<>();
@@ -55,7 +55,7 @@ class AadOAuth2ResourceServerSecurityConfigTest {
 
    @Test
    @DisplayName("cors should fail if uri is wrong")
-   @WithMockUser(authorities = {"SCOPE_UserApi.Read"})
+   @WithMockUser(authorities = {"SCOPE_UserApi.Write"})
    void cors_fail_with_wrong_uri() throws Exception {
        Map<String, Object> data = new HashMap<>();
 

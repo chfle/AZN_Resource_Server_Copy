@@ -13,8 +13,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/dayplan")
-@PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
 public class DayPlanController {
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data) {
         System.out.println(data.toString());
