@@ -118,6 +118,12 @@
 			<artifactId>h2</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.rometools</groupId>
+			<artifactId>rome</artifactId>
+			<version>1.7.0</version>
+			<scope>test</scope>
+		</dependency>
 
 	</dependencies>
 	<build>
