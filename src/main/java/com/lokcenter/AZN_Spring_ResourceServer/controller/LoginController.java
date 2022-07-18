@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.sql.Repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.sql.User;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.JunitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Map;
 
 /**
@@ -47,6 +47,7 @@ public class LoginController {
             }
         } catch (Exception exception) {
             exception.printStackTrace();
+            return false;
         }
 
         // only set if user does not exists
@@ -56,5 +57,4 @@ public class LoginController {
 
        return true;
     }
-
 }
