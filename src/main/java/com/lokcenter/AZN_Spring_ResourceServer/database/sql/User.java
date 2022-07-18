@@ -12,6 +12,7 @@ import java.sql.Date;
  * @version 1.05 2022-06-04
  */
 @Entity
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -32,11 +33,6 @@ public class User {
     @Column(nullable = false, unique = true)
     @Setter @Getter
     private String username;
-    /**
-     * password
-     *
-     * @implNote NOT NULL
-     */
 
     /**
      * Save first login

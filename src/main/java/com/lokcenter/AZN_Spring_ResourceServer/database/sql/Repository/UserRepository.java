@@ -5,6 +5,8 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.sql.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.Optional;
+
 /**
  * Fetch Users from DB
  *
@@ -16,8 +18,7 @@ public interface UserRepository extends CrudRepository<User, Long> {
      * @param username the username
      * @return A user
      */
-    @Query(value = " SELECT user.*, role.name FROM user LEFT JOIN user_roles on user.id = user_roles.user_id LEFT JOIN role on role.id = user_roles.role_id" +
-            " WHERE username = ?1", nativeQuery = true)
-    User findByUsername(String username);
+    @Query(value = "SELECT user.* from user WHERE username = ?1", nativeQuery = true)
+    Optional<User> findByUsername(String username);
 }
 
