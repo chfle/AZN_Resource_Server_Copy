@@ -40,7 +40,7 @@ class LoginControllerTest {
                         .contentType(APPLICATION_JSON_UTF8)
                         .content(new ObjectMapper().writeValueAsString(data))
                         .header("Origin","http://localhost:8880"))
-                .andExpect(status().isOk());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
