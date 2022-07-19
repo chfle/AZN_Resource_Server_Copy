@@ -1,9 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -11,15 +9,14 @@ import java.io.Serializable;
 import java.sql.Date;
 
 /**
- * User table
+ * GeneralVacation table
  *
  * @version 19-06-2022
  */
+
 @Entity
-@Table(name = "user")
-@ToString
-@NoArgsConstructor
-public class User implements Serializable {
+@Table(name = "general_vacation")
+public class GeneralVacation implements Serializable {
     /**
      * @implNote serialVersionUID should be updated after each version
      */
@@ -37,21 +34,13 @@ public class User implements Serializable {
     @Getter
     private Long id;
 
-    /**
-     * username
-     *
-     * @implNote NOT NULL
-     */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = true)
     @Setter
     @Getter
-    private String username;
+    private String comment;
 
-    /**
-     * Save first login
-     */
-    @Column(nullable = false, name = "first_login")
+    @Column(nullable = false)
     @Setter
     @Getter
-    private Date firstLogin;
+    private Date date;
 }

@@ -25,7 +25,7 @@ import java.sql.Time;
 @IdClass(DayPlanDataId.class)
 public class DayPlanData implements Serializable {
     /**
-     * @implNote serialVersionUID should be updated if each version
+     * @implNote serialVersionUID should be updated after each version
      */
     @Serial
     private static final long serialVersionUID = 1L;

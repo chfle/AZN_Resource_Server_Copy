@@ -8,18 +8,18 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
-import java.sql.Date;
+import java.sql.Time;
 
 /**
- * User table
+ * GeneralInfo table
  *
  * @version 19-06-2022
  */
 @Entity
-@Table(name = "user")
+@Table(name = "general_info")
 @ToString
 @NoArgsConstructor
-public class User implements Serializable {
+public class GeneralInfo implements Serializable {
     /**
      * @implNote serialVersionUID should be updated after each version
      */
@@ -37,21 +37,18 @@ public class User implements Serializable {
     @Getter
     private Long id;
 
-    /**
-     * username
-     *
-     * @implNote NOT NULL
-     */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, name = "weekend_factor")
     @Setter
     @Getter
-    private String username;
+    private double weekendFactor;
 
-    /**
-     * Save first login
-     */
-    @Column(nullable = false, name = "first_login")
+    @Column(nullable = false, name = "daily_worktime")
     @Setter
     @Getter
-    private Date firstLogin;
+    private Time dailyWorkTime;
+
+    @Column(nullable = false, name = "daily_pause")
+    @Setter
+    @Getter
+    private Time dailyPause;
 }
