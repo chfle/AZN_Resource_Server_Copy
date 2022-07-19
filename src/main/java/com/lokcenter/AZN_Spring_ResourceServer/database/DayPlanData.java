@@ -1,45 +1,50 @@
-package com.lokcenter.AZN_Spring_ResourceServer.database.sql;
+package com.lokcenter.AZN_Spring_ResourceServer.database;
 
-import com.lokcenter.AZN_Spring_ResourceServer.helper.UserDepending;
-import lombok.AllArgsConstructor;
+import com.lokcenter.AZN_Spring_ResourceServer.database.helper.DayPlanDataId;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.sql.Date;
 import java.sql.Time;
 
 /**
- * Table for dayPlan data from every user
+ * DayPlanData table
  *
- * @version 1.0 2022-06-07
+ * @version 19-06-2022
  */
-@UserDepending
-@NoArgsConstructor
-@AllArgsConstructor
+
 @Entity
-@Table(name = "user_dayPlanData")
-public class UserDayPlanData {
-    @Id
-    @Setter @Getter
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@Table(name = "dayplan_data")
+@ToString
+@NoArgsConstructor
+@IdClass(DayPlanDataId.class)
+public class DayPlanData implements Serializable {
+    /**
+     * @implNote serialVersionUID should be updated if each version
+     */
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     /**
-     * id from User table
+     * @implNote User can be deleted only when all references are removed.
      */
-
-    @Column(nullable = false)
-    private Date date;
-    @Setter @Getter
-    @ManyToOne
+    @Id
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
+    @Setter
+    @Getter
     private User user_id;
 
-    /**
-     * Workday start time
-     */
+    @Id
+    @Setter
+    @Getter
+    Date date;
+
     @Column(nullable = true, name = "start_time")
     @Setter @Getter
     private Time startTime;
@@ -55,33 +60,35 @@ public class UserDayPlanData {
      * Pause time
      */
     @Column(nullable = true)
+    @Setter
+    @Getter
     private short pause;
 
     /**
      * Mark if day is a school day
      */
-    @Column(nullable = false, name = "school_day")
+    @Column(nullable = false, name = "school")
     @Setter @Getter
     private int schoolDay;
 
     /**
      * Mark if day is a glaz Day
      */
-    @Column(nullable = false, name = "glaz_day")
+    @Column(nullable = false, name = "glaz")
     @Setter @Getter
     private int glazDay;
 
     /**
      * Mark if day is a vacation day
      */
-    @Column(nullable = false, name = "vacation_day")
+    @Column(nullable = false, name = "vacation")
     @Setter @Getter
     private int vacationDay;
 
     /**
      * Mark if day is a sick day
      */
-    @Column(nullable = false, name = "sick_day")
+    @Column(nullable = false, name = "sick")
     @Setter @Getter
     private int sickDay;
 

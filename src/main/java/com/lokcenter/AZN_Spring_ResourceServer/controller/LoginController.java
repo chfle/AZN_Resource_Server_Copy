@@ -1,7 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
-import com.lokcenter.AZN_Spring_ResourceServer.database.sql.Repository.UserRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.sql.User;
+import com.lokcenter.AZN_Spring_ResourceServer.database.Repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.User;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.JunitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;

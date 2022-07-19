@@ -1,7 +1,6 @@
-package com.lokcenter.AZN_Spring_ResourceServer.database.sql.Repository;
+package com.lokcenter.AZN_Spring_ResourceServer.database.Repository;
 
-
-import com.lokcenter.AZN_Spring_ResourceServer.database.sql.User;
+import com.lokcenter.AZN_Spring_ResourceServer.database.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -21,4 +20,3 @@ public interface UserRepository extends CrudRepository<User, Long> {
     @Query(value = "SELECT user.* from user WHERE username = ?1", nativeQuery = true)
     Optional<User> findByUsername(String username);
 }
-
