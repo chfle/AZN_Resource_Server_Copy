@@ -17,3 +17,4 @@ COPY --from=build ${DEPENDENCY}/META-INF /app/META-INF
 COPY --from=build ${DEPENDENCY}/BOOT-INF/classes /app
 ENTRYPOINT ["java","-cp","app:app/lib/*","com.lokcenter.AZN_Spring_ResourceServer.AznSpringResourceServerApplication"]
 EXPOSE 8881
+LABEL org.opencontainers.image.source https://github.com/lokcenter/AZN_Spring_RessourceServer
