@@ -45,7 +45,7 @@ API-Backend AZN_Spring
 * [Spring Boot](https://spring.io/projects/spring-boot)
 * [Spring Security](https://spring.io/projects/spring-security)
 * [Spring Data JPA](https://spring.io/projects/spring-data-jpa)
-* [Spring Data Redis](https://spring.io/projects/spring-data-redis)
+* [Memcached](https://github.com/couchbase/spymemcached)
 * [Spring Cloud Azure](https://spring.io/projects/spring-cloud-azure)
 * [Lombok](https://projectlombok.org/)
 
@@ -76,8 +76,8 @@ API-Backend AZN_Spring
 - [ ] Rest API
   - [X] Scopes
   - [ ] DB integration
-    - [ ] Redis support
-    - [ ] RDBMS support 
+    - [ ] Memcached support
+    - [ ] Apache Cassandra support 
 
 
 ## Collaborators
