@@ -37,7 +37,7 @@ public class MemService {
             MemcachedClient mcc = new MemcachedClient(new InetSocketAddress(address, port));
 
             log.info("Memcached connected");
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("Memcached connection failed");
         }
     }
