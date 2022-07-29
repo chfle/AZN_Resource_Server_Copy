@@ -1,7 +1,9 @@
 <div align="center">
 <h3 align="center">AZN-Resource-Server</h3>
-
 </div>
+
+![example workflow](https://github.com/LokCenter/AZN_Spring_ResourceServer/actions/workflows/maven-publish.yml/badge.svg)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/LokCenter/AZN_Spring_ResourceServer/graphs/commit-activity)
 
 
 <!-- TABLE OF CONTENTS -->
