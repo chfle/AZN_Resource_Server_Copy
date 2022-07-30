@@ -172,7 +172,23 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-site-plugin</artifactId>
+				<version>3.7.1</version>
+			</plugin>
+			<!-- For private members
+			mvn javadoc:javadoc-->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.4.0</version>
+				<configuration>
+					<show>private</show>
+					<nohelp>true</nohelp>
+					<doclint>none</doclint>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
-
 </project>
