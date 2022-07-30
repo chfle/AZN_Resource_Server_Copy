@@ -39,6 +39,7 @@ public class UserData implements Serializable {
     private Long id;
 
     /**
+     * User id
      * @implNote User can be deleted only when all references are removed.
      */
     @OneToOne(cascade = CascadeType.REMOVE)
@@ -47,31 +48,49 @@ public class UserData implements Serializable {
     @Getter
     private User user_id;
 
+    /**
+     * All vacation days on which the user is sick
+     */
     @Column(nullable = false, name = "vacation_sick")
     @Getter
     @Setter
     private int vacationSick;
 
+    /**
+     * All GLAZ days
+     */
     @Column(nullable = false, name = "glaz_days")
     @Getter
     @Setter
     private int glazDays;
 
+    /**
+     * All days on which the user is sick
+     */
     @Column(nullable = false, name = "sick_days")
     @Getter
     @Setter
     private int sickDays;
 
+    /**
+     * Used vacation days
+     */
     @Column(nullable = false, name = "used_vacation")
     @Getter
     @Setter
     private int usedVacation;
 
+    /**
+     * Plus or minus hours
+     */
     @Column(nullable = false, name = "balance_time")
     @Getter
     @Setter
     private Time balanceTime;
 
+    /**
+     * Available vacation days
+     */
     @Column(nullable = false, name = "available_vacation")
     @Getter
     @Setter

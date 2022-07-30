@@ -34,11 +34,17 @@ public class GeneralVacation implements Serializable {
     @Getter
     private Long id;
 
+    /**
+     * Comment or note
+     */
     @Column(nullable = true)
     @Setter
     @Getter
     private String comment;
 
+    /**
+     * ...
+     */
     @Column(nullable = false)
     @Setter
     @Getter

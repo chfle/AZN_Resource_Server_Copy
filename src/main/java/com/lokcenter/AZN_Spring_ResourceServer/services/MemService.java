@@ -30,6 +30,10 @@ public class MemService {
 
     private MemcachedClient mcc;
 
+    /**
+     * Init MemcachedClient
+     *
+     */
     @PostConstruct
     public void init() throws IOException {
         // connection
@@ -42,6 +46,11 @@ public class MemService {
         }
     }
 
+    /**
+     * Store new values
+     * @param key Key
+     * @param value value
+     */
     public void storeKeyValue(String key, Object value) {
         // set key
         boolean done = mcc.set(key, 90, value).isDone();
@@ -49,7 +58,12 @@ public class MemService {
         log.info("isDone: " +done);
     }
 
-    public Object getKeyValue(String value) {
-        return mcc.get(value);
+    /**
+     * Get value by key
+     * @param key Key
+     * @return Value
+     */
+    public Object getKeyValue(String key) {
+        return mcc.get(key);
     }
 }
