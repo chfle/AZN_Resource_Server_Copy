@@ -1,6 +1,5 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.primary_keys;
 
-import com.lokcenter.AZN_Spring_ResourceServer.database.enums.DepartmentEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.cassandra.core.cql.Ordering;
@@ -10,22 +9,18 @@ import org.springframework.data.cassandra.core.mapping.PrimaryKeyClass;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 
 import java.io.Serializable;
-import java.util.UUID;
-
-/**
- * Composite key for user_by_department query
- */
+import java.sql.Date;
 
 @PrimaryKeyClass
-public class UserByDepartmentKey implements Serializable {
-    @PrimaryKeyColumn(name = " department", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
-    @CassandraType(type = CassandraType.Name.TEXT)
+public class GeneralVacationKey implements Serializable {
+    @PrimaryKeyColumn(name = "year", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     @Setter
     @Getter
-    private DepartmentEnum department;
+    private int year;
 
-    @PrimaryKeyColumn(name = "user_id", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
+    @PrimaryKeyColumn(name = "set_date", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
+    @CassandraType(type = CassandraType.Name.DATE)
     @Setter
     @Getter
-    private UUID userId;
+    private Date setDate;
 }

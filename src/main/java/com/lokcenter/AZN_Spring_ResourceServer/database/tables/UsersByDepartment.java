@@ -1,4 +1,4 @@
-package com.lokcenter.AZN_Spring_ResourceServer.database;
+package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.primary_keys.UserByDepartmentKey;
 import lombok.Getter;
