@@ -14,11 +14,17 @@ import java.util.UUID;
 
 @PrimaryKeyClass
 public class RequestsKey implements Serializable {
+    /**
+     * Partition Key
+     */
     @PrimaryKeyColumn(name = "user_id", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     @Setter
     @Getter
     private UUID userId;
 
+    /**
+     * Cluster Key
+     */
     @PrimaryKeyColumn(name = "start_date", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
     @Setter
     @Getter

@@ -3,6 +3,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 import com.lokcenter.AZN_Spring_ResourceServer.database.udt.DailyWorktime;
 import com.lokcenter.AZN_Spring_ResourceServer.database.udt.SetYearsInt;
 import com.lokcenter.AZN_Spring_ResourceServer.database.udt.SetYearsTime;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.UserDepending;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
@@ -14,8 +15,12 @@ import java.util.UUID;
  * Q3
  */
 
+@UserDepending
 @Table("user_info")
 public class UserInfo {
+    /**
+     * Partition Key
+     */
     @PrimaryKey
     @Setter
     @Getter

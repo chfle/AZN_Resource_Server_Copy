@@ -15,6 +15,9 @@ import java.sql.Date;
 
 @Table("requests")
 public class Requests {
+    /**
+     * Partition Key
+     */
     @Setter
     @Getter
     @PrimaryKey

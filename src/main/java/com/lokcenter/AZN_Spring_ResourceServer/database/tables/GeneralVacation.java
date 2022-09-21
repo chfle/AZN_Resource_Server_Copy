@@ -6,13 +6,22 @@ import lombok.Setter;
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Table;
 
+/**
+ * general_vacation
+ */
 @Table("general_vacation")
 public class GeneralVacation {
+    /**
+     * Composite Key
+     */
     @PrimaryKey
     @Setter
     @Getter
     private GeneralVacationKey generalVacationKey;
 
+    /**
+     * Vacation Comment
+     */
     @Setter
     @Getter
     private String comment;

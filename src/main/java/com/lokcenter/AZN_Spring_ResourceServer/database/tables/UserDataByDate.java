@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.primary_keys.UserDataByDateKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.udt.Daytime;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.UserDepending;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.cassandra.core.mapping.CassandraType;
@@ -10,8 +11,12 @@ import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.sql.Date;
 
+@UserDepending
 @Table("user_data_by_date")
 public class UserDataByDate {
+    /**
+     * Composite Key
+     */
     @PrimaryKey
     @Setter
     @Getter
@@ -21,6 +26,11 @@ public class UserDataByDate {
     @Getter
     private String comment;
 
+    /**
+     * Will be set on the first login
+     *
+     * @implNote Should not be changed later!
+     */
     @Setter
     @Getter
     @CassandraType(type = CassandraType.Name.DATE)
