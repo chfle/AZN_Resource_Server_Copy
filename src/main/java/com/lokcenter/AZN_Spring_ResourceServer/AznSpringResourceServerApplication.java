@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
 
 /**
  * Main Class

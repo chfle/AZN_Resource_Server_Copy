@@ -7,6 +7,7 @@ import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.auth.AuthDescriptor;
 import net.spy.memcached.auth.PlainCallbackHandler;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -21,6 +22,7 @@ import java.net.InetSocketAddress;
 
 @Service
 @Slf4j
+@Profile("dev")
 public class MemService {
     @Value("${memcached.port}")
     private int port;
