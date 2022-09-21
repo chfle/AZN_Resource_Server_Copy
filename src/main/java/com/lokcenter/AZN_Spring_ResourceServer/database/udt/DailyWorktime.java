@@ -12,11 +12,17 @@ import java.util.Date;
 @UserDefinedType("daily_worktime")
 @RequiredArgsConstructor
 public class DailyWorktime {
+    /**
+     * Date of the day
+     */
     @Setter
     @Getter
     @CassandraType(type = CassandraType.Name.DATE)
     private Date setDate;
 
+    /**
+     * Workday time
+     */
     @Setter
     @Getter
     @Frozen

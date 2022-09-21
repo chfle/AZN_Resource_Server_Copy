@@ -17,7 +17,8 @@ import java.util.UUID;
 @PrimaryKeyClass
 public class UserDataByDateKey implements Serializable {
     /**
-     * Partition Key
+     * user id
+     * @implNote Partition Key
      */
     @PrimaryKeyColumn(name = "user_id", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     @Setter
@@ -25,7 +26,8 @@ public class UserDataByDateKey implements Serializable {
     private UUID user_id;
 
     /**
-     * Cluster Key
+     * date
+     * @implNote Cluster Key
      */
     @PrimaryKeyColumn(name = "set_date", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
     @Setter

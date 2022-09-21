@@ -19,7 +19,9 @@ import java.util.UUID;
 @PrimaryKeyClass
 public class UserByDepartmentKey implements Serializable {
     /**
-     * Partition Key
+     * Department as String -> Enum
+     *
+     * @implNote Partition Key
      */
     @PrimaryKeyColumn(name = " department", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     @CassandraType(type = CassandraType.Name.TEXT)
@@ -28,7 +30,9 @@ public class UserByDepartmentKey implements Serializable {
     private DepartmentEnum department;
 
     /**
-     * Cluster Key
+     * user id
+     *
+     * @implNote Cluster Key
      */
     @PrimaryKeyColumn(name = "user_id", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
     @Setter

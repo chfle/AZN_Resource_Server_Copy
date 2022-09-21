@@ -15,16 +15,25 @@ import java.sql.Timestamp;
 
 @UserDefinedType("day_time")
 public class Daytime {
+    /**
+     * end time
+     */
     @Setter
     @Getter
     @CassandraType(type = CassandraType.Name.TIMESTAMP)
     private Timestamp end;
 
+    /**
+     * Pause total
+     */
     @Setter
     @Getter
     @CassandraType(type = CassandraType.Name.TIME)
     private Time pause;
 
+    /**
+     * Start time
+     */
     @Setter
     @Getter
     @CassandraType(type = CassandraType.Name.TIMESTAMP)

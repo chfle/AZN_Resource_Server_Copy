@@ -14,7 +14,9 @@ import java.sql.Date;
 @PrimaryKeyClass
 public class GeneralVacationKey implements Serializable {
     /**
-     * Partition Key
+     * Vacation Year
+     *
+     * @implNote Partition Key
      */
     @PrimaryKeyColumn(name = "year", ordinal = 0, type = PrimaryKeyType.PARTITIONED)
     @Setter
@@ -22,7 +24,9 @@ public class GeneralVacationKey implements Serializable {
     private int year;
 
     /**
-     * Cluster Key
+     * Vacation day
+     *
+     * @implNote Cluster Key
      */
     @PrimaryKeyColumn(name = "set_date", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
     @CassandraType(type = CassandraType.Name.DATE)

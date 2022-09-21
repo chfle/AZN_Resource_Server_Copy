@@ -11,6 +11,10 @@ import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.sql.Date;
 
+/**
+ * Query user data by date
+ */
+
 @UserDepending
 @Table("user_data_by_date")
 public class UserDataByDate {

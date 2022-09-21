@@ -6,6 +6,12 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.enums;
  * @implNote Add more if you need!
  */
 public enum DepartmentEnum {
+    /**
+     * KBM Bereich
+     */
     KBM,
+    /**
+     * IT Bereich
+     */
     IT
 }

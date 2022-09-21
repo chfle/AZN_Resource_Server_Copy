@@ -12,7 +12,8 @@ import org.springframework.data.cassandra.core.mapping.Table;
 @Table("general_vacation")
 public class GeneralVacation {
     /**
-     * Composite Key
+     * primary key
+     * @implNote Composite Key
      */
     @PrimaryKey
     @Setter
