@@ -23,7 +23,6 @@ import java.util.Map;
         @TypeDef(name = "list-array", typeClass = ListArrayType.class),
         @TypeDef(name = "hstore", typeClass = PostgreSQLHStoreType.class)
 })
-
 public class UserInfo {
     public enum WORKIME {
         END, START, PAUSE
@@ -93,4 +92,13 @@ public class UserInfo {
     @Setter
     @Getter
     private List<Integer> vacationSick = new ArrayList<>();
+
+    @Type(type = "list-array")
+    @Column(
+            name = "school",
+            columnDefinition = "integer[]"
+    )
+    @Setter
+    @Getter
+    private List<Integer> school = new ArrayList<>();
 }

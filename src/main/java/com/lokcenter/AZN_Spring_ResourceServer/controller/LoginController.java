@@ -58,13 +58,6 @@ public class LoginController {
             return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
         }
 
-        // check if not junit
-        if (!JunitHelper.isJUnitTest())  {
-            // only set if user does not exist
-//            if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
-//                userRepository.save(user);
-//            }
-        }
 
        return new ResponseEntity<>(true, HttpStatus.OK);
     }

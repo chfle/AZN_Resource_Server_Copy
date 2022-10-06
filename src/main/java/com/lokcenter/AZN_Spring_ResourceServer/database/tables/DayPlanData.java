@@ -41,6 +41,10 @@ public class DayPlanData {
 
     @Setter
     @Getter
+    private Boolean glaz;
+
+    @Setter
+    @Getter
     @Embedded
     @AttributeOverride(name = "end", column = @Column(name = "worktime_end"))
     @AttributeOverride(name = "pause", column = @Column(name = "worktime_pause"))
