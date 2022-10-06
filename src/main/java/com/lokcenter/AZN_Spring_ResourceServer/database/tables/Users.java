@@ -23,15 +23,9 @@ public class Users{
     private String username;
 
     @Getter
+    @Setter
     @Column(nullable = false)
     private Date firstLogin;
-
-    /* User has one Department */
-    @Setter
-    @ManyToOne
-    @JoinColumn(name = "department_id", nullable = false)
-    @Getter
-    private Department department;
 
     /* User has many requests */
     @Setter

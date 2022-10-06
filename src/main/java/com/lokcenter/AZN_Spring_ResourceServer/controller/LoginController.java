@@ -1,5 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.JunitHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,24 +29,28 @@ import java.util.Map;
 @RequestMapping("/login")
 public class LoginController {
     @Autowired
-//    private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     ResponseEntity<Boolean> postLogin(@RequestBody Map<String, Object> payload) {
-//        User user = new User();
+       Users user = new Users();
 
         try {
             if (payload.containsKey("username") && payload.containsKey("firstLogin")) {
 
                 System.out.println(payload.get("firstLogin"));
-//                user.setUsername((String) payload.get("username"));
+                user.setUsername((String) payload.get("username"));
 
                 // convert back to an utils.date to use sql.date
                 var dateFormat = new SimpleDateFormat("dd/MMM/yyyy");
                 var utilsDate =dateFormat.parse((String)payload.get("firstLogin"));
 
-//                user.setFirstLogin(new java.sql.Date(utilsDate.getTime()));
+                user.setFirstLogin(new java.sql.Date(utilsDate.getTime()));
+
+                // set department
+                // check if department exists is not create it
+
             } else {
                throw new Exception("Bad request");
             }
