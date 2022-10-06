@@ -48,8 +48,10 @@ public class LoginController {
 
                 user.setFirstLogin(new java.sql.Date(utilsDate.getTime()));
 
-                // try to insert user
-                userRepository.save(user);
+                // try to insert user but check if not a junit test
+                if (!JunitHelper.isJUnitTest()) {
+                    userRepository.save(user);
+                }
             } else {
                throw new Exception("Bad request");
             }
