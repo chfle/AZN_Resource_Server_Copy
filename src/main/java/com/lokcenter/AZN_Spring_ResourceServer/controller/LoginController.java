@@ -48,15 +48,14 @@ public class LoginController {
 
                 user.setFirstLogin(new java.sql.Date(utilsDate.getTime()));
 
-                // set department
-                // check if department exists is not create it
-
+                // try to insert user
+                userRepository.save(user);
             } else {
                throw new Exception("Bad request");
             }
         } catch (Exception exception) {
             exception.printStackTrace();
-            return new ResponseEntity<Boolean>(false, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
         }
 
         // check if not junit
