@@ -1,11 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.services;
 
 import lombok.extern.slf4j.Slf4j;
-import net.spy.memcached.AddrUtil;
-import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.MemcachedClient;
-import net.spy.memcached.auth.AuthDescriptor;
-import net.spy.memcached.auth.PlainCallbackHandler;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;

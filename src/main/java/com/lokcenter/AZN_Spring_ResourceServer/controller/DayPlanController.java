@@ -1,6 +1,5 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
-import com.azure.spring.cloud.autoconfigure.aad.implementation.oauth2.AadOAuth2AuthenticatedPrincipal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
@@ -10,11 +9,9 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.AznStrings;
 import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
-import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
@@ -104,7 +101,6 @@ public class DayPlanController {
 
             String name = jwt.getClaim("unique_name");
 
-
             // get userId;
             Optional<Users> user = userRepository.findByUsername(name);
             dayPlanData = getDayPlanDataByUserAndDate(user, askedDate);
@@ -116,11 +112,9 @@ public class DayPlanController {
             }
         }
 
-
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(dayPlanData.orElse(new DayPlanData())
         );
     }
-
 }

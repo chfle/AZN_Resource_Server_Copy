@@ -1,12 +1,11 @@
 package com.lokcenter.AZN_Spring_ResourceServer.helper;
 
-import org.apache.commons.codec.binary.Base16;
-import org.apache.commons.codec.binary.Base32;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.codec.digest.Md5Crypt;
 
-import java.io.*;
-import java.util.Base64;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 /**
  * Strings
