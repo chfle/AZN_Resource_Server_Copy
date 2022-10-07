@@ -8,6 +8,8 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRe
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.AznStrings;
+import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -35,6 +38,9 @@ public class DayPlanController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MemService memService;
     /**
      * Post User date
      * @param data user data
@@ -47,6 +53,37 @@ public class DayPlanController {
         return true;
     }
 
+    private Optional<DayPlanData> getDayPlanDataByUserAndDate(Optional<Users> user, Date date) throws IOException {
+        Optional<DayPlanData> dayPlanData = Optional.empty();
+        boolean cached = false;
+
+        if (user.isPresent()) {
+            var dayPlanDataKey = new DayPlanDataKey(user.get(), date);
+
+            // check if day plan data is in memcached
+            Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
+
+//            if (obj != null) {
+//                dayPlanData = Optional.of((DayPlanData)obj);
+//                cached = true;
+//                System.out.println("found");
+//            } else {
+//                dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
+//            }
+            dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
+        }
+
+
+
+        // cache DayPlanData
+        if (dayPlanData.isPresent() && !cached) {
+            memService.storeKeyValue(AznStrings.toString(
+                    new DayPlanDataKey(dayPlanData.get().getUsers(),
+                            dayPlanData.get().getSetDate())), dayPlanData.get());
+        }
+
+        return dayPlanData;
+    }
     /**
      * Get data by Date and User id
      *
@@ -59,38 +96,28 @@ public class DayPlanController {
     String getDayPlanData(@RequestParam(name = "date", required = true) String date,
                           @RequestParam(name = "role", required = true) String role,
                           @RequestParam(name = "userid", required = false) String userid,  Authentication Auth)
-            throws JsonProcessingException, ParseException {
+            throws IOException, ParseException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
+        Date askedDate = new java.sql.Date(new SimpleDateFormat("dd-MM-yyyy")
+                                               .parse(date).getTime());
         if (userid == null) {
             val authentication = SecurityContextHolder.getContext().getAuthentication();
             AadOAuth2AuthenticatedPrincipal principal = (AadOAuth2AuthenticatedPrincipal) authentication.getPrincipal();
             String name = (String) principal.getClaim("unique_name");
 
+
             // get userId;
             Optional<Users> user = userRepository.findByUsername(name);
-
-            if (user.isPresent()) {
-                       dayPlanData = dayPlanDataRepository
-                               .findById(new DayPlanDataKey(user.get(),
-                                       new java.sql.Date(new SimpleDateFormat("dd-MM-yyyy")
-                                               .parse(date).getTime())));
-
-            }
+            dayPlanData = getDayPlanDataByUserAndDate(user, askedDate);
         } else {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
                 Optional<Users> user = userRepository.findById(Long.valueOf(userid));
-
-                if (user.isPresent()) {
-                    System.out.println(user.get());
-
-                    dayPlanData = dayPlanDataRepository
-                            .findById(new DayPlanDataKey(user.get(),
-                                    new java.sql.Date(new SimpleDateFormat("dd-MM-yyyy").parse(date)
-                                            .getTime())));
-                }
+                dayPlanData = getDayPlanDataByUserAndDate(user, askedDate);
             }
         }
+
+
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(dayPlanData.orElse(new DayPlanData())

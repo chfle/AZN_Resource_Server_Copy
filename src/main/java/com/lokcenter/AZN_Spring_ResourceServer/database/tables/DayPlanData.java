@@ -6,11 +6,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serial;
+import java.io.Serializable;
 import java.sql.Date;
 
 @Entity
 @IdClass(DayPlanDataKey.class)
-public class DayPlanData {
+public class DayPlanData implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     @Id
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false, name = "user_id")

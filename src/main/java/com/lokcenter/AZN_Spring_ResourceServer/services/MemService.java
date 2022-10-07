@@ -40,7 +40,7 @@ public class MemService {
     public void init() throws IOException {
         // connection
         try {
-            MemcachedClient mcc = new MemcachedClient(new InetSocketAddress(address, port));
+            mcc = new MemcachedClient(new InetSocketAddress(address, port));
 
             log.info("Memcached connected");
         } catch (Exception e) {
