@@ -47,6 +47,9 @@ public class DayPlanController {
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data) {
+        // TODO: Get and validate data
+        // TODO: Check if object is in memcached
+        // TODO: if all data is present push data to db
         System.out.println(data.toString());
         return true;
     }
