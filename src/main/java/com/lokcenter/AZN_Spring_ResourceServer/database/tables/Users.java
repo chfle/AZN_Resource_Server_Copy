@@ -35,6 +35,6 @@ public class Users implements Serializable {
     /* User has many requests */
     @Setter
     @Getter
-    @OneToMany(mappedBy = "users")
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "users")
     private Set<Requests> requests;
 }

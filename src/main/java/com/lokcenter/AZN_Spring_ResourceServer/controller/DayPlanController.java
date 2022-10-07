@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -63,14 +64,12 @@ public class DayPlanController {
             // check if day plan data is in memcached
             Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
 
-//            if (obj != null) {
-//                dayPlanData = Optional.of((DayPlanData)obj);
-//                cached = true;
-//                System.out.println("found");
-//            } else {
-//                dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
-//            }
-            dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
+            if (obj != null) {
+                dayPlanData = Optional.of((DayPlanData)obj);
+                cached = true;
+            } else {
+                dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
+            }
         }
 
 
@@ -95,15 +94,15 @@ public class DayPlanController {
     @GetMapping
     String getDayPlanData(@RequestParam(name = "date", required = true) String date,
                           @RequestParam(name = "role", required = true) String role,
-                          @RequestParam(name = "userid", required = false) String userid,  Authentication Auth)
+                          @RequestParam(name = "userid", required = false) String userid,  Authentication auth)
             throws IOException, ParseException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
         Date askedDate = new java.sql.Date(new SimpleDateFormat("dd-MM-yyyy")
                                                .parse(date).getTime());
         if (userid == null) {
-            val authentication = SecurityContextHolder.getContext().getAuthentication();
-            AadOAuth2AuthenticatedPrincipal principal = (AadOAuth2AuthenticatedPrincipal) authentication.getPrincipal();
-            String name = (String) principal.getClaim("unique_name");
+            Jwt jwt = (Jwt) auth.getPrincipal();
+
+            String name = jwt.getClaim("unique_name");
 
 
             // get userId;
