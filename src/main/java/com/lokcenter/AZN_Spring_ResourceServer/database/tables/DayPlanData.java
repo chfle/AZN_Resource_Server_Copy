@@ -55,4 +55,9 @@ public class DayPlanData implements Serializable {
     @AttributeOverride(name = "pause", column = @Column(name = "worktime_pause"))
     @AttributeOverride(name = "start", column = @Column(name = "worktime_start"))
     private DayTime WorkTime;
+
+    @Setter
+    @Getter
+    @Column(columnDefinition = "uuid")
+    private String uuid;
 }

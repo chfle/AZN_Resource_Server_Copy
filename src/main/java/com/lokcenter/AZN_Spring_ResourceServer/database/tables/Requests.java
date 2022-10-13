@@ -31,4 +31,9 @@ public class Requests {
     @Getter
     @Enumerated(EnumType.STRING)
     private RequestTypeEnum type;
+
+    @Setter
+    @Getter
+    @Column(columnDefinition = "uuid")
+    private String uuid;
 }

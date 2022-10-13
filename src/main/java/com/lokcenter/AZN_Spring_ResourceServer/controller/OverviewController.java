@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -12,12 +16,43 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @RequestMapping("/overview")
 public class OverviewController {
     @Autowired
     private GeneralVacationRepository generalVacationRepository;
+
+    @AllArgsConstructor
+    @ToString
+    /*
+     * Converts multiple Calendar classes to a Range.
+     */
+    private abstract class DateRange {
+       @Setter
+       @Getter
+       private Date startDate;
+
+       @Setter
+       @Getter
+       private Date endDate;
+    }
+
+    @ToString
+    class DateRangeComment extends DateRange {
+        @Setter
+        @Getter
+        private String comment;
+        private DateRangeComment(Date startDate, Date endDate) {
+            super(startDate, endDate);
+        }
+
+        public DateRangeComment(Date startDate, Date endDate, String comment) {
+            this(startDate, endDate);
+            this.comment = comment;
+        }
+    }
 
     @ResponseBody
     @GetMapping
@@ -63,7 +98,22 @@ public class OverviewController {
                                 new java.sql.Date(sdf.parse(startDate).getTime()),
                                 new java.sql.Date(sdf.parse(endDate).getTime()));
 
+        // map all general vacation with the same comment
+        Map<String, ArrayList<GeneralVacation>> generalVacationByComment = new HashMap<>();
 
+        for (var gv : generalVacations) {
+            if (generalVacationByComment.containsKey(gv.getComment())) {
+                generalVacationByComment.get(gv.getComment()).add(gv);
+            } else {
+                generalVacationByComment.put(gv.getComment(), new ArrayList<>(List.of(gv)));
+            }
+        }
+
+        List<DateRange> dateRanges = new ArrayList<>();
+
+
+
+        System.out.println(dateRanges);
 
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
