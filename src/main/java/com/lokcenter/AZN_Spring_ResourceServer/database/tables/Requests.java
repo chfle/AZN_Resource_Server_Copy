@@ -6,11 +6,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.sql.Date;
 
 @Entity
 @IdClass(RequestsKey.class)
-public class Requests {
+public class Requests implements Serializable {
     @Id
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
