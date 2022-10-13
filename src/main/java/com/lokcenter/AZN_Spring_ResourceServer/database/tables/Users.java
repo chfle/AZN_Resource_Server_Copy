@@ -3,6 +3,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -11,6 +12,7 @@ import java.sql.Date;
 import java.util.Set;
 
 @Entity
+@ToString
 @NoArgsConstructor
 public class Users implements Serializable {
     @Serial

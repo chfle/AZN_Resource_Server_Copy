@@ -19,4 +19,8 @@ public class RequestsKey implements Serializable {
     @Setter
     @Getter
     private Date startDate;
+
+    @Setter
+    @Getter
+    private Date endDate;
 }

@@ -2,10 +2,13 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,6 +32,9 @@ public class OverviewController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RequestsRepository requestsRepository;
 
     @AllArgsConstructor
     /*
@@ -54,6 +60,19 @@ public class OverviewController {
        @Setter
        @Getter
        private String text;
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DateRange dateRange = (DateRange) o;
+            return Objects.equals(id, dateRange.id);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
     }
 
     static
@@ -76,6 +95,33 @@ public class OverviewController {
         }
     }
 
+    private List<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
+        List<DateRange> rangeData = new ArrayList<>();
+
+       if (user.isPresent()) {
+           // requests stuff
+           Iterable<Requests> requests = requestsRepository.getRequestsByRange(first, last, user.get());
+
+           // convert requests to DataRange
+           for (var r: requests) {
+                String text;
+                Tags tag;
+
+               if (r.getType() == RequestTypeEnum.rGLAZ) {
+                   text = "GLAZ (wartend)";
+                   tag = Tags.rGLAZ;
+               } else {
+                   text = "Urlaub (wartend)";
+                   tag = Tags.rUrlaub;
+               }
+
+               rangeData.add(new DateRangeComment(r.getStartDate(), r.getEndDate(), tag, r.getUuid(), text));
+           }
+       }
+
+
+        return rangeData;
+    }
     @ResponseBody
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
@@ -168,11 +214,14 @@ public class OverviewController {
 
             // get userId;
             Optional<Users> user = userRepository.findByUsername(name);
-
+            dateRanges.addAll(getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+                    new java.sql.Date(sdf.parse(endDate).getTime())));
         } else {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
                 Optional<Users> user = userRepository.findById(Long.valueOf(userid));
+                dateRanges.addAll(getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+                        new java.sql.Date(sdf.parse(endDate).getTime())));
             }
         }
 
