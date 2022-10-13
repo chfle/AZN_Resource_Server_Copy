@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
@@ -25,32 +26,48 @@ public class OverviewController {
     private GeneralVacationRepository generalVacationRepository;
 
     @AllArgsConstructor
-    @ToString
     /*
      * Converts multiple Calendar classes to a Range.
      */
-    private abstract class DateRange {
+    private abstract static class DateRange {
        @Setter
        @Getter
-       private Date startDate;
+       private Date start;
 
        @Setter
        @Getter
-       private Date endDate;
+       private Date end;
+
+       @Setter
+       @Getter
+       private Tags tag;
+
+       @Setter
+       @Getter
+       private String id;
+
+       @Setter
+       @Getter
+       private String text;
     }
 
-    @ToString
+    static
     class DateRangeComment extends DateRange {
         @Setter
         @Getter
         private String comment;
-        private DateRangeComment(Date startDate, Date endDate) {
-            super(startDate, endDate);
+
+        public DateRangeComment(Date start, Date end, Tags tag, String id, String text) {
+            super(start, end, tag, id, text);
         }
 
-        public DateRangeComment(Date startDate, Date endDate, String comment) {
-            this(startDate, endDate);
-            this.comment = comment;
+        @Override
+        public String toString() {
+            return "DateRangeComment{" +
+                    "comment='" + comment + '\'' +
+                    ", startDate=" + this.getStart() +
+                    ", endDate=" + this.getEnd() +
+                    '}';
         }
     }
 
@@ -99,24 +116,43 @@ public class OverviewController {
                                 new java.sql.Date(sdf.parse(endDate).getTime()));
 
         // map all general vacation with the same comment
-        Map<String, ArrayList<GeneralVacation>> generalVacationByComment = new HashMap<>();
+        Map<String, ArrayList<GeneralVacation>> generalVacationByUUID = new HashMap<>();
 
         for (var gv : generalVacations) {
-            if (generalVacationByComment.containsKey(gv.getComment())) {
-                generalVacationByComment.get(gv.getComment()).add(gv);
+            if (generalVacationByUUID.containsKey(gv.getUuid())) {
+                generalVacationByUUID.get(gv.getUuid()).add(gv);
             } else {
-                generalVacationByComment.put(gv.getComment(), new ArrayList<>(List.of(gv)));
+                generalVacationByUUID.put(gv.getUuid(), new ArrayList<>(List.of(gv)));
             }
         }
 
         List<DateRange> dateRanges = new ArrayList<>();
 
-
+        // get min and max date from general vacation
+        for (var gv: generalVacationByUUID.entrySet()) {
+            if (gv.getValue().size() > 1) {
+                dateRanges.add(new DateRangeComment(
+                        gv.getValue().stream().map(GeneralVacation::getDate).min(Date::compareTo).get(),
+                        gv.getValue().stream().map(GeneralVacation::getDate).max(Date::compareTo).get(),
+                        Tags.gUrlaub,
+                        gv.getKey(),
+                        gv.getValue().get(0).getComment()
+                ));
+            } else {
+                dateRanges.add(
+                        new DateRangeComment(gv.getValue().get(0).getDate(),
+                                gv.getValue().get(0).getDate(),
+                                Tags.gUrlaub,
+                                gv.getKey(),
+                                gv.getValue().get(0).getComment()
+                                ));
+            }
+        }
 
         System.out.println(dateRanges);
 
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
-                .writeValueAsString(new DayPlanData());
+                .writeValueAsString(dateRanges);
     }
 }
