@@ -66,12 +66,12 @@ public class OverviewController {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             DateRange dateRange = (DateRange) o;
-            return Objects.equals(id, dateRange.id);
+            return start.equals(dateRange.start);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id);
+            return Objects.hash(start);
         }
     }
 
@@ -95,8 +95,8 @@ public class OverviewController {
         }
     }
 
-    private List<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
-        List<DateRange> rangeData = new ArrayList<>();
+    private Set<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
+        Set<DateRange> rangeData = new HashSet<>();
 
        if (user.isPresent()) {
            // requests stuff
@@ -116,6 +116,9 @@ public class OverviewController {
                }
 
                rangeData.add(new DateRangeComment(r.getStartDate(), r.getEndDate(), tag, r.getUuid(), text));
+
+               // day plan data
+
            }
        }
 
@@ -133,7 +136,7 @@ public class OverviewController {
             @RequestParam(name = "role", required = true) String role,
             @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws JsonProcessingException, ParseException {
 
-        List<DateRange> dateRanges = new ArrayList<>();
+        Set<DateRange> dateRanges = new HashSet<>();
 
         // stop without first and last day
         if (firstDay == null || lastDay == null) {

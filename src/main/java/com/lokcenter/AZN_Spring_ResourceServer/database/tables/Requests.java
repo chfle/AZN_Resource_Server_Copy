@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.RequestsKey;
 import lombok.Getter;
@@ -18,6 +19,7 @@ public class Requests implements Serializable {
     @JoinColumn(name = "user_id", nullable = false)
     @Setter
     @Getter
+    @JsonBackReference
     private Users users;
 
     @Id

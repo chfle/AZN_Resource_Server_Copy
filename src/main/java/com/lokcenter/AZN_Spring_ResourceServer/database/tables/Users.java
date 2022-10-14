@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -38,5 +39,6 @@ public class Users implements Serializable {
     @Setter
     @Getter
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "users")
+    @JsonManagedReference
     private Set<Requests> requests;
 }
