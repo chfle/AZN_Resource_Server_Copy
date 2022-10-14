@@ -4,9 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
@@ -35,6 +38,9 @@ public class OverviewController {
 
     @Autowired
     private RequestsRepository requestsRepository;
+
+    @Autowired
+    private DayPlanDataRepository dayPlanDataRepository;
 
     @AllArgsConstructor
     /*
@@ -95,6 +101,20 @@ public class OverviewController {
         }
     }
 
+    private Map<String, ArrayList<UUIDable>> mapByUUID(Iterable<GeneralVacation> uuiDableCollection) {
+        Map<String, ArrayList<UUIDable>> map = new HashMap<>();
+
+        for (var uuidable : uuiDableCollection) {
+            if (map.containsKey(uuidable.getUuid())) {
+                map.get(uuidable.getUuid()).add(uuidable);
+            } else {
+                map.put(uuidable.getUuid(), new ArrayList<>(List.of(uuidable)));
+            }
+        }
+
+        return map;
+    }
+
     private Set<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
         Set<DateRange> rangeData = new HashSet<>();
 
@@ -118,6 +138,8 @@ public class OverviewController {
                rangeData.add(new DateRangeComment(r.getStartDate(), r.getEndDate(), tag, r.getUuid(), text));
 
                // day plan data
+               Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get());
+
 
            }
        }
@@ -176,38 +198,32 @@ public class OverviewController {
                                 new java.sql.Date(sdf.parse(endDate).getTime()));
 
         // map all general vacation with the same comment
-        Map<String, ArrayList<GeneralVacation>> generalVacationByUUID = new HashMap<>();
+        Map<String, ArrayList<UUIDable>> generalVacationByUUID = mapByUUID(generalVacations);
 
-        for (var gv : generalVacations) {
-            if (generalVacationByUUID.containsKey(gv.getUuid())) {
-                generalVacationByUUID.get(gv.getUuid()).add(gv);
-            } else {
-                generalVacationByUUID.put(gv.getUuid(), new ArrayList<>(List.of(gv)));
-            }
-        }
 
         // get min and max date from general vacation
         for (var gv: generalVacationByUUID.entrySet()) {
             if (gv.getValue().size() > 1) {
                 dateRanges.add(new DateRangeComment(
-                        gv.getValue().stream().map(GeneralVacation::getDate).min(Date::compareTo).get(),
-                        gv.getValue().stream().map(GeneralVacation::getDate).max(Date::compareTo).get(),
+                        gv.getValue().stream().map(uuiDable ->
+                                ((GeneralVacation)uuiDable).getDate()).min(Date::compareTo).get(),
+                        gv.getValue().stream().map(uuiDable ->
+                                ((GeneralVacation)uuiDable).getDate()).max(Date::compareTo).get(),
                         Tags.gUrlaub,
                         gv.getKey(),
-                        gv.getValue().get(0).getComment()
+                        ((GeneralVacation)gv.getValue().get(0)).getComment()
                 ));
             } else {
+                GeneralVacation generalVacation = (GeneralVacation)gv.getValue().get(0);
                 dateRanges.add(
-                        new DateRangeComment(gv.getValue().get(0).getDate(),
-                                gv.getValue().get(0).getDate(),
+                        new DateRangeComment(generalVacation.getDate(),
+                                generalVacation.getDate(),
                                 Tags.gUrlaub,
                                 gv.getKey(),
-                                gv.getValue().get(0).getComment()
+                                generalVacation.getComment()
                                 ));
             }
         }
-
-        System.out.println(dateRanges);
 
         // roles and userid stuff
         if (userid == null) {

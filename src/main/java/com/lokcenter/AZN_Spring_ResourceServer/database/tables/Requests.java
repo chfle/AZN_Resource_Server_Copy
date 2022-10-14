@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.RequestsKey;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +14,7 @@ import java.sql.Date;
 
 @Entity
 @IdClass(RequestsKey.class)
-public class Requests implements Serializable {
+public class Requests implements Serializable, UUIDable {
     @Id
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)

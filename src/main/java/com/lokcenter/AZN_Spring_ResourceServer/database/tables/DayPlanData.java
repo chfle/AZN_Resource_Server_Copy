@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import java.sql.Date;
 
 @Entity
 @IdClass(DayPlanDataKey.class)
-public class DayPlanData implements Serializable {
+public class DayPlanData implements Serializable, UUIDable {
     @Serial
     private static final long serialVersionUID = 1L;
 

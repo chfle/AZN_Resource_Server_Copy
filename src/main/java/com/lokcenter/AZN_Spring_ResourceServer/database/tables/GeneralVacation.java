@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.GeneralVacationKey;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ import java.sql.Date;
 @Entity
 @ToString
 @IdClass(GeneralVacationKey.class)
-public class GeneralVacation {
+public class GeneralVacation implements UUIDable {
     @Id
     @Setter
     @Getter
