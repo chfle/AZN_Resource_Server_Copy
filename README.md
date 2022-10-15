@@ -59,6 +59,7 @@ API-Backend AZN_Spring
 
 * Java 17+
 * Maven 3+
+* PostgreSQL & Memcached
 
 ### Installation
 
@@ -80,7 +81,8 @@ API-Backend AZN_Spring
   - [X] Scopes
   - [ ] DB integration
     - [ ] Memcached support
-    - [ ] Apache Cassandra support 
+      - [X] Save DayplanData on read
+    - [ ] PostgreSQL support
 
 
 ## Collaborators
