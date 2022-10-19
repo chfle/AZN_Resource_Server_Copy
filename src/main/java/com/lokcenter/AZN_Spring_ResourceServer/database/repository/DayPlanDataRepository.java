@@ -11,6 +11,6 @@ import java.sql.Date;
 import java.util.Optional;
 
 public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPlanDataKey> {
-    @Query(value = "select * from day_plan_data where user_id=?1 and (glaz or sick or vacation)", nativeQuery = true)
-    Iterable<DayPlanData> getAllByUserWhereTrue(Users user);
+    @Query(value = "select * from day_plan_data where user_id=?1 and (glaz or sick or vacation) and (set_date between ?2 and ?3)", nativeQuery = true)
+    Iterable<DayPlanData> getAllByUserWhereTrue(Users user, Date startDate, Date endDate);
 }

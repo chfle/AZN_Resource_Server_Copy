@@ -142,7 +142,7 @@ public class OverviewController {
 
 
            // day plan data
-           Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get());
+           Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get(), first, last);
 
            Map<String, ArrayList<UUIDable>> dayPlanMap = mapByUUID(dayPlanDatas);
 
