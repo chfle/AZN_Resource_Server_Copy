@@ -101,7 +101,7 @@ public class OverviewController {
         }
     }
 
-    private Map<String, ArrayList<UUIDable>> mapByUUID(Iterable<GeneralVacation> uuiDableCollection) {
+    private Map<String, ArrayList<UUIDable>> mapByUUID(Iterable<? extends UUIDable> uuiDableCollection) {
         Map<String, ArrayList<UUIDable>> map = new HashMap<>();
 
         for (var uuidable : uuiDableCollection) {
@@ -140,7 +140,31 @@ public class OverviewController {
                // day plan data
                Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get());
 
+               Map<String, ArrayList<UUIDable>> dayPlanMap = mapByUUID(dayPlanDatas);
 
+              // get min and max range from dayPlanData
+               for (var dpv: dayPlanMap.entrySet()) {
+                   if (dpv.getValue().size() > 1) {
+                       rangeData.add(new DateRangeComment(
+                               dpv.getValue().stream().map(uuiDable ->
+                                       ((DayPlanData)uuiDable).getSetDate()).min(Date::compareTo).get(),
+                               dpv.getValue().stream().map(uuiDable ->
+                                       ((DayPlanData)uuiDable).getSetDate()).max(Date::compareTo).get(),
+                               DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)),
+                               dpv.getKey(),
+                               DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)).name()
+                       ));
+                   } else {
+                       DayPlanData  dayPlanData = (DayPlanData)dpv.getValue().get(0);
+                       rangeData.add(
+                               new DateRangeComment(dayPlanData.getSetDate(),
+                                       dayPlanData.getSetDate(),
+                                       DayPlanData.getTag(dayPlanData),
+                                       dpv.getKey(),
+                                       DayPlanData.getTag(dayPlanData).name()
+                               ));
+                   }
+               }
            }
        }
 

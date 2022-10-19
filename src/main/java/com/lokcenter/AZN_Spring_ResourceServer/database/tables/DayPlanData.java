@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
@@ -61,4 +62,21 @@ public class DayPlanData implements Serializable, UUIDable {
     @Getter
     @Column(columnDefinition = "uuid")
     private String uuid;
+
+    @Setter
+    @Getter
+    private Boolean checked;
+
+    public static Tags getTag(DayPlanData dayPlanData) {
+        // NOTE: Priority: 1. Krank 2. Urlaub 3.
+        if (dayPlanData.getSick() != null && dayPlanData.getSick()) {
+            return Tags.Krank;
+        } else if (dayPlanData.getVacation() != null && dayPlanData.getVacation()) {
+            return Tags.Urlaub;
+        } else if (dayPlanData.getGlaz() != null && dayPlanData.getGlaz()) {
+            return Tags.GLAZ;
+        } else {
+            return Tags.Urlaub;
+        }
+    }
 }
