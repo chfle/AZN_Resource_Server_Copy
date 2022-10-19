@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 /**
@@ -34,19 +35,17 @@ public class LoginController {
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     ResponseEntity<Boolean> postLogin(@RequestBody Map<String, Object> payload) {
+        System.out.println(payload);
        Users user = new Users();
 
         try {
-            if (payload.containsKey("username") && payload.containsKey("firstLogin")) {
-
-                System.out.println(payload.get("firstLogin"));
+            if (payload.containsKey("username")) {
                 user.setUsername((String) payload.get("username"));
 
                 // convert back to an utils.date to use sql.date
-                var dateFormat = new SimpleDateFormat("dd/MMM/yyyy");
-                var utilsDate =dateFormat.parse((String)payload.get("firstLogin"));
+                Date currentDate = new Date();
 
-                user.setFirstLogin(new java.sql.Date(utilsDate.getTime()));
+                user.setFirstLogin(new java.sql.Date(currentDate.getTime()));
 
                 // try to insert user but check if not a junit test
                 if (!JunitHelper.isJUnitTest()) {

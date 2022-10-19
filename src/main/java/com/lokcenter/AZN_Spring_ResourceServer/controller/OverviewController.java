@@ -118,14 +118,16 @@ public class OverviewController {
     private Set<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
         Set<DateRange> rangeData = new HashSet<>();
 
+        System.out.println(user.get().getUserId());
+
        if (user.isPresent()) {
            // requests stuff
            Iterable<Requests> requests = requestsRepository.getRequestsByRange(first, last, user.get());
 
            // convert requests to DataRange
            for (var r: requests) {
-                String text;
-                Tags tag;
+               String text;
+               Tags tag;
 
                if (r.getType() == RequestTypeEnum.rGLAZ) {
                    text = "GLAZ (wartend)";
@@ -136,38 +138,38 @@ public class OverviewController {
                }
 
                rangeData.add(new DateRangeComment(r.getStartDate(), r.getEndDate(), tag, r.getUuid(), text));
+           }
 
-               // day plan data
-               Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get());
 
-               Map<String, ArrayList<UUIDable>> dayPlanMap = mapByUUID(dayPlanDatas);
+           // day plan data
+           Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get());
 
-              // get min and max range from dayPlanData
-               for (var dpv: dayPlanMap.entrySet()) {
-                   if (dpv.getValue().size() > 1) {
-                       rangeData.add(new DateRangeComment(
-                               dpv.getValue().stream().map(uuiDable ->
-                                       ((DayPlanData)uuiDable).getSetDate()).min(Date::compareTo).get(),
-                               dpv.getValue().stream().map(uuiDable ->
-                                       ((DayPlanData)uuiDable).getSetDate()).max(Date::compareTo).get(),
-                               DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)),
-                               dpv.getKey(),
-                               DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)).name()
-                       ));
-                   } else {
-                       DayPlanData  dayPlanData = (DayPlanData)dpv.getValue().get(0);
-                       rangeData.add(
-                               new DateRangeComment(dayPlanData.getSetDate(),
-                                       dayPlanData.getSetDate(),
-                                       DayPlanData.getTag(dayPlanData),
-                                       dpv.getKey(),
-                                       DayPlanData.getTag(dayPlanData).name()
-                               ));
-                   }
+           Map<String, ArrayList<UUIDable>> dayPlanMap = mapByUUID(dayPlanDatas);
+
+           // get min and max range from dayPlanData
+           for (var dpv: dayPlanMap.entrySet()) {
+               if (dpv.getValue().size() > 1) {
+                   rangeData.add(new DateRangeComment(
+                           dpv.getValue().stream().map(uuiDable ->
+                                   ((DayPlanData)uuiDable).getSetDate()).min(Date::compareTo).get(),
+                           dpv.getValue().stream().map(uuiDable ->
+                                   ((DayPlanData)uuiDable).getSetDate()).max(Date::compareTo).get(),
+                           DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)),
+                           dpv.getKey(),
+                           DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)).name()
+                   ));
+               } else {
+                   DayPlanData  dayPlanData = (DayPlanData)dpv.getValue().get(0);
+                   rangeData.add(
+                           new DateRangeComment(dayPlanData.getSetDate(),
+                                   dayPlanData.getSetDate(),
+                                   DayPlanData.getTag(dayPlanData),
+                                   dpv.getKey(),
+                                   DayPlanData.getTag(dayPlanData).name()
+                           ));
                }
            }
        }
-
 
         return rangeData;
     }
