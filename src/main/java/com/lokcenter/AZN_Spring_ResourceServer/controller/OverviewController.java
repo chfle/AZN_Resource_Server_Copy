@@ -237,7 +237,7 @@ public class OverviewController {
                                 ((GeneralVacation)uuiDable).getDate()).min(Date::compareTo).get(),
                         gv.getValue().stream().map(uuiDable ->
                                 ((GeneralVacation)uuiDable).getDate()).max(Date::compareTo).get(),
-                        Tags.gUrlaub,
+                        ((GeneralVacation)gv.getValue().get(0)).getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
                         gv.getKey(),
                         ((GeneralVacation)gv.getValue().get(0)).getComment()
                 ));
@@ -246,7 +246,7 @@ public class OverviewController {
                 dateRanges.add(
                         new DateRangeComment(generalVacation.getDate(),
                                 generalVacation.getDate(),
-                                Tags.gUrlaub,
+                                generalVacation.getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
                                 gv.getKey(),
                                 generalVacation.getComment()
                                 ));

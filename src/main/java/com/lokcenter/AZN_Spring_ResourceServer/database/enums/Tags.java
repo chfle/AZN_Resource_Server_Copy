@@ -5,6 +5,7 @@ public enum Tags {
     Krank,
     GLAZ,
     gUrlaub,
+    gFeiertag,
     rUrlaub,
     rGLAZ,
 }

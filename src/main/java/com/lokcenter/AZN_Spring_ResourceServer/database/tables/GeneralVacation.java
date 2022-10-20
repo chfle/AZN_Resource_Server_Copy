@@ -1,15 +1,13 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.GeneralVacationKey;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.IdClass;
+import javax.persistence.*;
 import java.sql.Date;
 
 @Entity
@@ -29,6 +27,11 @@ public class GeneralVacation implements UUIDable {
     @Setter
     @Getter
     private String comment;
+
+    @Setter
+    @Getter
+    @Enumerated(EnumType.STRING)
+    private Tags tag;
 
     @Setter
     @Getter
