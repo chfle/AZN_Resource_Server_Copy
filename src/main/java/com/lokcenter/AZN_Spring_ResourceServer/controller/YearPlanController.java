@@ -2,7 +2,6 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.sql.Time;
+import java.util.Calendar;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -28,13 +29,102 @@ public class YearPlanController {
     @AllArgsConstructor
     @NoArgsConstructor
     private class YearPlan {
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class YearData {
+            /**
+             * Current year
+             */
+            @Setter
+            @Getter
+            private int year;
+
+            // Days
+
+            /**
+             * Workdays from this year
+             */
+            @Setter
+            @Getter
+            private int workDays;
+
+            /**
+             * Sickdays from this year
+             */
+            @Setter
+            @Getter
+            private int sick;
+
+            /**
+             * Vacation days from this year
+             */
+            @Setter
+            @Getter
+            private int vacation;
+
+            /**
+             * glaz days from this year
+             */
+            @Setter
+            @Getter int glaz;
+
+            @Setter
+            @Getter
+            /*
+             * Only from this year example 2013
+             */
+            private Time CurrentYearTotalTimeAccount;
+        }
+        /**
+            Fullname from Microsoft User
+         */
         @Setter
         @Getter
+
         private String FullName;
 
+        /**
+         * Current Worktime from user
+         *
+         * @implNote must be checked with the current date
+         */
         @Setter
         @Getter
         private Time DailyWorkTime;
+
+        @Setter
+        @Getter
+        private Map<Integer, YearData> years;
+
+        @Setter
+        @Getter
+        /*
+         * Total Time from each year
+         */
+        private Time totalTimeaccount;
+
+
+        // Vacation
+        /**
+         * All Vacation Days available
+         */
+        @Setter
+        @Getter
+        private int totalVacationDays;
+
+        /**
+         * Vacation used
+         */
+        @Setter
+        @Getter
+        private int usedVacationDays;
+
+        /**
+         * Vacation from last year
+         */
+        @Setter
+        @Getter
+        private int vacationFromLastYear;
     }
 
     @GetMapping

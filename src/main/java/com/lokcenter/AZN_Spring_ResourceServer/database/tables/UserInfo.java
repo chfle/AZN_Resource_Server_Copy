@@ -3,7 +3,9 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.UserInfoKey;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLHStoreType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -12,6 +14,7 @@ import org.hibernate.annotations.TypeDefs;
 import javax.persistence.*;
 import java.sql.Date;
 import java.sql.Time;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,10 +27,22 @@ import java.util.Map;
         @TypeDef(name = "hstore", typeClass = PostgreSQLHStoreType.class)
 })
 public class UserInfo {
-    public enum WORKIME {
-        END, START, PAUSE
-    }
 
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class WorkTime {
+        @Setter
+        @Getter
+        private Timestamp start;
+
+        @Setter
+        @Getter
+        private Timestamp end;
+
+        @Setter
+        @Getter
+        private Time pause;
+    }
 
     @Id
     @OneToOne(optional = false)
@@ -46,7 +61,7 @@ public class UserInfo {
     @Getter
     @Type(type = "hstore")
     @Column(columnDefinition = "hstore")
-    private Map<Date, Map<WORKIME, Object>> workTime = new HashMap<>();
+    private Map<Date, WorkTime> workTime = new HashMap<>();
 
     @Type(type = "list-array")
     @Column(
