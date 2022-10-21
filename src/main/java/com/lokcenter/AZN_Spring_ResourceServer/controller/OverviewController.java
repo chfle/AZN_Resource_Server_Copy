@@ -304,6 +304,8 @@ public class OverviewController {
     @PostMapping()
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     Boolean postRequests(@RequestBody Map<String, Object> payload, Authentication auth) {
+        System.out.println(payload);
+
         try {
             Jwt jwt = (Jwt) auth.getPrincipal();
             String name = jwt.getClaim("unique_name");
@@ -314,25 +316,28 @@ public class OverviewController {
 
                 request.setUsers(user.get());
 
-                var format = new SimpleDateFormat("dd-MM-yyyy");
+                var format = new SimpleDateFormat("yyyy-MM-dd");
 
                 request.setStartDate(new Date(format.parse((String) payload.get("startDate")).getTime()));
                 request.setEndDate(new Date(format.parse((String) payload.get("endDate")).getTime()));
 
                 switch ((String) payload.get("tag")) {
-                    case "rUrlaub" -> request.setType(RequestTypeEnum.rVacation);
-                    case "rGlaz" -> request.setType(RequestTypeEnum.rGLAZ);
+                    case "rUrlaub" -> request.setType(RequestTypeEnum.rUrlaub);
+                    case "rGLAZ" -> request.setType(RequestTypeEnum.rGLAZ);
                 }
 
                 request.setUuid(UUID.randomUUID());
 
-                //TODO: save to db
+                requestsRepository.insertSave(request);
 
                 return true;
             }
            return false;
 
         } catch (Exception exception) {
+
+            exception.printStackTrace();
+
             return false;
         }
     }
