@@ -175,6 +175,19 @@ public class OverviewController {
 
         return rangeData;
     }
+
+    /**
+     * Get Data from All Databases to get everything to the calendar
+     *
+     * @param firstDay first day from the calendar
+     * @param lastDay last day from the calendar
+     * @param month month to query
+     * @param year year to query
+     * @param role user role
+     * @param userid userid -> Admin role needed
+     * @param auth authentication
+     * @return Requested data as json format
+     */
     @ResponseBody
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
@@ -275,5 +288,17 @@ public class OverviewController {
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(dateRanges);
+    }
+
+
+    /**
+     * Post data from Calendar request
+     * @return Boolean value
+     */
+    @ResponseBody()
+    @PostMapping("/requests")
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    Boolean postRequests() {
+        return true;
     }
 }
