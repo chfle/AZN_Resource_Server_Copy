@@ -27,6 +27,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+/**
+ * OverviewController
+ * <p>
+ * Is responsible for all calendar requests
+ */
 @RestController
 @RequestMapping("/overview")
 public class OverviewController {
@@ -293,12 +298,42 @@ public class OverviewController {
 
     /**
      * Post data from Calendar request
-     * @return Boolean value
+     * @return Boolean value, true if request was successful and false if not.
      */
     @ResponseBody()
-    @PostMapping("/requests")
+    @PostMapping()
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
-    Boolean postRequests() {
-        return true;
+    Boolean postRequests(@RequestBody Map<String, Object> payload, Authentication auth) {
+        try {
+            Jwt jwt = (Jwt) auth.getPrincipal();
+            String name = jwt.getClaim("unique_name");
+            Optional<Users> user = userRepository.findByUsername(name);
+
+            if (user.isPresent()) {
+                var request = new Requests();
+
+                request.setUsers(user.get());
+
+                var format = new SimpleDateFormat("dd-MM-yyyy");
+
+                request.setStartDate(new Date(format.parse((String) payload.get("startDate")).getTime()));
+                request.setEndDate(new Date(format.parse((String) payload.get("endDate")).getTime()));
+
+                switch ((String) payload.get("tag")) {
+                    case "rUrlaub" -> request.setType(RequestTypeEnum.rVacation);
+                    case "rGlaz" -> request.setType(RequestTypeEnum.rGLAZ);
+                }
+
+                request.setUuid(String.valueOf(UUID.randomUUID()));
+
+                //TODO: save to db
+
+                return true;
+            }
+           return false;
+
+        } catch (Exception exception) {
+            return false;
+        }
     }
 }
