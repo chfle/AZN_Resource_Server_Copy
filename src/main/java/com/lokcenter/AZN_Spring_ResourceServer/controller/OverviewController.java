@@ -66,7 +66,7 @@ public class OverviewController {
 
        @Setter
        @Getter
-       private String id;
+       private UUID id;
 
        @Setter
        @Getter
@@ -92,7 +92,7 @@ public class OverviewController {
         @Getter
         private String comment;
 
-        public DateRangeComment(Date start, Date end, Tags tag, String id, String text) {
+        public DateRangeComment(Date start, Date end, Tags tag, java.util.UUID id, String text) {
             super(start, end, tag, id, text);
         }
 
@@ -106,8 +106,8 @@ public class OverviewController {
         }
     }
 
-    private Map<String, ArrayList<UUIDable>> mapByUUID(Iterable<? extends UUIDable> uuiDableCollection) {
-        Map<String, ArrayList<UUIDable>> map = new HashMap<>();
+    private Map<UUID, ArrayList<UUIDable>> mapByUUID(Iterable<? extends UUIDable> uuiDableCollection) {
+        Map<UUID, ArrayList<UUIDable>> map = new HashMap<>();
 
         for (var uuidable : uuiDableCollection) {
             if (map.containsKey(uuidable.getUuid())) {
@@ -149,7 +149,7 @@ public class OverviewController {
            // day plan data
            Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get(), first, last);
 
-           Map<String, ArrayList<UUIDable>> dayPlanMap = mapByUUID(dayPlanDatas);
+           Map<UUID, ArrayList<UUIDable>> dayPlanMap = mapByUUID(dayPlanDatas);
 
            // get min and max range from dayPlanData
            for (var dpv: dayPlanMap.entrySet()) {
@@ -244,7 +244,7 @@ public class OverviewController {
                                 new java.sql.Date(sdf.parse(endDate).getTime()));
 
         // map all general vacation with the same comment
-        Map<String, ArrayList<UUIDable>> generalVacationByUUID = mapByUUID(generalVacations);
+        Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = mapByUUID(generalVacations);
 
 
         // get min and max date from general vacation
@@ -324,7 +324,7 @@ public class OverviewController {
                     case "rGlaz" -> request.setType(RequestTypeEnum.rGLAZ);
                 }
 
-                request.setUuid(String.valueOf(UUID.randomUUID()));
+                request.setUuid(UUID.randomUUID());
 
                 //TODO: save to db
 

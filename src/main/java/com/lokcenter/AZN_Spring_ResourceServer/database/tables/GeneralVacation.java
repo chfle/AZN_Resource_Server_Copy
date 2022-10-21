@@ -9,6 +9,7 @@ import lombok.ToString;
 
 import javax.persistence.*;
 import java.sql.Date;
+import java.util.UUID;
 
 @Entity
 @ToString
@@ -36,5 +37,5 @@ public class GeneralVacation implements UUIDable {
     @Setter
     @Getter
     @Column(columnDefinition = "uuid")
-    private String uuid;
+    private UUID uuid;
 }

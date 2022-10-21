@@ -11,6 +11,7 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.sql.Date;
+import java.util.UUID;
 
 @Entity
 @IdClass(RequestsKey.class)
@@ -41,5 +42,5 @@ public class Requests implements Serializable, UUIDable {
     @Setter
     @Getter
     @Column(columnDefinition = "uuid")
-    private String uuid;
+    private UUID uuid;
 }
