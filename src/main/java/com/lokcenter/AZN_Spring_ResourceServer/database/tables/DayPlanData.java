@@ -1,11 +1,14 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.LazyToOne;
+import org.hibernate.annotations.LazyToOneOption;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -19,16 +22,24 @@ public class DayPlanData implements Serializable, UUIDable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Id
-    @ManyToOne(optional = false)
-    @JoinColumn(nullable = false, name = "user_id")
+    @LazyToOne(LazyToOneOption.NO_PROXY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @Setter
     @Getter
+    @JsonBackReference
     private Users users;
 
     @Id
     @Setter
     @Getter
+    @Column(name = "user_id")
+    Long userId;
+
+    @Id
+    @Setter
+    @Getter
+    @Column(name = "set_date")
     private Date setDate;
 
     @Setter

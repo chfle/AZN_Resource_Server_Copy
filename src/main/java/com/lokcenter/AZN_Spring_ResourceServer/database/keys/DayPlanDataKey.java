@@ -6,21 +6,22 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class DayPlanDataKey implements Serializable {
-    @Serial
-    private static final long serialVersionUID = 2L;
+    @Setter
+    @Getter
+    @Column(name = "user_id")
+    private Long userId;
 
     @Setter
     @Getter
-    private Users users;
-
-    @Setter
-    @Getter
+    @Column(name = "set_date")
     private Date setDate;
 }

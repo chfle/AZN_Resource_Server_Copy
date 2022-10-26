@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,6 +11,7 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -38,7 +40,13 @@ public class Users implements Serializable {
     /* User has many requests */
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "users")
+    @OneToMany(fetch = FetchType.EAGER)
     @JsonManagedReference
-    private Set<Requests> requests;
+    private Set<Requests> requests = new HashSet<>();
+
+    @Setter
+    @Getter
+    @OneToMany(cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private Set<DayPlanData> dayPlanData = new HashSet<>();
 }
