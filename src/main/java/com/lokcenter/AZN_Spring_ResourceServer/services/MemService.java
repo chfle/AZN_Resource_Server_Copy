@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.services;
 
 import lombok.extern.slf4j.Slf4j;
 import net.spy.memcached.MemcachedClient;
+import net.spy.memcached.internal.OperationCompletionListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -64,4 +65,12 @@ public class MemService {
     public Object getKeyValue(String key) {
         return mcc.get(key);
     }
+
+    public void deleteKeyValue(String key, OperationCompletionListener listener) {
+        mcc.delete(key).addListener(listener);
+    }
+    public void deleteKeyValue(String key) {
+        mcc.delete(key);
+    }
+
 }

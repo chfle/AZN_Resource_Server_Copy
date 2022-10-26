@@ -50,6 +50,25 @@ public class DayPlanController {
      * @return boolean
      */
 
+     Optional<DayTime> setDayTime(Map<String, Object> data) {
+         Optional<DayTime> optionalDateTime = Optional.empty();
+         SimpleDateFormat sdf = new SimpleDateFormat("k:m");
+
+        try {
+            DayTime dayTime = new DayTime();
+
+            dayTime.setStart(new Time(sdf.parse((String)data.get("start_time")).getTime()));
+            dayTime.setEnd(new Time(sdf.parse((String)data.get("end_time")).getTime()));
+            dayTime.setPause(new Time(sdf.parse((String)data.get("pause")).getTime()));
+
+            optionalDateTime = Optional.of(dayTime);
+        }catch (Exception ignore) {
+
+        }
+
+        return optionalDateTime;
+    }
+
     boolean validDayPlanData(Map<String, Object> data) {
         try {
             // check if the following things are present
@@ -70,6 +89,7 @@ public class DayPlanController {
 
             // current date
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            SimpleDateFormat sdf = new SimpleDateFormat("k:m");
             Date d = new Date(simpleDateFormat.parse((String)data.get("date")).getTime());
 
             if (user.isPresent()) {
@@ -99,7 +119,20 @@ public class DayPlanController {
                     Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
 
                     if (obj != null) {
+                        var cachedDayPlanData = (DayPlanData)obj;
 
+                        // check if post data is valid
+                        if (validDayPlanData(data)) {
+                            // change time
+                            Optional<DayTime> dayTime = setDayTime(data);
+
+                            cachedDayPlanData.setWorkTime(dayTime.get());
+
+                            optionalDayPlanData = Optional.of(cachedDayPlanData);
+
+                            // delete invalid cached data
+                            memService.deleteKeyValue(AznStrings.toString((dayPlanDataKey)));
+                        }
                     } else {
                            ObjectMapper objectMapper = new ObjectMapper();
                             //if all properties are not in class use this
@@ -110,7 +143,6 @@ public class DayPlanController {
                             dayPlanData.setSetDate(d);
                             dayPlanData.setUsers(user.get());
 
-                            SimpleDateFormat sdf = new SimpleDateFormat("k:m");
                         // save to memcached if data is not valid
                         if (!validDayPlanData(data)) {
                             // set time
@@ -132,13 +164,8 @@ public class DayPlanController {
                             memService.storeKeyValue(AznStrings.toString(dayPlanDataKey), dayPlanData);
                         } else {
                             // create valid data object
-                            DayTime dayTime = new DayTime();
 
-                            dayTime.setStart(new Time(sdf.parse((String)data.get("start_time")).getTime()));
-                            dayTime.setEnd(new Time(sdf.parse((String)data.get("end_time")).getTime()));
-                            dayTime.setPause(new Time(sdf.parse((String)data.get("pause")).getTime()));
-
-                            dayPlanData.setWorkTime(dayTime);
+                            dayPlanData.setWorkTime(setDayTime(data).get());
 
                             optionalDayPlanData = Optional.of(dayPlanData);
                         }
@@ -181,8 +208,6 @@ public class DayPlanController {
                 dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
             }
         }
-
-
 
         // cache DayPlanData
         if (dayPlanData.isPresent() && !cached) {
