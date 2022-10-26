@@ -1,12 +1,14 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.AznStrings;
 import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
 import net.bytebuddy.build.Plugin;
@@ -18,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.sql.Date;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -45,6 +49,17 @@ public class DayPlanController {
      * @param data user data
      * @return boolean
      */
+
+    boolean validDayPlanData(Map<String, Object> data) {
+        try {
+            // check if the following things are present
+            return ((String) data.get("start_time")).trim().length() != 0
+                    && ((String) data.get("end_time")).trim().length() != 0
+                    && ((String) data.get("pause")).trim().length() != 0;
+        }catch (Exception ignore) {
+            return false;
+        }
+    }
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data, Authentication auth) {
@@ -75,25 +90,78 @@ public class DayPlanController {
 
                     optionalDayPlanData = Optional.of(dpd);
                 } else {
-                    // get all data
                     // check if we have something in memcached
+                    DayPlanDataKey dayPlanDataKey = new DayPlanDataKey();
 
-                    // if all important fields are filled -> push to postgres
+                    dayPlanDataKey.setSetDate(d);
+                    dayPlanDataKey.setUserId(user.get().getUserId());
+
+                    Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
+
+                    if (obj != null) {
+
+                    } else {
+                           ObjectMapper objectMapper = new ObjectMapper();
+                            //if all properties are not in class use this
+                            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                            DayPlanData dayPlanData = objectMapper.convertValue(data, DayPlanData.class);
+
+                            dayPlanData.setUserId(user.get().getUserId());
+                            dayPlanData.setSetDate(d);
+                            dayPlanData.setUsers(user.get());
+
+                            SimpleDateFormat sdf = new SimpleDateFormat("k:m");
+                        // save to memcached if data is not valid
+                        if (!validDayPlanData(data)) {
+                            // set time
+                            DayTime dayTime = new DayTime();
+
+                            dayTime.setStart(((String)data.get("start_time")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String)data.get("start_time")).getTime()));
+
+                            dayTime.setEnd(((String)data.get("end_time")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String)data.get("end_time")).getTime()));
+
+                            dayTime.setPause(((String)data.get("pause")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String)data.get("pause")).getTime()));
+
+
+                            dayPlanData.setWorkTime(dayTime);
+
+                            // save data to memcached
+                            memService.storeKeyValue(AznStrings.toString(dayPlanDataKey), dayPlanData);
+                        } else {
+                            // create valid data object
+                            DayTime dayTime = new DayTime();
+
+                            dayTime.setStart(new Time(sdf.parse((String)data.get("start_time")).getTime()));
+                            dayTime.setEnd(new Time(sdf.parse((String)data.get("end_time")).getTime()));
+                            dayTime.setPause(new Time(sdf.parse((String)data.get("pause")).getTime()));
+
+                            dayPlanData.setWorkTime(dayTime);
+
+                            optionalDayPlanData = Optional.of(dayPlanData);
+                        }
+                    }
+
                 }
 
                 // check if Dayplan Data is valid
-                optionalDayPlanData.ifPresent(dayPlanData -> dayPlanDataRepository.save(dayPlanData));
+               if (optionalDayPlanData.isPresent()) {
+                    dayPlanDataRepository.save(optionalDayPlanData.get());
+                    return true;
+               }
+
+              return false;
             }
 
         } catch (Exception exception) {
             exception.printStackTrace();
+
+            return false;
         }
 
-        // TODO: Get and validate data
-        // TODO: Check if object is in memcached
-        // TODO: if all data is present push data to db
-        System.out.println(data.toString());
-        return true;
+        return false;
     }
 
     private Optional<DayPlanData> getDayPlanDataByUserAndDate(Optional<Users> user, Date date) throws IOException {

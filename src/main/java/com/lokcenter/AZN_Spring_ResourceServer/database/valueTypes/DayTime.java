@@ -8,18 +8,19 @@ import lombok.Setter;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.sql.Time;
 import java.sql.Timestamp;
 
 @Embeddable
 @AllArgsConstructor
 @NoArgsConstructor
-public class DayTime {
+public class DayTime implements Serializable {
     @NotNull
     @Column(nullable = false)
     @Setter
     @Getter
-    private Timestamp end;
+    private Time end;
 
     @Setter
     @Getter
@@ -31,5 +32,5 @@ public class DayTime {
     @Column(nullable = false)
     @Setter
     @Getter
-    private Timestamp start;
+    private Time start;
 }

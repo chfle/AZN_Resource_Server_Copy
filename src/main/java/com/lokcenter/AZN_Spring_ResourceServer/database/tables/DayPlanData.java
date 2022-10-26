@@ -91,4 +91,16 @@ public class DayPlanData implements Serializable, UUIDable {
             return Tags.Urlaub;
         }
     }
+
+    @Override
+    public String toString() {
+        return "DayPlanData{" +
+                "comment='" + comment + '\'' +
+                ", sick=" + sick +
+                ", school=" + school +
+                ", vacation=" + vacation +
+                ", glaz=" + glaz +
+                ", WorkTime=" + WorkTime +
+                '}';
+    }
 }
