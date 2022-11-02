@@ -19,7 +19,7 @@ import java.net.InetSocketAddress;
 
 @Service
 @Slf4j
-@Profile("dev")
+@Profile({ "dev" })
 public class MemService {
     @Value("${memcached.port}")
     private int port;

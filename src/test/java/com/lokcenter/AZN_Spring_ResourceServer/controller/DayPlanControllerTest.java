@@ -1,11 +1,13 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -24,6 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class DayPlanControllerTest {
     @Autowired
     private MockMvc mvc;
+
+    @MockBean
+    private MemService memService;
 
     private static final MediaType APPLICATION_JSON_UTF8 =
             new MediaType(MediaType.APPLICATION_JSON.getType(), MediaType.APPLICATION_JSON.getSubtype(),
