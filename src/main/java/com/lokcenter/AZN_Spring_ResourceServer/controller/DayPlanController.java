@@ -5,13 +5,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.AznStrings;
 import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
-import net.bytebuddy.build.Plugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.Time;
-import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
@@ -38,6 +38,9 @@ import java.util.Optional;
 public class DayPlanController {
     @Autowired
     private DayPlanDataRepository dayPlanDataRepository;
+
+    @Autowired
+    private GeneralVacationRepository generalVacationRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -69,6 +72,12 @@ public class DayPlanController {
         return optionalDateTime;
     }
 
+    /**
+     * Validate dayplan data time values
+     * @param data dayplan data
+     *
+     * @implNote Incorrect time will not be checked (only empty fields)
+     */
     boolean validDayPlanData(Map<String, Object> data) {
         try {
             // check if the following things are present
@@ -108,6 +117,9 @@ public class DayPlanController {
                     dpd.setUserId(user.get().getUserId());
                     dpd.setSetDate(d);
 
+                    // set dayplan data to valid
+                    dpd.setValid(true);
+
                     optionalDayPlanData = Optional.of(dpd);
                 } else {
                     // check if we have something in memcached
@@ -127,6 +139,9 @@ public class DayPlanController {
                             Optional<DayTime> dayTime = setDayTime(data);
 
                             cachedDayPlanData.setWorkTime(dayTime.get());
+
+                            // mark dayplan as valid
+                            cachedDayPlanData.setValid(true);
 
                             optionalDayPlanData = Optional.of(cachedDayPlanData);
 
@@ -160,6 +175,9 @@ public class DayPlanController {
 
                             dayPlanData.setWorkTime(dayTime);
 
+                            // mark dayplan data as not valid
+                            dayPlanData.setValid(false);
+
                             // save data to memcached
                             memService.storeKeyValue(AznStrings.toString(dayPlanDataKey), dayPlanData);
                         } else {
@@ -167,6 +185,8 @@ public class DayPlanController {
 
                             dayPlanData.setWorkTime(setDayTime(data).get());
 
+                            // mark dayplan data as valid
+                            dayPlanData.setValid(true);
                             optionalDayPlanData = Optional.of(dayPlanData);
                         }
                     }
@@ -174,7 +194,7 @@ public class DayPlanController {
                 }
 
                 // check if Dayplan Data is valid
-               if (optionalDayPlanData.isPresent()) {
+               if (optionalDayPlanData.isPresent() && optionalDayPlanData.get().isValid()) {
                     dayPlanDataRepository.save(optionalDayPlanData.get());
                     return true;
                }
@@ -198,14 +218,31 @@ public class DayPlanController {
         if (user.isPresent()) {
             var dayPlanDataKey = new DayPlanDataKey(user.get().getUserId(), date);
 
-            // check if day plan data is in memcached
-            Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
 
-            if (obj != null) {
-                dayPlanData = Optional.of((DayPlanData)obj);
-                cached = true;
-            } else {
+            // check general vacation for requested day
+            Optional<GeneralVacation> optionalGeneralVacation = generalVacationRepository.getGeneralVacationByDate(date);
+
+            if (optionalGeneralVacation.isPresent()) {
+                // get current dayplan data
                 dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
+
+                if (dayPlanData.isPresent()) {
+                  switch (optionalGeneralVacation.get().getTag()) {
+                      case gUrlaub -> dayPlanData.get().setVacation(true);
+                      case gFeiertag -> dayPlanData.get().setHoliday(true);
+                  }
+                }
+
+            } else {
+                // check if day plan data is in memcached
+                Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
+
+                if (obj != null) {
+                    dayPlanData = Optional.of((DayPlanData) obj);
+                    cached = true;
+                } else {
+                    dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
+                }
             }
         }
 

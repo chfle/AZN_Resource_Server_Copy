@@ -62,6 +62,16 @@ public class DayPlanData implements Serializable, UUIDable {
     @Getter
     private Boolean glaz;
 
+    /**
+     * Holiday should be queried by general vacation
+     *
+     * @implNote holiday should not be pushed to the database
+     */
+    @Setter
+    @Getter
+    @Transient
+    private Boolean holiday;
+
     @Setter
     @Getter
     @Embedded
@@ -78,6 +88,16 @@ public class DayPlanData implements Serializable, UUIDable {
     @Setter
     @Getter
     private Boolean checked;
+
+    /**
+     * isValid will be used to check if a dayplan is valid or not
+     *
+     * @implNote: This field should not be included in any database table
+     */
+    @Setter
+    @Getter
+    @Transient
+    private boolean isValid;
 
     public static Tags getTag(DayPlanData dayPlanData) {
         // NOTE: Priority: 1. Krank 2. Urlaub 3.
