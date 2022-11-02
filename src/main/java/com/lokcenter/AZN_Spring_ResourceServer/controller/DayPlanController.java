@@ -88,6 +88,10 @@ public class DayPlanController {
             return false;
         }
     }
+
+    Boolean isGeneralVacationDay(Date date) {
+        return generalVacationRepository.getGeneralVacationByDate(date).isPresent();
+    }
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data, Authentication auth) {
@@ -106,13 +110,13 @@ public class DayPlanController {
                 Optional<DayPlanData> optionalDayPlanData = Optional.empty();
                 // see if user has some checked values for this day
                 // if glaz, school, sick, vacation is checked ignore all time values
-                if ((Boolean)data.get("school") || (Boolean)data.get("sick") || (Boolean)data.get("vacation") || (Boolean)data.get("glaz")) {
+                if ((Boolean) data.get("school") || (Boolean) data.get("sick") || (Boolean) data.get("vacation") || (Boolean) data.get("glaz")) {
                     var dpd = new DayPlanData();
 
-                    dpd.setGlaz((Boolean)data.get("glaz"));
-                    dpd.setSick((Boolean)data.get("sick"));
-                    dpd.setVacation((Boolean)data.get("vacation"));
-                    dpd.setSchool((Boolean)data.get("school"));
+                    dpd.setGlaz((Boolean) data.get("glaz"));
+                    dpd.setSick((Boolean) data.get("sick"));
+                    dpd.setVacation((Boolean) data.get("vacation"));
+                    dpd.setSchool((Boolean) data.get("school"));
                     dpd.setUsers(user.get());
                     dpd.setUserId(user.get().getUserId());
                     dpd.setSetDate(d);
@@ -121,7 +125,10 @@ public class DayPlanController {
                     dpd.setValid(true);
 
                     optionalDayPlanData = Optional.of(dpd);
-                } else {
+                    // if day is in general vacation dayplan data should be ignored and not pushed
+                } else if (isGeneralVacationDay(d)){
+                    optionalDayPlanData = Optional.empty();
+                }else {
                     // check if we have something in memcached
                     DayPlanDataKey dayPlanDataKey = new DayPlanDataKey();
 
@@ -223,16 +230,18 @@ public class DayPlanController {
             Optional<GeneralVacation> optionalGeneralVacation = generalVacationRepository.getGeneralVacationByDate(date);
 
             if (optionalGeneralVacation.isPresent()) {
-                // get current dayplan data
-                dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
+                    var dpdTemp = new DayPlanData();
 
-                if (dayPlanData.isPresent()) {
+                    // must be set for later usage
+                    dpdTemp.setSetDate(date);
+                    dpdTemp.setUsers(user.get());
+                    dpdTemp.setUserId(dayPlanDataKey.getUserId());
+
                   switch (optionalGeneralVacation.get().getTag()) {
-                      case gUrlaub -> dayPlanData.get().setVacation(true);
-                      case gFeiertag -> dayPlanData.get().setHoliday(true);
+                      case gUrlaub -> dpdTemp.setVacation(true);
+                      case gFeiertag -> dpdTemp.setHoliday(true);
                   }
-                }
-
+                  dayPlanData = Optional.of(dpdTemp);
             } else {
                 // check if day plan data is in memcached
                 Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
