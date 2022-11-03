@@ -1,7 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.lokcenter.AZN_Spring_ResourceServer.database.keys.UserInfoKey;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLHStoreType;
 import lombok.AllArgsConstructor;
@@ -13,6 +12,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import java.lang.reflect.Field;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -20,7 +20,7 @@ import java.time.Year;
 import java.util.HashMap;
 import java.util.Map;
 
-@IdClass(UserInfoKey.class)
+
 @Entity
 @TypeDefs({
         @TypeDef(name = "list-array", typeClass = ListArrayType.class),
@@ -46,17 +46,11 @@ public class UserInfo {
 
     @LazyToOne(LazyToOneOption.NO_PROXY)
     @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @Setter
     @Getter
     @JsonBackReference
     private Users users;
-
-    @Id
-    @Setter
-    @Getter
-    @Column(name = "user_id")
-    Long userId;
 
     @Id
     @Setter
@@ -144,4 +138,29 @@ public class UserInfo {
     @Setter
     @Getter
     private Map<Year, Integer> school = new HashMap<>();
+
+    public Map<Year, Map<String, Object>> yearToMap() {
+        Map<Year, Map<String, Object>> resultMap = new HashMap<>();
+
+        for (Field field: this.getClass().getDeclaredFields()) {
+            System.out.println(field.getName());
+            if (field.getType() == Map.class) {
+
+               try {
+                   for (var entry: ((HashMap<String, Object>)field.get(this)).entrySet()) {
+                      if (resultMap.containsKey(Year.of(Integer.parseInt(entry.getKey())))) {
+                          resultMap.get(Year.of(Integer.parseInt(entry.getKey()))).put(field.getName(), entry.getValue());
+                      } else {
+                         resultMap.put(Year.of(Integer.parseInt(entry.getKey())), new HashMap<>(Map.of(field.getName(), entry.getValue())));
+                      }
+
+                   }
+               }catch (Exception exception){
+                   exception.printStackTrace();
+               }
+            }
+        }
+
+        return resultMap;
+    }
 }
