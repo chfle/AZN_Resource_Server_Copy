@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.UserInfoKey;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLHStoreType;
@@ -7,17 +8,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.CascadeType;
+import javax.persistence.Entity;
 import java.sql.Date;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.time.Year;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @IdClass(UserInfoKey.class)
@@ -44,12 +44,19 @@ public class UserInfo {
         private Time pause;
     }
 
-    @Id
-    @OneToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
+    @LazyToOne(LazyToOneOption.NO_PROXY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @Setter
     @Getter
+    @JsonBackReference
     private Users users;
+
+    @Id
+    @Setter
+    @Getter
+    @Column(name = "user_id")
+    Long userId;
 
     @Id
     @Setter
@@ -57,63 +64,84 @@ public class UserInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userinfoId;
 
+    /**
+     * Work time -> Start Date and the Worktime
+     */
     @Setter
     @Getter
     @Type(type = "hstore")
     @Column(columnDefinition = "hstore")
     private Map<Date, WorkTime> workTime = new HashMap<>();
 
-    @Type(type = "list-array")
+    /**
+     * A Java Map with Year and available Vacation for each year
+     */
+    @Type(type = "hstore")
     @Column(
             name = "available_vacation" ,
-            columnDefinition = "integer[]"
+            columnDefinition = "hstore"
     )
     @Setter
     @Getter
-    private List<Integer> availableVacation = new ArrayList<>();
+    private Map<Year, Integer> availableVacation = new HashMap<>();
 
-    @Type(type = "list-array")
+    /**
+     * A Java Map with Year and balance time for each year
+     */
+    @Type(type = "hstore")
     @Column(
             name = "balance_time",
-            columnDefinition = "time[]"
+            columnDefinition = "hstore"
     )
     @Setter
     @Getter
-    private List<Time> balanceTime = new ArrayList<>();
+    private Map<Year, Time> balanceTime = new HashMap<>();
 
-    @Type(type = "list-array")
+    /**
+     * A Java Map with Year and glaz days for each year
+     */
+    @Type(type = "hstore")
     @Column(
             name = "glaz_days" ,
-            columnDefinition = "integer[]"
+            columnDefinition = "hstore"
     )
     @Setter
     @Getter
-    private List<Integer> glazDays = new ArrayList<>();
+    private Map<Year, Integer> glazDays = new HashMap<>();
 
-    @Type(type = "list-array")
+    /**
+     * A Java Map with Year and sick days for each year
+     */
+    @Type(type = "hstore")
     @Column(
             name = "sick_days" ,
-            columnDefinition = "integer[]"
+            columnDefinition = "hstore"
     )
     @Setter
     @Getter
-    private List<Integer> SickDays = new ArrayList<>();
+    private Map<Year, Integer> SickDays = new HashMap<>();
 
-    @Type(type = "list-array")
+    /**
+     * A Java Map with Year and vacation sick days for each year
+     */
+    @Type(type = "hstore")
     @Column(
             name = "vacation_sick" ,
-            columnDefinition = "integer[]"
+            columnDefinition = "hstore"
     )
     @Setter
     @Getter
-    private List<Integer> vacationSick = new ArrayList<>();
+    private Map<Year, Integer> vacationSick = new HashMap<>();
 
-    @Type(type = "list-array")
+    /**
+     * A Java Map with Year and school days for each year
+     */
+    @Type(type = "hstore")
     @Column(
             name = "school",
-            columnDefinition = "integer[]"
+            columnDefinition = "hstore"
     )
     @Setter
     @Getter
-    private List<Integer> school = new ArrayList<>();
+    private Map<Year, Integer> school = new HashMap<>();
 }

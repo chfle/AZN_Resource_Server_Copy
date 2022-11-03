@@ -1,7 +1,10 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.keys.UserInfoKey;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,55 +29,16 @@ public class YearPlanController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserInfoRepository userInfoRepository;
+
+    /**
+     * Store all needed Year Plan Data
+     */
     @AllArgsConstructor
     @NoArgsConstructor
-    private class YearPlan {
-        @AllArgsConstructor
-        @NoArgsConstructor
-        public static class YearData {
-            /**
-             * Current year
-             */
-            @Setter
-            @Getter
-            private int year;
+    private static class YearPlan {
 
-            // Days
-
-            /**
-             * Workdays from this year
-             */
-            @Setter
-            @Getter
-            private int workDays;
-
-            /**
-             * Sickdays from this year
-             */
-            @Setter
-            @Getter
-            private int sick;
-
-            /**
-             * Vacation days from this year
-             */
-            @Setter
-            @Getter
-            private int vacation;
-
-            /**
-             * glaz days from this year
-             */
-            @Setter
-            @Getter int glaz;
-
-            @Setter
-            @Getter
-            /*
-             * Only from this year example 2013
-             */
-            private Time CurrentYearTotalTimeAccount;
-        }
         /**
             Fullname from Microsoft User
          */
@@ -101,7 +65,7 @@ public class YearPlanController {
         /*
          * Total Time from each year
          */
-        private Time totalTimeaccount;
+        private Time totalTimeAccount;
 
 
         // Vacation
@@ -127,12 +91,60 @@ public class YearPlanController {
         private int vacationFromLastYear;
     }
 
+    /**
+     * Store Year Data for each year
+     */
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class YearData {
+        /**
+         * Current year
+         */
+        @Setter
+        @Getter
+        private int year;
+
+        // Days
+
+        /**
+         * Workdays from this year
+         */
+        @Setter
+        @Getter
+        private int workDays;
+
+        /**
+         * Sickdays from this year
+         */
+        @Setter
+        @Getter
+        private int sick;
+
+        /**
+         * Vacation days from this year
+         */
+        @Setter
+        @Getter
+        private int vacation;
+
+        /**
+         * glaz days from this year
+         */
+        @Setter
+        @Getter int glaz;
+
+        @Setter
+        @Getter
+        /*
+         * Only from this year example 2013
+         */
+        private Time CurrentYearTotalTimeAccount;
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     String getYearPlanByUser(Authentication auth) throws Exception {
         Jwt jwt = (Jwt) auth.getPrincipal();
-
-
         String name = jwt.getClaim("unique_name");
 
         // get userId;
@@ -141,6 +153,13 @@ public class YearPlanController {
         if (user.isPresent()) {
             // get realname from user
             String realname = jwt.getClaim("name");
+
+            // All userinfo by user
+            Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
+
+            if (optionalUserInfo.isPresent()) {
+                System.out.println(optionalUserInfo.get().getUsers().getUsername());
+            }
 
             var yearPlanCurrent = new YearPlan();
 
