@@ -1,8 +1,10 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import lombok.AllArgsConstructor;
@@ -25,6 +27,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.Year;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -37,6 +40,9 @@ public class YearPlanController {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private DayPlanDataRepository dayPlanDataRepository;
 
     void addToMap(Map<Year, Map<String, Object>> yearData, Map<Year, Object> data, Field field) {
         // go over each data point
@@ -122,7 +128,6 @@ public class YearPlanController {
 
             UserInfo userInfo = new UserInfo();
             userInfo.setUsers(user.get());
-
 //
 //            userInfo.setSickDays(Map.of(Year.of(2022), 6, Year.of(2023), 5));
 //            userInfo.setVacationSick(Map.of(Year.of(2022), 2, Year.of(2023), 4));
@@ -131,9 +136,6 @@ public class YearPlanController {
 
 //            userInfoRepository.save(userInfo);
 
-            // Todo: Count checked Dayplans without any checkbox checked
-
-
             // All userinfo by user
             Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
 
@@ -141,6 +143,26 @@ public class YearPlanController {
                 var userinfo = optionalUserInfo.get();
 
                 Map<Year, Map<String, Object>> yearDataMap =  userinfo.yearToMap();
+
+                // get every day plan from user with checked
+                // Only Valid and checked Data will be used
+                Iterable<DayPlanData> dayPlanDataIterable = dayPlanDataRepository.getAllByUserIdAndAndChecked(user.get());
+
+                for(var dpd: dayPlanDataIterable) {
+                    var calender = Calendar.getInstance();
+                    calender.setTime(dpd.getSetDate());
+
+                    var year = calender.get(Calendar.YEAR);
+
+                    if (yearDataMap.containsKey(Year.of(year))) {
+                        yearDataMap.get(Year.of(year))
+                                .put("workDay",
+                                        ((Integer)yearDataMap.get(Year.of(year))
+                                                .getOrDefault("workDay", 0))+ 1);
+                    } else {
+                        yearDataMap.put(Year.of(year), new HashMap<>(Map.of("workDay", 1)));
+                    }
+                }
 
                 // add to result class
                 yearPlanCurrent.setYears(yearDataMap);
