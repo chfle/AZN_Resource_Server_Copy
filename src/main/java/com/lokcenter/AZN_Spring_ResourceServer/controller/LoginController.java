@@ -3,7 +3,9 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.JunitHelper;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.NullType;
 import lombok.RequiredArgsConstructor;
+import org.apache.qpid.proton.engine.Link;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,8 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Map;
+import java.util.*;
 
 /**
  * LoginController
@@ -35,17 +36,27 @@ public class LoginController {
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     ResponseEntity<Boolean> postLogin(@RequestBody Map<String, Object> payload) {
-        System.out.println(payload);
-       Users user = new Users();
+       Users user = new Users();;
 
         try {
-            if (payload.containsKey("username")) {
+            if (payload.containsKey("username") && payload.containsKey("roles")) {
                 user.setUsername((String) payload.get("username"));
 
                 // convert back to an utils.date to use sql.date
                 Date currentDate = new Date();
 
                 user.setFirstLogin(new java.sql.Date(currentDate.getTime()));
+
+                // Add roles
+                var roles = (ArrayList<LinkedHashMap<String, String>>) payload.get("roles");
+
+                Map<String, NullType> rolesMap = new HashMap<>();
+
+                for (var role: roles) {
+                    rolesMap.put(role.get("authority"), new NullType());
+                }
+
+                user.setRoles(rolesMap);
 
                 // try to insert user but check if not a junit test
                 if (!JunitHelper.isJUnitTest()) {

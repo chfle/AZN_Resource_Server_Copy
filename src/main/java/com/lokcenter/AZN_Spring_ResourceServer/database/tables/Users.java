@@ -1,17 +1,21 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.NullType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Date;
+import java.time.Year;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Entity
@@ -36,6 +40,20 @@ public class Users implements Serializable {
     @Setter
     @Column(nullable = false)
     private Date firstLogin;
+
+    /**
+     * All App user roles
+     *
+     * @implNote Value should not be set, postgres does not support sets
+     */
+    @Type(type = "hstore")
+    @Column(
+            name = "roles",
+            columnDefinition = "hstore"
+    )
+    @Setter
+    @Getter
+    private Map<String, NullType> roles = new HashMap<>();
 
     /* User has many requests */
     @Setter
