@@ -1,6 +1,15 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Admin Controller
@@ -14,14 +23,23 @@ public class AdminController {
      * @return json reprenstation of data
      */
     @GetMapping
-    String getUserData() {
-        // TODO: check if the request is made from an admin
-        // TODO: Get all users
-        // TODO: GET Sick, Glaz, available vacation
-        // TODO: Get requests
-        // TODO: Get Zeitkonto
-
-        return "";
+    ResponseEntity<String> getUserData(Authentication auth, @RequestBody Map<String, Object> payload) throws Exception {
+        // extract role
+        if (payload.containsKey("role")) {
+            String role = (String) payload.get("role");
+            if (!role.equals("ROLE_Admin")) {
+                // user should not be allowed!
+                return new ResponseEntity<>("", HttpStatus.FORBIDDEN);
+            } else {
+                return new ResponseEntity<>("", HttpStatus.OK);
+                // TODO: Get all users
+                // TODO: GET Sick, Glaz, available vacation
+                // TODO: Get requests
+                // TODO: Get Zeitkonto
+            }
+        } else {
+            return new ResponseEntity<>("", HttpStatus.CONFLICT);
+        }
     }
 
     /**
