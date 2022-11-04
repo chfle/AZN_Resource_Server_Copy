@@ -79,10 +79,10 @@ API-Backend AZN_Spring
 - [X] OAuth 2.0 integration
 - [ ] Rest API
   - [X] Scopes
-  - [ ] DB integration
-    - [ ] Memcached support
+  - [X] DB integration
+    - [X] Memcached support
       - [X] Save DayplanData on read
-    - [ ] PostgreSQL support
+    - [X] PostgreSQL support
 
 
 ## Collaborators
