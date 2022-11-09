@@ -11,7 +11,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.aspectj.util.Reflection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,11 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.lang.reflect.Field;
-import java.sql.Date;
 import java.sql.Time;
-import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.Year;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -79,7 +74,7 @@ public class YearPlanController {
 
         @Setter
         @Getter
-        private Map<Year, Map<String, Object>> years;
+        private Map<String, Map<String, Object>> years;
 
         @Setter
         @Getter
@@ -142,7 +137,7 @@ public class YearPlanController {
             if (optionalUserInfo.isPresent()) {
                 var userinfo = optionalUserInfo.get();
 
-                Map<Year, Map<String, Object>> yearDataMap =  userinfo.yearToMap();
+                Map<String, Map<String, Object>> yearDataMap =  userinfo.yearToMap();
 
                 // get every day plan from user with checked
                 // Only Valid and checked Data will be used
@@ -154,13 +149,13 @@ public class YearPlanController {
 
                     var year = calender.get(Calendar.YEAR);
 
-                    if (yearDataMap.containsKey(Year.of(year))) {
-                        yearDataMap.get(Year.of(year))
+                    if (yearDataMap.containsKey(String.valueOf(year))) {
+                        yearDataMap.get(String.valueOf(year))
                                 .put("workDay",
-                                        ((Integer)yearDataMap.get(Year.of(year))
+                                        ((Integer)yearDataMap.get(String.valueOf(year))
                                                 .getOrDefault("workDay", 0))+ 1);
                     } else {
-                        yearDataMap.put(Year.of(year), new HashMap<>(Map.of("workDay", 1)));
+                        yearDataMap.put(String.valueOf(year), new HashMap<>(Map.of("workDay", 1)));
                     }
                 }
 

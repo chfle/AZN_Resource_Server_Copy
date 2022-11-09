@@ -77,7 +77,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<Year, Integer> availableVacation = new HashMap<>();
+    private Map<String, Integer> availableVacation = new HashMap<>();
 
     /**
      * A Java Map with Year and balance time for each year
@@ -89,7 +89,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<Year, Time> balanceTime = new HashMap<>();
+    private Map<String, Time> balanceTime = new HashMap<>();
 
     /**
      * A Java Map with Year and glaz days for each year
@@ -101,7 +101,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<Year, Integer> glazDays = new HashMap<>();
+    private Map<String, Integer> glazDays = new HashMap<>();
 
     /**
      * A Java Map with Year and sick days for each year
@@ -113,7 +113,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<Year, Integer> SickDays = new HashMap<>();
+    private Map<String, Integer> SickDays = new HashMap<>();
 
     /**
      * A Java Map with Year and vacation sick days for each year
@@ -125,7 +125,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<Year, Integer> vacationSick = new HashMap<>();
+    private Map<String, Integer> vacationSick = new HashMap<>();
 
     /**
      * A Java Map with Year and school days for each year
@@ -137,10 +137,10 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<Year, Integer> school = new HashMap<>();
+    private Map<String, Integer> school = new HashMap<>();
 
-    public Map<Year, Map<String, Object>> yearToMap() {
-        Map<Year, Map<String, Object>> resultMap = new HashMap<>();
+    public Map<String, Map<String, Object>> yearToMap() {
+        Map<String, Map<String, Object>> resultMap = new HashMap<>();
 
         for (Field field: this.getClass().getDeclaredFields()) {
             System.out.println(field.getName());
@@ -148,10 +148,10 @@ public class UserInfo {
 
                try {
                    for (var entry: ((HashMap<String, Object>)field.get(this)).entrySet()) {
-                      if (resultMap.containsKey(Year.of(Integer.parseInt(entry.getKey())))) {
-                          resultMap.get(Year.of(Integer.parseInt(entry.getKey()))).put(field.getName(), entry.getValue());
+                      if (resultMap.containsKey(entry.getKey())) {
+                          resultMap.get(entry.getKey()).put(field.getName(), entry.getValue());
                       } else {
-                         resultMap.put(Year.of(Integer.parseInt(entry.getKey())), new HashMap<>(Map.of(field.getName(), entry.getValue())));
+                         resultMap.put(entry.getKey(), new HashMap<>(Map.of(field.getName(), entry.getValue())));
                       }
 
                    }
