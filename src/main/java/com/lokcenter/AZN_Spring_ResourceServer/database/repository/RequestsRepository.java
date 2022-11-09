@@ -22,4 +22,7 @@ public interface RequestsRepository extends CrudRepository<Requests, RequestsKey
             "values(:#{#requests.endDate}, :#{#requests.startDate}, :#{#requests.uuid }, :#{#requests.users.userId}," +
             ":#{#requests.type.name()})", nativeQuery = true)
     void insertSave(@Param("requests") Requests requests);
+
+    @Query(value = "select * from requests where user_id = ?1", nativeQuery = true)
+    Iterable<Requests> findByUserId(Long userId);
 }

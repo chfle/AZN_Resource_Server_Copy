@@ -1,8 +1,10 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
@@ -27,6 +29,9 @@ public class AdminController {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private RequestsRepository requestsRepository;
     /**
      * Get all user data needed for the admin panel
      * @return json reprenstation of data
@@ -88,7 +93,12 @@ public class AdminController {
                        currentUserData.put("availableVacation", Integer.parseInt(availableVacation));
                    }
 
-                    listUserData.add(currentUserData);
+                   // get total requests
+                   Iterable<Requests> requests = requestsRepository.findByUserId(pair.getKey());
+
+                   currentUserData.put("requests", requests.spliterator().getExactSizeIfKnown());
+
+                   listUserData.add(currentUserData);
                }
                 // TODO: GET Sick, Glaz, available vacation
                 // TODO: Get requests
