@@ -12,11 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Year;
 import java.util.*;
 
 /**
  * Admin Controller
- * @version 1.0 04-11-2022
+ * @version 2.0 08-11-2022
  */
 @RestController
 @RequestMapping("/admin")
@@ -62,6 +63,31 @@ public class AdminController {
                    currentUserData.put("userId", pair.getKey());
 
                    // Todo: get data from current year -> UserInfo.class
+                   // get userinfo from each user
+                   Optional<UserInfo> userInfo = userInfoRepository.findByUserId(pair.getKey());
+
+                   if (userInfo.isPresent()) {
+                       // current year
+                       Calendar calendar = Calendar.getInstance();
+
+
+                       String currSickDays = userInfo.get().getSickDays()
+                               .getOrDefault(String.valueOf(calendar.get(Calendar.YEAR)), "0");
+
+                       System.out.println(currSickDays);
+
+                       String glaz = userInfo.get().getGlazDays()
+                               .getOrDefault(String.valueOf(calendar.get(Calendar.YEAR)), "0");
+
+                       String availableVacation = userInfo.get().getAvailableVacation()
+                               .getOrDefault(String.valueOf(calendar.get(Calendar.YEAR)), "0");
+
+                       // add values
+                       currentUserData.put("sick", Integer.parseInt(currSickDays));
+                       currentUserData.put("glaz", Integer.parseInt(glaz));
+                       currentUserData.put("availableVacation", Integer.parseInt(availableVacation));
+                   }
+
                     listUserData.add(currentUserData);
                }
                 // TODO: GET Sick, Glaz, available vacation
