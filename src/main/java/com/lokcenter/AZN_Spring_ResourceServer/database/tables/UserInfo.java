@@ -77,7 +77,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<String, Integer> availableVacation = new HashMap<>();
+    private Map<String, String> availableVacation = new HashMap<>();
 
     /**
      * A Java Map with Year and balance time for each year
@@ -101,7 +101,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<String, Integer> glazDays = new HashMap<>();
+    private Map<String, String> glazDays = new HashMap<>();
 
     /**
      * A Java Map with Year and sick days for each year
@@ -113,7 +113,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<String, Integer> SickDays = new HashMap<>();
+    private Map<String, String> SickDays = new HashMap<>();
 
     /**
      * A Java Map with Year and vacation sick days for each year
@@ -125,7 +125,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<String, Integer> vacationSick = new HashMap<>();
+    private Map<String, String> vacationSick = new HashMap<>();
 
     /**
      * A Java Map with Year and school days for each year
@@ -137,7 +137,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<String, Integer> school = new HashMap<>();
+    private Map<String, String> school = new HashMap<>();
 
     public Map<String, Map<String, Object>> yearToMap() {
         Map<String, Map<String, Object>> resultMap = new HashMap<>();
