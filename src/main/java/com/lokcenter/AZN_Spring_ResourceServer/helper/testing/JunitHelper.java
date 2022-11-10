@@ -1,4 +1,4 @@
-package com.lokcenter.AZN_Spring_ResourceServer.helper;
+package com.lokcenter.AZN_Spring_ResourceServer.helper.testing;
 
 /**
  * Junit Helper

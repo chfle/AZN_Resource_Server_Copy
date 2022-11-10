@@ -1,4 +1,4 @@
-package com.lokcenter.AZN_Spring_ResourceServer.helper;
+package com.lokcenter.AZN_Spring_ResourceServer.helper.ds;
 
 import org.apache.commons.codec.digest.DigestUtils;
 

@@ -11,7 +11,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
-import com.lokcenter.AZN_Spring_ResourceServer.helper.AznStrings;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.AznStrings;
 import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;

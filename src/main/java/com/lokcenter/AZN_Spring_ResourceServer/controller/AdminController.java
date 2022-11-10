@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
@@ -7,6 +8,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepositor
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Year;
 import java.util.*;
 
 /**
@@ -32,6 +33,9 @@ public class AdminController {
 
     @Autowired
     private RequestsRepository requestsRepository;
+
+    @Autowired
+    private YearOverViewList yearOverViewList;
     /**
      * Get all user data needed for the admin panel
      * @return json reprenstation of data
@@ -119,7 +123,16 @@ public class AdminController {
      * @return json data from an user
      */
     @GetMapping( "/years")
-    String getYearsPlanInfoByUser(@RequestParam(name = "userid", required = true) String userId) {
+    String getYearsPlanInfoByUser(@RequestParam(name = "userid", required = true) String userId) throws JsonProcessingException {
+        // find user by id
+        Optional<Users> user = userRepository.findById((long) Integer.parseInt(userId));
+
+        if (user.isPresent()) {
+            return new ObjectMapper().writer().
+                    withDefaultPrettyPrinter()
+                    .writeValueAsString(yearOverViewList.getYearsListByUser(user.get()));
+        }
+
         return "";
     }
 

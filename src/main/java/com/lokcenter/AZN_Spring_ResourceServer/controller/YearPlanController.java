@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,11 +19,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.lang.reflect.Field;
 import java.sql.Time;
-import java.time.Year;
-import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,19 +30,7 @@ public class YearPlanController {
     private UserRepository userRepository;
 
     @Autowired
-    private UserInfoRepository userInfoRepository;
-
-    @Autowired
-    private DayPlanDataRepository dayPlanDataRepository;
-
-    void addToMap(Map<Year, Map<String, Object>> yearData, Map<Year, Object> data, Field field) {
-        // go over each data point
-        for (var entry: data.entrySet()) {
-            if (yearData.containsKey(entry.getKey())) {
-                yearData.get(entry.getKey()).put(field.getName(), entry.getValue());
-            }
-        }
-    }
+    private YearOverViewList yearOverViewList;
 
     /**
      * Store all needed Year Plan Data
@@ -131,39 +115,8 @@ public class YearPlanController {
 
 //            userInfoRepository.save(userInfo);
 
-            // All userinfo by user
-            Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
-
-            if (optionalUserInfo.isPresent()) {
-                var userinfo = optionalUserInfo.get();
-
-                Map<String, Map<String, Object>> yearDataMap =  userinfo.yearToMap();
-
-                // get every day plan from user with checked
-                // Only Valid and checked Data will be used
-                Iterable<DayPlanData> dayPlanDataIterable = dayPlanDataRepository.getAllByUserIdAndAndChecked(user.get());
-
-                for(var dpd: dayPlanDataIterable) {
-                    var calender = Calendar.getInstance();
-                    calender.setTime(dpd.getSetDate());
-
-                    var year = calender.get(Calendar.YEAR);
-
-                    if (yearDataMap.containsKey(String.valueOf(year))) {
-                        yearDataMap.get(String.valueOf(year))
-                                .put("workDay",
-                                        ((Integer)yearDataMap.get(String.valueOf(year))
-                                                .getOrDefault("workDay", 0))+ 1);
-                    } else {
-                        yearDataMap.put(String.valueOf(year), new HashMap<>(Map.of("workDay", 1)));
-                    }
-                }
-
-                // add to result class
-                yearPlanCurrent.setYears(yearDataMap);
-            }
-
             yearPlanCurrent.setFullName(realname);
+            yearPlanCurrent.setYears(yearOverViewList.getYearsListByUser(user.get()));
 
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()
