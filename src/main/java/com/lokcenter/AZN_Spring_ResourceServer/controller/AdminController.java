@@ -13,6 +13,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -43,6 +44,7 @@ public class AdminController {
      * @return json reprenstation of data
      */
     @GetMapping
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     ResponseEntity<String> getUserData(Authentication auth, @RequestBody Map<String, Object> payload) throws Exception {
         // extract role
         if (payload.containsKey("role")) {
@@ -125,6 +127,7 @@ public class AdminController {
      * @return json data from an user
      */
     @GetMapping( "/years")
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     String getYearsPlanInfoByUser(@RequestParam(name = "userid", required = true) String userId) throws JsonProcessingException {
         // find user by id
         Optional<Users> user = userRepository.findById((long) Integer.parseInt(userId));
@@ -145,6 +148,7 @@ public class AdminController {
      * @return boolean
      */
     @PutMapping("/userdata")
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     Boolean changeUserData(@RequestParam(name = "userid") String userId) {
         return true;
     }
@@ -156,6 +160,7 @@ public class AdminController {
      * @return json data from an user
      */
     @GetMapping("/requests")
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     String getRequestsByUser(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
         Optional<Users> user = userRepository.findById(Long.valueOf(userId));
 
@@ -182,5 +187,24 @@ public class AdminController {
                     .writeValueAsString(shortedRequestsData);
         }
         return "";
+    }
+
+    @PutMapping("/requests/accept")
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    Boolean acceptRequestByUser(@RequestParam(name = "startDate", required = true) String startDate,
+                                @RequestParam(name = "endDate", required = true) String endDate,
+                                @RequestParam(name = "userid", required = true) String userId) {
+
+        System.out.println(userId);
+        return true;
+    }
+
+    @DeleteMapping("/requests/delete")
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    Boolean deleteRequestByUser(@RequestParam(name = "startDate", required = true) String startDate,
+                                @RequestParam(name = "endDate", required = true) String endDate,
+                                @RequestParam(name = "userid", required = true) String userId) {
+        System.out.println(userId);
+        return true;
     }
 }
