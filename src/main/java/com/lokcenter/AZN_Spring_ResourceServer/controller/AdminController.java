@@ -36,6 +36,7 @@ public class AdminController {
 
     @Autowired
     private YearOverViewList yearOverViewList;
+
     /**
      * Get all user data needed for the admin panel
      * @return json reprenstation of data
@@ -154,7 +155,27 @@ public class AdminController {
      * @return json data from an user
      */
     @GetMapping("/requests")
-    String getRequestsByUser(@RequestParam(name = "userId") String userId) {
+    String getRequestsByUser(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
+        Optional<Users> user = userRepository.findById(Long.valueOf(userId));
+
+        if (user.isPresent()) {
+            Iterable<Requests> requestsByUser = requestsRepository.findByUserId(user.get().getUserId());
+
+            List<Map<String, Object>> shortedRequestsData = new ArrayList<>();
+
+            for (Requests requests: requestsByUser) {
+                shortedRequestsData.add(new HashMap<>(
+                        Map.of(
+                                "tag", requests.getType().name(),
+                                "startdate", requests.getStartDate(),
+                                "enddate", requests.getEndDate()))
+                );
+            }
+
+            return new ObjectMapper().writer().
+                    withDefaultPrettyPrinter()
+                    .writeValueAsString(shortedRequestsData);
+        }
         return "";
     }
 }
