@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -164,12 +165,15 @@ public class AdminController {
             List<Map<String, Object>> shortedRequestsData = new ArrayList<>();
 
             for (Requests requests: requestsByUser) {
+                var dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+
                 shortedRequestsData.add(new HashMap<>(
-                        Map.of(
+
+                Map.of(
                                 "tag", requests.getType().name(),
-                                "startdate", requests.getStartDate(),
-                                "enddate", requests.getEndDate()))
-                );
+                                "startdate", dateFormat.format(requests.getStartDate()),
+                                "enddate", dateFormat.format(requests.getEndDate())
+                )));
             }
 
             return new ObjectMapper().writer().
