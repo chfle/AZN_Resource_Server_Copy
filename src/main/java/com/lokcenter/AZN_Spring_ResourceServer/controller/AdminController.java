@@ -176,6 +176,7 @@ public class AdminController {
                 )));
             }
 
+
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()
                     .writeValueAsString(shortedRequestsData);
