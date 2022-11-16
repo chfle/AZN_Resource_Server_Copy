@@ -394,7 +394,7 @@ public class OverviewController {
 
 
             for (var dpd: dayPlanData) {
-               dayPlansDone.add(new SimpleDateFormat("dd-MM-yyyy").format(dpd.getSetDate()));
+               dayPlansDone.add(new SimpleDateFormat("yyyy-MM-dd").format(dpd.getSetDate()));
             }
 
             System.out.println(dayPlansDone);
