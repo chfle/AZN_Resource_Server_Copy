@@ -26,6 +26,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Dayplan endpoint
@@ -202,6 +203,7 @@ public class DayPlanController {
 
                 // check if Dayplan Data is valid
                if (optionalDayPlanData.isPresent() && optionalDayPlanData.get().isValid()) {
+                   optionalDayPlanData.get().setUuid(UUID.randomUUID());
                     dayPlanDataRepository.save(optionalDayPlanData.get());
                     return true;
                }
