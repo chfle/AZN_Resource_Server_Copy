@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.sql.Date;
 import java.util.Optional;
 
@@ -25,4 +25,12 @@ public interface RequestsRepository extends CrudRepository<Requests, RequestsKey
 
     @Query(value = "select * from requests where user_id = ?1", nativeQuery = true)
     Iterable<Requests> findByUserId(Long userId);
+
+    @Query(value = "select * from requests where start_date = ?1 and end_date = ?2 and user_id = ?3", nativeQuery = true)
+    Optional<Requests> findRequestsByStartDateAndEndDateAndUsers(Date startDate, Date endDate, Long userid);
+
+    @Transactional
+    @Modifying
+    @Query(value = "delete from requests where start_date = ?1 and end_date = ?2 and user_id = ?3", nativeQuery = true)
+    void deleteRequestsByStartDateAndEndDateAndUsers(Date startDate, Date endDate, Long userid);
 }

@@ -17,6 +17,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -195,16 +197,36 @@ public class AdminController {
                                 @RequestParam(name = "endDate", required = true) String endDate,
                                 @RequestParam(name = "userid", required = true) String userId) {
 
-        System.out.println(userId);
-        return true;
+        Optional<Users> users = userRepository.findById(Long.parseLong(userId));
+
+        if (users.isPresent()) {
+
+        }
+
+        return false;
     }
 
     @DeleteMapping("/requests/delete")
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     Boolean deleteRequestByUser(@RequestParam(name = "startDate", required = true) String startDate,
                                 @RequestParam(name = "endDate", required = true) String endDate,
-                                @RequestParam(name = "userid", required = true) String userId) {
-        System.out.println(userId);
-        return true;
+                                @RequestParam(name = "userid", required = true) String userId) throws Exception {
+
+        Optional<Users> users = userRepository.findById(Long.parseLong(userId));
+
+        if (users.isPresent()) {
+            var formatter = new SimpleDateFormat("dd-MM-yyyy");
+
+            requestsRepository.deleteRequestsByStartDateAndEndDateAndUsers(
+                    new Date(formatter.parse(startDate).getTime()),
+                    new Date(formatter.parse(endDate).getTime()),
+                    users.get().getUserId());
+
+            return requestsRepository.findRequestsByStartDateAndEndDateAndUsers( new Date(formatter.parse(startDate).getTime()),
+                    new Date(formatter.parse(endDate).getTime()),
+                    users.get().getUserId()).isEmpty();
+        }
+
+        return false;
     }
 }
