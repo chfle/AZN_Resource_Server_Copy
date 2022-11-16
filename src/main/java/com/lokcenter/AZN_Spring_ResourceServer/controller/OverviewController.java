@@ -13,6 +13,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -123,8 +124,6 @@ public class OverviewController {
     private Set<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
         Set<DateRange> rangeData = new HashSet<>();
 
-        System.out.println(user.get().getUserId());
-
        if (user.isPresent()) {
            // requests stuff
            Iterable<Requests> requests = requestsRepository.getRequestsByRange(first, last, user.get());
@@ -205,6 +204,9 @@ public class OverviewController {
             @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws JsonProcessingException, ParseException {
 
         Set<DateRange> dateRanges = new HashSet<>();
+        String format = "dd-MM-yyyy";
+
+        var sdf = new SimpleDateFormat(format);
 
         // stop without first and last day
         if (firstDay == null || lastDay == null) {
@@ -214,28 +216,10 @@ public class OverviewController {
         }
 
         // Stuff without roles or userid
-        String format = "dd-MM-yyyy";
+        Pair<String, String> dates = parseStartEndDate(firstDay, lastDay, year, month);
 
-        int yearParsed = Integer.parseInt(year);
-        var sdf = new SimpleDateFormat(format);
-
-        // we should use last year for start year
-        if (month.equals("01")) {
-            yearParsed -= 1;
-        }
-        String startDate = String.format("%s-%s-%s", firstDay,
-                month.equals("01")? 12 : Integer.parseInt(month) - 1,
-                yearParsed);
-
-        yearParsed = Integer.parseInt(year);
-
-        // should use new year as start year
-        if (month.equals("12")) {
-            yearParsed += 1;
-        }
-
-        String endDate = String.format("%s-%s-%s", lastDay,
-                month.equals("12") ? 1 : Integer.parseInt(month) + 1, yearParsed);
+        String startDate = dates.getKey();
+        String endDate = dates.getValue();
 
         var generalVacations =
                 generalVacationRepository.
@@ -295,6 +279,36 @@ public class OverviewController {
                 .writeValueAsString(dateRanges);
     }
 
+    /**
+     * parse Start and end date
+     * @return Pair of first and last date
+     */
+    private Pair<String, String> parseStartEndDate(String firstDay, String lastDay, String year, String month) {
+        String format = "dd-MM-yyyy";
+
+        int yearParsed = Integer.parseInt(year);
+        var sdf = new SimpleDateFormat(format);
+
+        // we should use last year for start year
+        if (month.equals("01")) {
+            yearParsed -= 1;
+        }
+        String startDate = String.format("%s-%s-%s", firstDay,
+                month.equals("01")? 12 : Integer.parseInt(month) - 1,
+                yearParsed);
+
+        yearParsed = Integer.parseInt(year);
+
+        // should use new year as start year
+        if (month.equals("12")) {
+            yearParsed += 1;
+        }
+
+        String endDate = String.format("%s-%s-%s", lastDay,
+                month.equals("12") ? 1 : Integer.parseInt(month) + 1, yearParsed);
+
+        return new Pair<>(startDate, endDate);
+    }
 
     /**
      * Post data from Calendar request
@@ -341,4 +355,54 @@ public class OverviewController {
             return false;
         }
     }
+
+    /**
+     * Get Dayplan data dates where start and end time is set
+
+     * @return json
+     * @throws JsonProcessingException
+     */
+    @GetMapping("/dayt")
+    String getDayPlanDataWithTime(
+            @RequestParam(name = "firstday", required = false) String firstDay,
+            @RequestParam(name = "lastday", required = false) String lastDay,
+            @RequestParam(name = "month", required = false) String month,
+            @RequestParam(name = "year", required = false) String year,
+            Authentication auth) throws JsonProcessingException, ParseException {
+
+        Set<String> dayPlansDone = new HashSet<>();
+
+        var sdf = new SimpleDateFormat("dd-MM-yyyy");
+
+        Pair<String, String> dates = parseStartEndDate(firstDay, lastDay, year, month);
+
+        String startDate = dates.getKey();
+        String endDate = dates.getValue();
+
+        // get userId
+        Jwt jwt = (Jwt) auth.getPrincipal();
+
+        String name = jwt.getClaim("unique_name");
+
+        // get userId;
+        Optional<Users> user = userRepository.findByUsername(name);
+
+        if (user.isPresent()) {
+            Iterable<DayPlanData> dayPlanData = dayPlanDataRepository.
+                    getDayPlanDataBySetDateBetweenAndUserId
+                            (new Date(sdf.parse(startDate).getTime()), new Date(sdf.parse(endDate).getTime()), user.get().getUserId());
+
+
+            for (var dpd: dayPlanData) {
+               dayPlansDone.add(new SimpleDateFormat("dd-MM-yyyy").format(dpd.getSetDate()));
+            }
+
+            System.out.println(dayPlansDone);
+        }
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(dayPlansDone);
+    }
+
 }

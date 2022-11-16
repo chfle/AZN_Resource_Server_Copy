@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.util.Optional;
 
 public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPlanDataKey> {
@@ -19,4 +20,8 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             "(not school or school is null) and (not vacation or vacation is null) and " +
             "(not sick or sick is null)) ", nativeQuery = true)
     Iterable<DayPlanData> getAllByUserIdAndAndChecked(Users user);
+
+    @Query(value = "select * from day_plan_data where user_id=?3 and (set_date between ?1 and ?2) " +
+            "and worktime_start is not null and worktime_end is not null", nativeQuery = true)
+    Iterable<DayPlanData> getDayPlanDataBySetDateBetweenAndUserId(Date startDate, Date endDate, Long userId);
 }
