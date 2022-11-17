@@ -116,7 +116,6 @@ public class DayPlanController {
 
                     dpd.setGlaz((Boolean) data.get("glaz"));
                     dpd.setSick((Boolean) data.get("sick"));
-                    dpd.setVacation((Boolean) data.get("vacation"));
                     dpd.setSchool((Boolean) data.get("school"));
                     dpd.setUsers(user.get());
                     dpd.setUserId(user.get().getUserId());
