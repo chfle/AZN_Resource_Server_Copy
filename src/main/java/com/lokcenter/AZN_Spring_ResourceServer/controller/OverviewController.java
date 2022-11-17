@@ -332,19 +332,25 @@ public class OverviewController {
 
                 var format = new SimpleDateFormat("yyyy-MM-dd");
 
-                request.setStartDate(new Date(format.parse((String) payload.get("startDate")).getTime()));
-                request.setEndDate(new Date(format.parse((String) payload.get("endDate")).getTime()));
+                // check if endDate is valid
+                var startDate = new Date(format.parse((String) payload.get("startDate")).getTime());
+                var endDate = new Date(format.parse((String) payload.get("endDate")).getTime());
 
-                switch ((String) payload.get("tag")) {
-                    case "rUrlaub" -> request.setType(RequestTypeEnum.rUrlaub);
-                    case "rGLAZ" -> request.setType(RequestTypeEnum.rGLAZ);
+                if (startDate.compareTo(endDate) <= 0) {
+                    request.setStartDate(startDate);
+                    request.setEndDate(endDate);
+
+                    switch ((String) payload.get("tag")) {
+                        case "rUrlaub" -> request.setType(RequestTypeEnum.rUrlaub);
+                        case "rGLAZ" -> request.setType(RequestTypeEnum.rGLAZ);
+                    }
+
+                    request.setUuid(UUID.randomUUID());
+
+                    requestsRepository.insertSave(request);
+
+                    return true;
                 }
-
-                request.setUuid(UUID.randomUUID());
-
-                requestsRepository.insertSave(request);
-
-                return true;
             }
            return false;
 
