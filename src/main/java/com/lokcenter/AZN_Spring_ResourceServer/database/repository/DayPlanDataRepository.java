@@ -24,4 +24,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select * from day_plan_data where user_id=?3 and (set_date between ?1 and ?2) " +
             "and worktime_start is not null and worktime_end is not null", nativeQuery = true)
     Iterable<DayPlanData> getDayPlanDataBySetDateBetweenAndUserId(Date startDate, Date endDate, Long userId);
+
+    @Query(value = "select * from day_plan_data where set_date = ?1 and user_id = ?2", nativeQuery = true)
+    Optional<DayPlanData> getBySetDateAndUserId(Date setDate, Long userId);
 }

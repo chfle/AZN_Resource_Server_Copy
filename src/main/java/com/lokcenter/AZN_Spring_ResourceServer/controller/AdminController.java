@@ -2,14 +2,12 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
+import org.apache.tomcat.jni.Time;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +18,9 @@ import org.springframework.web.bind.annotation.*;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 /**
  * Admin Controller
@@ -40,6 +40,12 @@ public class AdminController {
 
     @Autowired
     private YearOverViewList yearOverViewList;
+
+    @Autowired
+    private DayPlanDataRepository dayPlanDataRepository;
+
+    @Autowired
+    private GeneralVacationRepository generalVacationRepository;
 
     /**
      * Get all user data needed for the admin panel
@@ -191,16 +197,100 @@ public class AdminController {
         return "";
     }
 
+    /**
+     * Accept request
+     */
     @PutMapping("/requests/accept")
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     Boolean acceptRequestByUser(@RequestParam(name = "startDate", required = true) String startDate,
                                 @RequestParam(name = "endDate", required = true) String endDate,
-                                @RequestParam(name = "userid", required = true) String userId) {
+                                @RequestParam(name = "userid", required = true) String userId) throws ParseException {
 
         Optional<Users> users = userRepository.findById(Long.parseLong(userId));
 
         if (users.isPresent()) {
+            // get all day plans between start end date
+            var formatter = new SimpleDateFormat("dd-MM-yyyy");
 
+             // check if request exists
+            Optional<Requests> requests = requestsRepository.findRequestsByStartDateAndEndDateAndUsers(
+                    new Date(formatter.parse(startDate).getTime()),
+                    new Date(formatter.parse(endDate).getTime()),
+                    users.get().getUserId());
+
+            if (requests.isPresent()) {
+                java.util.Date startDateDate = new java.util.Date(formatter.parse(startDate).getTime());
+                java.util.Date endDateDate = new java.util.Date(formatter.parse(endDate).getTime());
+
+                Iterable<DayPlanData> dayPlanData = dayPlanDataRepository.
+                        getDayPlanDataBySetDateBetweenAndUserId(
+                                new Date(formatter.parse(startDate).getTime()),
+                                new Date(formatter.parse(endDate).getTime()),
+                                users.get().getUserId());
+
+                Iterable<GeneralVacation> generals = generalVacationRepository.getGeneralVacationByDateBetween(
+                        new Date(formatter.parse(startDate).getTime()),
+                        new Date(formatter.parse(endDate).getTime())
+                );
+
+                // check if holiday or general holiday is set
+                if (StreamSupport.stream(generals.spliterator(), false).findAny().isEmpty()) {
+
+                    // check if vacation, galz, urlaub, school is set
+                    for (DayPlanData dpd : dayPlanData) {
+                        if (dpd.getGlaz() || dpd.getSchool() || dpd.getVacation()) {
+                            return false;
+                        }
+                    }
+
+                    var start = TimeConvert.convertToLocalDateViaInstant(startDateDate);
+                    var end = TimeConvert.convertToLocalDateViaInstant(endDateDate);
+
+                    // generate uuid
+                    UUID uuid = UUID.randomUUID();
+
+                    // go over each day from start to end and set request value
+                    for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                        System.out.println(date);
+                        // get day
+                        DayPlanData dpd;
+                        Optional<DayPlanData> day =
+                                dayPlanDataRepository.getBySetDateAndUserId(new Date(TimeConvert.convertToDateViaInstant(date).
+                                        getTime()), users.get().getUserId());
+
+                        if (day.isEmpty()) {
+                            dpd = new DayPlanData();
+
+                            dpd.setUserId(users.get().getUserId());
+                            dpd.setSetDate(new Date(TimeConvert.convertToDateViaInstant(date).getTime()) );
+                        } else {
+                            dpd = day.get();
+                        }
+
+                        // set request value
+                        switch (requests.get().getType()) {
+                            case rGLAZ -> dpd.setGlaz(true);
+                            case rUrlaub -> dpd.setVacation(true);
+                        }
+
+                        // set uuid
+                        dpd.setUuid(uuid);
+
+                        // save dpd
+                        dayPlanDataRepository.save(dpd);
+                    }
+
+                    // delete requests
+                    requestsRepository.deleteRequestsByStartDateAndEndDateAndUsers(
+                            requests.get().getStartDate(),
+                            requests.get().getEndDate(),
+                            users.get().getUserId());
+
+                    return requestsRepository.findRequestsByStartDateAndEndDateAndUsers( new Date(formatter.parse(startDate).getTime()),
+                            new Date(formatter.parse(endDate).getTime()),
+                            users.get().getUserId()).isEmpty();
+                }
+            }
         }
 
         return false;
@@ -222,6 +312,7 @@ public class AdminController {
                     new Date(formatter.parse(endDate).getTime()),
                     users.get().getUserId());
 
+            // check if request was deleted
             return requestsRepository.findRequestsByStartDateAndEndDateAndUsers( new Date(formatter.parse(startDate).getTime()),
                     new Date(formatter.parse(endDate).getTime()),
                     users.get().getUserId()).isEmpty();
