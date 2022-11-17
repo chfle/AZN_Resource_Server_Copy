@@ -96,7 +96,7 @@ public class DayPlanData implements Serializable, UUIDable {
      */
     @Setter
     @Getter
-    @Transient
+    @org.springframework.data.annotation.Transient
     private boolean isValid;
 
     public static Tags getTag(DayPlanData dayPlanData) {

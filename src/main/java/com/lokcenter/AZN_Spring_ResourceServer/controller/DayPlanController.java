@@ -111,7 +111,7 @@ public class DayPlanController {
                 Optional<DayPlanData> optionalDayPlanData = Optional.empty();
                 // see if user has some checked values for this day
                 // if glaz, school, sick, vacation is checked ignore all time values
-                if ((Boolean) data.get("school") || (Boolean) data.get("sick") || (Boolean) data.get("vacation") || (Boolean) data.get("glaz")) {
+                if ((Boolean) data.get("school") || (Boolean) data.get("sick") || (Boolean) data.get("glaz")) {
                     var dpd = new DayPlanData();
 
                     dpd.setGlaz((Boolean) data.get("glaz"));
