@@ -2,6 +2,9 @@ package com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple;
 
 import java.util.Arrays;
 
+/**
+ * From https://stackoverflow.com/questions/3642452/java-n-tuple-implementation
+ */
 class TupleImpl implements Tuple {
 
     private final TupleType type;

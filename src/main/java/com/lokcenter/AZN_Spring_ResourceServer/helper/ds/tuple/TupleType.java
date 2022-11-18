@@ -1,5 +1,8 @@
 package com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple;
 
+/**
+ * From https://stackoverflow.com/questions/3642452/java-n-tuple-implementation
+ */
 public interface TupleType {
 
     public int size();
