@@ -347,9 +347,18 @@ public class OverviewController {
 
                     request.setUuid(UUID.randomUUID());
 
-                    requestsRepository.insertSave(request);
+                    Optional<DayPlanData> dayPlanData = dayPlanDataRepository.
+                           getDayPlanDataWhereTrue(user.get(), startDate);
 
-                    return true;
+                    Optional<GeneralVacation> generalVacation =
+                            generalVacationRepository.getGeneralVacationByDate(startDate);
+
+                    // check if request exists
+                    if (dayPlanData.isEmpty() && generalVacation.isEmpty())  {
+                         // save
+                         requestsRepository.insertSave(request);
+                         return true;
+                    }
                 }
             }
            return false;
