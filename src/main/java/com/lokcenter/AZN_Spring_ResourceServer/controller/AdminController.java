@@ -6,13 +6,12 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
-import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
-import org.apache.tomcat.jni.Time;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
@@ -47,14 +46,19 @@ public class AdminController {
     @Autowired
     private GeneralVacationRepository generalVacationRepository;
 
+    public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
+            Long.class,
+            String.class,
+            String.class);
+
     /**
      * Get all user data needed for the admin panel
      * @return json reprenstation of data
      */
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
-    ResponseEntity<String> getUserData(Authentication auth, @RequestBody Map<String, Object> payload) throws Exception {
-        // extract role
+    ResponseEntity<String> getUserData(@RequestBody Map<String, Object> payload) throws Exception {
+        // extract role and group e.g. KBM / IT (role)
         if (payload.containsKey("role")) {
             String role = (String) payload.get("role");
             if (!role.equals("ROLE_Admin")) {
@@ -64,28 +68,40 @@ public class AdminController {
                 Iterable<Users> users = userRepository.findAll();
 
                 // list of ROLE_User and username users
-                List<Pair<Long, String>> userUsers = new ArrayList<>();
+                List<Tuple> userUsers = new ArrayList<>();
+
 
                 for (Users user: users) {
                     // user must include ROLE_User
-                    if (user.getRoles().containsKey("ROLE_User")) {
-                        userUsers.add(new Pair<>(user.getUserId(), user.getUsername()));
+                    Optional<String> department = Optional.empty();
+
+                    if (user.getRoles().containsKey("ROLE_KBM")) {
+                        department = Optional.of("KBM");
+                    } else if (user.getRoles().containsKey("ROLE_IT")) {
+                        department = Optional.of("IT");
                     }
+
+                    if (user.getRoles().containsKey("ROLE_User") && department.isPresent()) {
+                        userUsers.add(TupleThreeType.createTuple(user.getUserId(), user.getUsername(), department.get()));
+                    }
+
+                    // check if user as any department
+
                 }
 
                 // return data
                 List<Map<String, Object>> listUserData = new ArrayList<>();
 
                // go over each valid user
-               for (Pair<Long, String> pair: userUsers) {
+               for (Tuple data: userUsers) {
                    Map<String, Object> currentUserData = new HashMap<>();
 
-                   currentUserData.put("name", pair.getValue());
-                   currentUserData.put("userId", pair.getKey());
+                   currentUserData.put("name", data.getNthValue(1));
+                   currentUserData.put("userId", data.getNthValue(0));
+                   currentUserData.put("department", data.getNthValue(2));
 
-                   // Todo: get data from current year -> UserInfo.class
                    // get userinfo from each user
-                   Optional<UserInfo> userInfo = userInfoRepository.findByUserId(pair.getKey());
+                   Optional<UserInfo> userInfo = userInfoRepository.findByUserId(data.getNthValue(0));
 
                    if (userInfo.isPresent()) {
                        // current year
@@ -110,14 +126,13 @@ public class AdminController {
                    }
 
                    // get total requests
-                   Iterable<Requests> requests = requestsRepository.findByUserId(pair.getKey());
+                   Iterable<Requests> requests = requestsRepository.findByUserId(data.getNthValue(0));
 
                    currentUserData.put("requests", requests.spliterator().getExactSizeIfKnown());
 
                    listUserData.add(currentUserData);
                }
-                // TODO: GET Sick, Glaz, available vacation
-                // TODO: Get requests
+
                 // TODO: Get Zeitkonto
                 return new ResponseEntity<>(new ObjectMapper().writer().
                         withDefaultPrettyPrinter()
