@@ -107,7 +107,7 @@ public class YearPlanController {
 
             UserInfo userInfo = new UserInfo();
             userInfo.setUsers(user.get());
-//
+//tomtest@2v40nf.onmicrosoft.com
 //            userInfo.setSickDays(Map.of(Year.of(2022), 6, Year.of(2023), 5));
 //            userInfo.setVacationSick(Map.of(Year.of(2022), 2, Year.of(2023), 4));
 //            userInfo.setGlazDays(Map.of(Year.of(2022), 1, Year.of(2023), 3));
