@@ -46,6 +46,7 @@ public class AdminController {
     @Autowired
     private GeneralVacationRepository generalVacationRepository;
 
+
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
             Long.class,
             String.class,
