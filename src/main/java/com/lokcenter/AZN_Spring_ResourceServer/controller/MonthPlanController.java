@@ -93,7 +93,7 @@ public class MonthPlanController {
 
             // go over month
             for (LocalDate i = TimeConvert.convertToLocalDateViaInstant(date);
-                 i.isBefore(TimeConvert.
+                 !i.isAfter(TimeConvert.
                          convertToLocalDateViaInstant(sdf.parse(String.format("%s/%s/%s",lastDayMonth, month, year)))); i = i.plusDays(1))
             {
                 Optional<DayPlanData> dayPlanDataOptional =
