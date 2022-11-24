@@ -43,7 +43,7 @@ public class MonthPlanController {
     @Autowired
     private DayPlanDataRepository dayPlanDataRepository;
 
-    private Optional<DayPlanData> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException {
+    private Map<String, Object> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
 
         if (user.isPresent()) {
@@ -58,7 +58,6 @@ public class MonthPlanController {
                 // must be set for later usage
                 dpdTemp.setSetDate(date);
                 dpdTemp.setUsers(user.get());
-                dpdTemp.setUserId(dayPlanDataKey.getUserId());
 
                 switch (optionalGeneralVacation.get().getTag()) {
                     case gUrlaub -> dpdTemp.setVacation(true);
@@ -70,12 +69,27 @@ public class MonthPlanController {
             }
         }
 
-        return dayPlanData;
+       if (dayPlanData.isPresent()) {
+           var dpd = dayPlanData.get();
+
+           return new HashMap<>(Map.of(
+                   "start", dpd.getWorkTime() != null ? dpd.getWorkTime().getStart(): "",
+                   "end", dpd.getWorkTime() != null ? dpd.getWorkTime().getEnd(): "",
+                   "pause", dpd.getWorkTime() != null ? dpd.getWorkTime().getPause(): "",
+                   "glaz", dpd.getGlaz(),
+                   "sick", dpd.getSick(),
+                   "vacation", dpd.getVacation(),
+                   "holiday", dpd.getHoliday(),
+                   "school", dpd.getSchool(),
+                   "comment", dpd.getComment()));
+       }
+
+       return new HashMap<>();
     }
 
     // go over each day one by one
-    private List<DayPlanData> getDayPlansOfMonth(String month, String year, Optional<Users> user) throws ParseException, IOException {
-        List<DayPlanData> dpd = new ArrayList<>();
+    private List<Map<String, Object>> getDayPlansOfMonth(String month, String year, Optional<Users> user) throws ParseException, IOException {
+        List<Map<String, Object>> dpd = new ArrayList<>();
 
         if (user.isPresent()) {
             // convert to date
@@ -96,15 +110,12 @@ public class MonthPlanController {
                  !i.isAfter(TimeConvert.
                          convertToLocalDateViaInstant(sdf.parse(String.format("%s/%s/%s",lastDayMonth, month, year)))); i = i.plusDays(1))
             {
-                Optional<DayPlanData> dayPlanDataOptional =
+                Map<String, Object> dayPlanDataOptional =
                         getDayPlanDataByUserAndDate(user,
+
                                 new java.sql.Date(TimeConvert.convertToDateViaInstant(i).getTime()));
 
-                if (dayPlanDataOptional.isPresent()) {
-                    dpd.add(dayPlanDataOptional.get());
-                } else {
-                    dpd.add(new DayPlanData());
-                }
+               dpd.add(dayPlanDataOptional);
             }
         }
 
@@ -118,7 +129,7 @@ public class MonthPlanController {
                          @RequestParam(name = "role", required = true) String role,
                          @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws IOException, ParseException {
 
-        List<DayPlanData> monthData = new ArrayList<>();
+        List<Map<String, Object>> monthData = new ArrayList<>();
 
         if (userid == null) {
             Jwt jwt = (Jwt) auth.getPrincipal();

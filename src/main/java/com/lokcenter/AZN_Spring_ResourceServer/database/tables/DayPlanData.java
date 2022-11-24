@@ -7,6 +7,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.LazyToOne;
 import org.hibernate.annotations.LazyToOneOption;
 
@@ -14,6 +15,7 @@ import javax.persistence.*;
 import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
@@ -42,25 +44,65 @@ public class DayPlanData implements Serializable, UUIDable {
     @Column(name = "set_date")
     private Date setDate;
 
+
     @Setter
-    @Getter
     private String comment;
 
+    public String getComment() {
+        if (Optional.ofNullable(comment).isPresent()) {
+            return comment;
+        } else {
+            return "";
+        }
+    }
+
     @Setter
-    @Getter
+    @Column(columnDefinition = "boolean default false")
     private Boolean sick;
 
+    public Boolean getSick() {
+       if (Optional.ofNullable(sick).isPresent()) {
+           return sick;
+       } else {
+           return false;
+       }
+    }
+
     @Setter
-    @Getter
+    @Column(columnDefinition = "boolean default false")
     private Boolean school;
 
-    @Setter
-    @Getter
-    private Boolean vacation;
+    public Boolean getSchool() {
+        if (Optional.ofNullable(school).isPresent()) {
+            return school;
+        } else {
+            return false;
+        }
+    }
 
     @Setter
-    @Getter
+    @Column(columnDefinition = "boolean default false")
+    private Boolean vacation;
+
+    public Boolean getVacation() {
+        if (Optional.ofNullable(vacation).isPresent()) {
+            return vacation;
+        } else {
+            return false;
+        }
+    }
+
+    @Setter
+    @Column(columnDefinition = "boolean default false")
     private Boolean glaz;
+
+    public Boolean getGlaz() {
+        if (Optional.ofNullable(glaz).isPresent()) {
+            return glaz;
+        } else {
+            return false;
+        }
+    }
 
     /**
      * Holiday should be queried by general vacation
@@ -68,9 +110,17 @@ public class DayPlanData implements Serializable, UUIDable {
      * @implNote holiday should not be pushed to the database
      */
     @Setter
-    @Getter
     @Transient
+    @Column(columnDefinition = "boolean default false")
     private Boolean holiday;
+
+    public Boolean getHoliday() {
+        if (Optional.ofNullable(holiday).isPresent()) {
+            return holiday;
+        } else {
+            return false;
+        }
+    }
 
     @Setter
     @Getter
