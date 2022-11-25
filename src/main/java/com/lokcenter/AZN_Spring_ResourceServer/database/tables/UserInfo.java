@@ -42,6 +42,13 @@ public class UserInfo {
         @Setter
         @Getter
         private Time pause;
+
+        /**
+         * Date when working time applies
+         */
+        @Setter
+        @Getter
+        private Date startDate;
     }
 
     @LazyToOne(LazyToOneOption.NO_PROXY)

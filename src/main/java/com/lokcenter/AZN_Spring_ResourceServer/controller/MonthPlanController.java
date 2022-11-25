@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -43,7 +44,7 @@ public class MonthPlanController {
     @Autowired
     private DayPlanDataRepository dayPlanDataRepository;
 
-    private Map<String, Object> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException {
+    private Map<String, Object> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException, ParseException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
 
         if (user.isPresent()) {
