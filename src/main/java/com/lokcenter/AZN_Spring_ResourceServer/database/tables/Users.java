@@ -55,16 +55,21 @@ public class Users implements Serializable {
     @Getter
     private Map<String, NullType> roles = new HashMap<>();
 
-    /* User has many requests */
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "users")
     @JsonManagedReference
     private Set<Requests> requests = new HashSet<>();
 
     @Setter
     @Getter
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
+    @JsonManagedReference
+    private Set<Messages> messages = new HashSet<>();
+
+    @Setter
+    @Getter
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
     @JsonManagedReference
     private Set<DayPlanData> dayPlanData = new HashSet<>();
 }
