@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
+import com.azure.core.annotation.Get;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
@@ -376,5 +377,17 @@ public class AdminController {
        }catch (Exception ignore) {
            return false;
        }
+    }
+
+    /**
+     * Get all defaults
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
+    @GetMapping("defaults/get")
+    @ResponseBody
+    String getDefaults() throws JsonProcessingException {
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(defaultsRepository.findAll());
     }
 }
