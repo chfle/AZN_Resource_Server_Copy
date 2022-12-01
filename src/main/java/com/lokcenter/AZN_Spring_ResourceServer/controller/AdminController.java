@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -23,7 +24,7 @@ import java.util.stream.StreamSupport;
 
 /**
  * Admin Controller
- * @version 2.0 08-11-2022
+ * @version 3.0 1-12-2022
  */
 @RestController
 @RequestMapping("/admin")
@@ -45,6 +46,9 @@ public class AdminController {
 
     @Autowired
     private GeneralVacationRepository generalVacationRepository;
+
+    @Autowired
+    private DefaultsRepository defaultsRepository;
 
 
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
@@ -312,6 +316,12 @@ public class AdminController {
         return false;
     }
 
+    /**
+     * Delete request from user
+     * @param startDate request startdate
+     * @param endDate request enddate
+     * @param userId user
+     */
     @DeleteMapping("/requests/delete")
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     Boolean deleteRequestByUser(@RequestParam(name = "startDate", required = true) String startDate,
@@ -335,5 +345,36 @@ public class AdminController {
         }
 
         return false;
+    }
+
+    /**
+     * Add User default values
+     * @param payload default data
+     * @return request success value
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @PostMapping("defaults/add")
+    @ResponseBody
+    Boolean addDefaultValues(@RequestBody Map<String, Object> payload) {
+       try {
+          Defaults defaults = new Defaults();
+
+          SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+          SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
+
+          defaults.setDefaultStartDate(new Date(simpleDateFormat.parse((String)payload.get("start_date")).getTime()));
+          defaults.setDefaultStartTime(new Time(timeFormat.parse((String)payload.get("start_time")).getTime()));
+          defaults.setDefaultEndTime(new Time(timeFormat.parse((String)payload.get("end_time")).getTime()));
+          defaults.setDefaultPause(new Time(timeFormat.parse((String)payload.get("pause")).getTime()));
+
+          defaults.setDefaultVacationDays(Integer.parseInt((String)payload.get("vacation")));
+
+          defaultsRepository.save(defaults);
+
+          // check if data was saved
+          return  defaultsRepository.findById(defaults.getDefaultStartDate()).isPresent();
+       }catch (Exception ignore) {
+           return false;
+       }
     }
 }
