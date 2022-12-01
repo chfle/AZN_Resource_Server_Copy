@@ -390,4 +390,19 @@ public class AdminController {
                 withDefaultPrettyPrinter()
                 .writeValueAsString(defaultsRepository.findAll());
     }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @DeleteMapping("defaults/delete")
+    @ResponseBody
+    Boolean deleteDefaults(@RequestBody Map<String, Object> payload) {
+        try {
+            var spl = new SimpleDateFormat("dd.MM.yyyy");
+
+            defaultsRepository.deleteById(new Date(spl.parse((String)payload.get("start_date")).getTime()));
+
+            return defaultsRepository.findById(new Date(spl.parse((String)payload.get("start_date")).getTime())).isEmpty();
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
 }
