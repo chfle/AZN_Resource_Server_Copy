@@ -11,6 +11,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.AznStrings;
 import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -85,10 +89,21 @@ public class DayPlanController {
             // check if the following things are present
             return ((String) data.get("start_time")).trim().length() != 0
                     && ((String) data.get("end_time")).trim().length() != 0
-                    && ((String) data.get("pause")).trim().length() != 0;
+                    && ((String) data.get("pause")).trim().length() != 0
+                    && timeValueValid((String) data.get("start_time"))
+                    && timeValueValid((String) data.get("end_time"))
+                    && timeValueValid((String) data.get("pause"));
         }catch (Exception ignore) {
             return false;
         }
+    }
+
+    boolean timeValueValid(String timeAsString) throws ParseException {
+        var smp = new SimpleDateFormat("hh:mm");
+
+        LocalTime time = LocalTime.from(smp.parse(timeAsString).toInstant().atZone(ZoneId.systemDefault()));
+
+        return !time.isBefore(LocalTime.of(0, 1));
     }
 
     Boolean isGeneralVacationDay(Date date) {
