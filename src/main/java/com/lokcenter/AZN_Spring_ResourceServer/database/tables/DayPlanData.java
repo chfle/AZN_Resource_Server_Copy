@@ -36,7 +36,7 @@ public class DayPlanData implements Serializable, UUIDable {
     @Setter
     @Getter
     @Column(name = "user_id")
-    Long userId;
+    private Long userId;
 
     @Id
     @Setter
