@@ -54,7 +54,7 @@ public class DayPlanController {
      * @return boolean
      */
 
-     Optional<DayTime> setDayTime(Map<String, Object> data) {
+     Optional<DayTime> setDayTimeData(Map<String, Object> data) {
          Optional<DayTime> optionalDateTime = Optional.empty();
          SimpleDateFormat sdf = new SimpleDateFormat("k:m");
 
@@ -64,6 +64,7 @@ public class DayPlanController {
             dayTime.setStart(new Time(sdf.parse((String)data.get("start_time")).getTime()));
             dayTime.setEnd(new Time(sdf.parse((String)data.get("end_time")).getTime()));
             dayTime.setPause(new Time(sdf.parse((String)data.get("pause")).getTime()));
+
 
             optionalDateTime = Optional.of(dayTime);
         }catch (Exception ignore) {
@@ -122,6 +123,8 @@ public class DayPlanController {
                     dpd.setSetDate(d);
                     dpd.setComment((String) data.get("comment"));
 
+                    memService.deleteKeyValue(AznStrings.toString(new DayPlanDataKey(dpd.getUserId(), dpd.getSetDate())));  ;
+
                     // set dayplan data to valid
                     dpd.setValid(true);
 
@@ -144,9 +147,10 @@ public class DayPlanController {
                         // check if post data is valid
                         if (validDayPlanData(data)) {
                             // change time
-                            Optional<DayTime> dayTime = setDayTime(data);
+                            Optional<DayTime> dayTime = setDayTimeData(data);
 
                             cachedDayPlanData.setWorkTime(dayTime.get());
+                            cachedDayPlanData.setComment((String) data.get("comment"));
 
                             // mark dayplan as valid
                             cachedDayPlanData.setValid(true);
@@ -182,6 +186,7 @@ public class DayPlanController {
 
 
                             dayPlanData.setWorkTime(dayTime);
+                            dayPlanData.setComment((String) data.get("comment"));
 
                             // mark dayplan data as not valid
                             dayPlanData.setValid(false);
@@ -191,7 +196,7 @@ public class DayPlanController {
                         } else {
                             // create valid data object
 
-                            dayPlanData.setWorkTime(setDayTime(data).get());
+                            dayPlanData.setWorkTime(setDayTimeData(data).get());
 
                             // mark dayplan data as valid
                             dayPlanData.setValid(true);
