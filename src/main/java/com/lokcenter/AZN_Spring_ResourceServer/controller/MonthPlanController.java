@@ -110,7 +110,6 @@ public class MonthPlanController {
             {
                 Map<String, Object> dayPlanDataOptional =
                         getDayPlanDataByUserAndDate(user,
-
                                 new java.sql.Date(TimeConvert.convertToDateViaInstant(i).getTime()));
 
                dpd.add(dayPlanDataOptional);
@@ -163,6 +162,16 @@ public class MonthPlanController {
             Optional<Users> user = userRepository.findByUsername(name);
 
             if (user.isPresent()) {
+                var MK = new MonthPlanKey(
+                        user.get().getUserId(),
+                        Integer.parseInt((String)payload.get("year")) ,
+                        (Integer) payload.get("month"));
+
+                // check if monthplan exists
+                if (monthPlanRepository.findById(MK).isPresent()) {
+                    monthPlanRepository.deleteById(MK);
+                }
+
                 MonthPlan monthPlan = new MonthPlan();
                 monthPlan.setUsers(user.get());
                 monthPlan.setUserId(user.get().getUserId());
@@ -204,10 +213,10 @@ public class MonthPlanController {
                         Integer.parseInt((String)payload.get("year")) ,
                         Integer.parseInt((String)payload.get("month"))));
 
-               month.ifPresent(monthPlan -> {
-                   ret.put("submitted", monthPlan.getSubmitted());
-                   ret.put("accepted", monthPlan.getAccepted());
-               });
+               if (month.isPresent()) {
+                   ret.put("submitted", month.get().getSubmitted());
+                   ret.put("accepted", month.get().getAccepted());
+               }
            }
        }catch (Exception exception) {
           exception.printStackTrace();

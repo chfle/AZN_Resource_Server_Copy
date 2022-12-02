@@ -52,7 +52,7 @@ public class UserInfo {
     }
 
     @LazyToOne(LazyToOneOption.NO_PROXY)
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @Setter
     @Getter

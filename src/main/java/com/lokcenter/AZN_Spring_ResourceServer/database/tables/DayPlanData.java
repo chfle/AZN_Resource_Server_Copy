@@ -25,7 +25,7 @@ public class DayPlanData implements Serializable, UUIDable {
     private static final long serialVersionUID = 1L;
 
     @LazyToOne(LazyToOneOption.NO_PROXY)
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @Setter
     @Getter

@@ -20,7 +20,7 @@ import java.io.Serializable;
 @Entity
 public class MonthPlan implements Serializable {
     @LazyToOne(LazyToOneOption.NO_PROXY)
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @Setter
     @Getter
