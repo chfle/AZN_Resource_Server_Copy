@@ -1,37 +1,30 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
+import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.MonthPlanRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.MonthPlan;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
-import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.AznStrings;
-import lombok.experimental.Helper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
 
 
-/**
- * This Controller is view only. No Data should be changed!!!
- */
 @RestController
 @RequestMapping("/monthplan")
 public class MonthPlanController {
@@ -43,6 +36,9 @@ public class MonthPlanController {
 
     @Autowired
     private DayPlanDataRepository dayPlanDataRepository;
+
+    @Autowired
+    private MonthPlanRepository monthPlanRepository;
 
     private Map<String, Object> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException, ParseException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
@@ -151,5 +147,41 @@ public class MonthPlanController {
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(monthData);
+    }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @PutMapping("/submit")
+    @ResponseBody
+    Boolean submitMonthPlan(@RequestBody Map<String, Object> payload, Authentication auth) {
+        try {
+            Jwt jwt = (Jwt) auth.getPrincipal();
+
+            String name = jwt.getClaim("unique_name");
+
+            // get userId;
+            Optional<Users> user = userRepository.findByUsername(name);
+
+            if (user.isPresent()) {
+                MonthPlan monthPlan = new MonthPlan();
+                monthPlan.setUsers(user.get());
+                monthPlan.setUserId(user.get().getUserId());
+                monthPlan.setSubmitted(true);
+                monthPlan.setAccepted(false);
+                monthPlan.setYear((Integer) payload.get("year"));
+                monthPlan.setMonth(Integer.parseInt((String)payload.get("month")));
+
+                monthPlanRepository.save(monthPlan);
+
+               return monthPlanRepository.findById(new MonthPlanKey(
+                       user.get().getUserId(),
+                       (Integer) payload.get("year") ,
+                       Integer.parseInt((String)payload.get("month")))).isPresent();
+            } else {
+                return false;
+            }
+        }catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
     }
 }
