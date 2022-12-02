@@ -85,6 +85,23 @@ public class MonthPlanController {
        return new HashMap<>();
     }
 
+    private Map<String, Object> getStatus(Optional<Users> user, Map<String, Object> payload) {
+        Map<String, Object> ret = new HashMap<>();
+        if (user.isPresent()) {
+            var month = monthPlanRepository.findById(new MonthPlanKey(
+                    user.get().getUserId(),
+                    Integer.parseInt((String)payload.get("year")) ,
+                    Integer.parseInt((String)payload.get("month"))));
+
+            if (month.isPresent()) {
+                ret.put("submitted", month.get().getSubmitted());
+                ret.put("accepted", month.get().getAccepted());
+            }
+        }
+
+        return ret;
+    }
+
     // go over each day one by one
     private List<Map<String, Object>> getDayPlansOfMonth(String month, String year, Optional<Users> user) throws ParseException, IOException {
         List<Map<String, Object>> dpd = new ArrayList<>();
@@ -200,22 +217,20 @@ public class MonthPlanController {
     String getSubmittedStatus(@RequestBody Map<String, Object> payload, Authentication auth) throws JsonProcessingException {
         Map<String, Object> ret = new HashMap<>();
        try {
-           Jwt jwt = (Jwt) auth.getPrincipal();
+           if (!payload.containsKey("userId")) {
+               Jwt jwt = (Jwt) auth.getPrincipal();
 
-           String name = jwt.getClaim("unique_name");
+               String name = jwt.getClaim("unique_name");
 
-           // get userId;
-           Optional<Users> user = userRepository.findByUsername(name);
-
-           if (user.isPresent()) {
-                var month = monthPlanRepository.findById(new MonthPlanKey(
-                        user.get().getUserId(),
-                        Integer.parseInt((String)payload.get("year")) ,
-                        Integer.parseInt((String)payload.get("month"))));
-
-               if (month.isPresent()) {
-                   ret.put("submitted", month.get().getSubmitted());
-                   ret.put("accepted", month.get().getAccepted());
+               // get userId;
+               Optional<Users> user = userRepository.findByUsername(name);
+               ret = getStatus(user, payload);
+           } else {
+               if (payload.containsKey("role") && payload.containsKey("userId")) {
+                   if (payload.get("role").equals("ROLE_Admin")) {
+                       Optional<Users> user = userRepository.findById(Long.parseLong((String)payload.get("userId")));
+                       ret = getStatus(user, payload);
+                   }
                }
            }
        }catch (Exception exception) {
