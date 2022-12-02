@@ -120,6 +120,7 @@ public class DayPlanController {
                     dpd.setUsers(user.get());
                     dpd.setUserId(user.get().getUserId());
                     dpd.setSetDate(d);
+                    dpd.setComment((String) data.get("comment"));
 
                     // set dayplan data to valid
                     dpd.setValid(true);
