@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
@@ -167,8 +168,8 @@ public class MonthPlanController {
                 monthPlan.setUserId(user.get().getUserId());
                 monthPlan.setSubmitted(true);
                 monthPlan.setAccepted(false);
-                monthPlan.setYear((Integer) payload.get("year"));
-                monthPlan.setMonth(Integer.parseInt((String)payload.get("month")));
+                monthPlan.setMonth((Integer) payload.get("month"));
+                monthPlan.setYear(Integer.parseInt((String)payload.get("year")));
 
                 monthPlanRepository.save(monthPlan);
 
@@ -183,5 +184,37 @@ public class MonthPlanController {
             exception.printStackTrace();
             return false;
         }
+    }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
+    @GetMapping("/status")
+    String getSubmittedStatus(@RequestBody Map<String, Object> payload, Authentication auth) throws JsonProcessingException {
+        Map<String, Object> ret = new HashMap<>();
+       try {
+           Jwt jwt = (Jwt) auth.getPrincipal();
+
+           String name = jwt.getClaim("unique_name");
+
+           // get userId;
+           Optional<Users> user = userRepository.findByUsername(name);
+
+           if (user.isPresent()) {
+                var month = monthPlanRepository.findById(new MonthPlanKey(
+                        user.get().getUserId(),
+                        Integer.parseInt((String)payload.get("year")) ,
+                        Integer.parseInt((String)payload.get("month"))));
+
+               month.ifPresent(monthPlan -> {
+                   ret.put("submitted", monthPlan.getSubmitted());
+                   ret.put("accepted", monthPlan.getAccepted());
+               });
+           }
+       }catch (Exception exception) {
+          exception.printStackTrace();
+       }
+
+       return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(ret);
     }
 }
