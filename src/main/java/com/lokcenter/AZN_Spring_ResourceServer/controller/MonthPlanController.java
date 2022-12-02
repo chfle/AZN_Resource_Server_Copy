@@ -175,8 +175,8 @@ public class MonthPlanController {
 
                return monthPlanRepository.findById(new MonthPlanKey(
                        user.get().getUserId(),
-                       (Integer) payload.get("year") ,
-                       Integer.parseInt((String)payload.get("month")))).isPresent();
+                       Integer.parseInt((String)payload.get("year")) ,
+                       (Integer) payload.get("month"))).isPresent();
             } else {
                 return false;
             }
