@@ -485,7 +485,9 @@ public class AdminController {
         List<Map<String, Object>> returnData = new ArrayList<>();
 
         for (Users user : users) {
-            returnData.add(new HashMap<>(Map.of("username", user.getUsername(), "id", user.getUserId())));
+            if (user.getRoles().containsKey("ROLE_User")) {
+                returnData.add(new HashMap<>(Map.of("username", user.getUsername(), "id", user.getUserId())));
+            }
         }
 
         return new ObjectMapper().writer().
