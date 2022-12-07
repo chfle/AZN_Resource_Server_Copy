@@ -184,7 +184,8 @@ public class MonthPlanController {
                         Integer.parseInt((String)payload.get("year")) ,
                         (Integer) payload.get("month"));
 
-                // check if monthplan exists
+                // ch
+                // eck if monthplan exists
                 if (monthPlanRepository.findById(MK).isPresent()) {
                     monthPlanRepository.deleteById(MK);
                 }

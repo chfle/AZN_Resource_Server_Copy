@@ -3,6 +3,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.azure.core.annotation.Get;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
@@ -50,6 +51,9 @@ public class AdminController {
 
     @Autowired
     private DefaultsRepository defaultsRepository;
+
+    @Autowired
+    private MonthPlanRepository monthPlanRepository;
 
 
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
@@ -398,11 +402,44 @@ public class AdminController {
         try {
             var spl = new SimpleDateFormat("dd.MM.yyyy");
 
-            defaultsRepository.deleteById(new Date(spl.parse((String)payload.get("start_date")).getTime()));
+            defaultsRepository.deleteById(new Date(spl.parse((String) payload.get("start_date")).getTime()));
 
-            return defaultsRepository.findById(new Date(spl.parse((String)payload.get("start_date")).getTime())).isEmpty();
+            return defaultsRepository.findById(new Date(spl.parse((String) payload.get("start_date")).getTime())).isEmpty();
         } catch (Exception ignore) {
             return false;
         }
     }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @PutMapping("azn/accept")
+    @ResponseBody
+    Boolean aznAccept(@RequestBody Map<String, Object> payload) {
+        try {
+            Optional<Users> user  = userRepository.findById(Long.parseLong((String)payload.get("userid")));
+
+            if (user.isPresent()) {
+                var MK = new MonthPlanKey(
+                        user.get().getUserId(),
+                        Integer.parseInt((String)payload.get("year")) ,
+                        (Integer) payload.get("month"));
+
+                Optional<MonthPlan> monthPlan = monthPlanRepository.findById(MK);
+
+                if (monthPlan.isPresent()) {
+                    var month = monthPlan.get();
+                    // check if month plan was submitted!!!
+                    if (month.getSubmitted()) {
+                        month.setAccepted(true);
+
+                        monthPlanRepository.save(month);
+
+                        return true;
+                    }
+                }
+            }
+        }catch (Exception ignore) {}
+
+        return false;
+    }
+
 }
