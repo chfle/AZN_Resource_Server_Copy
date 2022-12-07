@@ -1,6 +1,5 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
-import com.azure.core.annotation.Get;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
@@ -22,6 +21,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
 /**
@@ -395,6 +396,23 @@ public class AdminController {
                 .writeValueAsString(defaultsRepository.findAll());
     }
 
+    /**
+     * Consume monthplan if pressent and user has monthplan submitted
+     */
+    AtomicBoolean monthPlanIfPresentAndSubmitted(Consumer<? super MonthPlan> consumer, Users user, int year, int month) {
+      AtomicBoolean changed = new AtomicBoolean(false);
+       var MK = new MonthPlanKey(user.getUserId(), year , month);
+
+       monthPlanRepository.findById(MK).ifPresent((e) -> {
+           if (e.getSubmitted()) {
+               consumer.accept(e);
+               changed.set(true);
+           }
+       });
+
+       return changed;
+    }
+
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @DeleteMapping("defaults/delete")
     @ResponseBody
@@ -422,24 +440,10 @@ public class AdminController {
             Optional<Users> user  = userRepository.findById(Long.parseLong((String)payload.get("userid")));
 
             if (user.isPresent()) {
-                var MK = new MonthPlanKey(
-                        user.get().getUserId(),
-                        Integer.parseInt((String)payload.get("year")) ,
-                        (Integer) payload.get("month"));
-
-                Optional<MonthPlan> monthPlan = monthPlanRepository.findById(MK);
-
-                if (monthPlan.isPresent()) {
-                    var month = monthPlan.get();
-                    // check if month plan was submitted!!!
-                    if (month.getSubmitted()) {
-                        month.setAccepted(true);
-
-                        monthPlanRepository.save(month);
-
-                        return true;
-                    }
-                }
+                return monthPlanIfPresentAndSubmitted((e) -> {
+                    e.setAccepted(true);
+                    monthPlanRepository.save(e);
+                }, user.get(), Integer.parseInt((String)payload.get("year")) , (Integer) payload.get("month")).get();
             }
         }catch (Exception ignore) {}
 
@@ -458,25 +462,11 @@ public class AdminController {
             Optional<Users> user  = userRepository.findById(Long.parseLong((String)payload.get("userid")));
 
             if (user.isPresent()) {
-                var MK = new MonthPlanKey(
-                        user.get().getUserId(),
-                        Integer.parseInt((String)payload.get("year")) ,
-                        (Integer) payload.get("month"));
-
-                Optional<MonthPlan> monthPlan = monthPlanRepository.findById(MK);
-
-                if (monthPlan.isPresent()) {
-                    var month = monthPlan.get();
-                    // check if month plan was submitted!!!
-                    if (month.getSubmitted()) {
-                        month.setAccepted(false);
-                        month.setSubmitted(false);
-
-                        monthPlanRepository.save(month);
-
-                        return true;
-                    }
-                }
+                return monthPlanIfPresentAndSubmitted((e) -> {
+                    e.setAccepted(false);
+                    e.setSubmitted(false);
+                    monthPlanRepository.save(e);
+                }, user.get(), Integer.parseInt((String)payload.get("year")) , (Integer) payload.get("month")).get();
             }
         }catch (Exception ignore) {}
 
