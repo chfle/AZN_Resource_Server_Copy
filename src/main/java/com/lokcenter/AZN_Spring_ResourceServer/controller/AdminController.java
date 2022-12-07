@@ -472,4 +472,24 @@ public class AdminController {
 
         return false;
     }
+
+    /**
+     * Get all users and user id's
+     * @return list of username and user id
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
+    @ResponseBody
+    @GetMapping("/userlist")
+    String getUsernamesAndIds() throws JsonProcessingException {
+        Iterable<Users> users = userRepository.findAll();
+        List<Map<String, Object>> returnData = new ArrayList<>();
+
+        for (Users user : users) {
+            returnData.add(new HashMap<>(Map.of("username", user.getUsername(), "id", user.getUserId())));
+        }
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(returnData);
+    }
 }
