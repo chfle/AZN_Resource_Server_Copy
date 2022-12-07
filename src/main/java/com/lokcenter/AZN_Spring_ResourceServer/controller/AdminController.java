@@ -410,6 +410,10 @@ public class AdminController {
         }
     }
 
+    /**
+     * Accept month plan
+     * @param payload month plan data
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PutMapping("azn/accept")
     @ResponseBody
@@ -442,4 +446,40 @@ public class AdminController {
         return false;
     }
 
+    /**
+     * Deny month plan
+     * @param payload month plan data
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @PutMapping("azn/deny")
+    @ResponseBody
+    Boolean aznDeny(@RequestBody Map<String, Object> payload) {
+        try {
+            Optional<Users> user  = userRepository.findById(Long.parseLong((String)payload.get("userid")));
+
+            if (user.isPresent()) {
+                var MK = new MonthPlanKey(
+                        user.get().getUserId(),
+                        Integer.parseInt((String)payload.get("year")) ,
+                        (Integer) payload.get("month"));
+
+                Optional<MonthPlan> monthPlan = monthPlanRepository.findById(MK);
+
+                if (monthPlan.isPresent()) {
+                    var month = monthPlan.get();
+                    // check if month plan was submitted!!!
+                    if (month.getSubmitted()) {
+                        month.setAccepted(false);
+                        month.setSubmitted(false);
+
+                        monthPlanRepository.save(month);
+
+                        return true;
+                    }
+                }
+            }
+        }catch (Exception ignore) {}
+
+        return false;
+    }
 }
