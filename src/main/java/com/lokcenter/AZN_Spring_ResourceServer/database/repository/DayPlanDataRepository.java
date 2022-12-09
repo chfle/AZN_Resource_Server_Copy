@@ -7,9 +7,11 @@ import org.apache.catalina.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import javax.transaction.Transactional;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * DayPlanData queries
@@ -48,4 +50,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
      */
     @Query(value = "select * from day_plan_data where set_date = ?1 and user_id = ?2", nativeQuery = true)
     Optional<DayPlanData> getBySetDateAndUserId(Date setDate, Long userId);
+
+    @Transactional
+    Long deleteByUuid(UUID uuid);
 }

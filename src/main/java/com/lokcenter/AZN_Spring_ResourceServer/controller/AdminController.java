@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
@@ -493,5 +494,26 @@ public class AdminController {
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(returnData);
+    }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @DeleteMapping("/overview/delete")
+    @ResponseBody
+    Boolean deleteOverviewItem(@RequestBody Map<String, Object> payload) {
+        try {
+            String tag = (String)payload.get("tag");
+            String id = (String)payload.get("id");
+
+            Tags tagV = Tags.valueOf(tag);
+
+            if (tagV == Tags.gFeiertag || tagV == Tags.gUrlaub) {
+                return generalVacationRepository.deleteByUuid(UUID.fromString(id)) > 0;
+            } else {
+                return dayPlanDataRepository.deleteByUuid(UUID.fromString(id)) > 0;
+            }
+        }catch (Exception exception) {
+           exception.printStackTrace();
+           return false;
+        }
     }
 }

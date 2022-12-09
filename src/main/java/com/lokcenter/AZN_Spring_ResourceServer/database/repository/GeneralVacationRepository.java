@@ -5,8 +5,10 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
+import javax.transaction.Transactional;
 import java.sql.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface GeneralVacationRepository extends CrudRepository<GeneralVacation, GeneralVacationKey> {
     // select * from general_vacation where date between '09-26-2022' and '11-6-2022'
@@ -15,4 +17,7 @@ public interface GeneralVacationRepository extends CrudRepository<GeneralVacatio
 
     @Query
     Optional<GeneralVacation> getGeneralVacationByDate(Date date);
+
+    @Transactional
+    long deleteByUuid(UUID uuid);
 }
