@@ -3,14 +3,17 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,6 +63,9 @@ public class AdminController {
 
     @Autowired
     private MessagesRepository messagesRepository;
+
+    @Autowired
+    private ControllerHelper controllerHelper;
 
 
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
@@ -547,6 +553,88 @@ public class AdminController {
                 messagesRepository.save(messages);
 
                 return true;
+            }
+            return false;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Save admin Requested Date to calendar
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @PostMapping("/overview/request")
+    @ResponseBody
+    Boolean saveAdminOverviewRequestedDate(@RequestBody Map<String, Object> data) {
+        try {
+            Optional<Users> user = userRepository.findById(Long.parseLong((String) data.get("id")));
+
+            if (user.isPresent()) {
+                Optional<Requests> requests = controllerHelper.getValidNonExistingRequest(data, user.get());
+
+                if (requests.isPresent()) {
+                    var request = requests.get();
+                    Iterable<DayPlanData> dayPlanData = dayPlanDataRepository.
+                            getDayPlanDataBySetDateBetweenAndUserId(
+                                    request.getStartDate(),
+                                    request.getEndDate(),
+                                    user.get().getUserId());
+
+                    Iterable<GeneralVacation> generals = generalVacationRepository.getGeneralVacationByDateBetween(
+                            request.getStartDate(),
+                            request.getEndDate()
+                    );
+
+                    // check if holiday or general holiday is set
+                    if (StreamSupport.stream(generals.spliterator(), false).findAny().isEmpty()) {
+                        // check if vacation, galz, urlaub, school is set
+                        for (DayPlanData dpd : dayPlanData) {
+                            if (dpd.getGlaz() || dpd.getSchool() || dpd.getVacation()) {
+                                return false;
+                            }
+                        }
+
+                        var start = TimeConvert.convertToLocalDateViaInstant(new java.util.Date(request.getStartDate().getTime()));
+                        var end = TimeConvert.convertToLocalDateViaInstant(new java.util.Date(request.getEndDate().getTime()));
+
+                        // generate uuid
+                        UUID uuid = UUID.randomUUID();
+
+                        // go over each day from start to end and set request value
+                        for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                            System.out.println(date);
+                            // get day
+                            DayPlanData dpd;
+                            Optional<DayPlanData> day =
+                                    dayPlanDataRepository.getBySetDateAndUserId(new Date(TimeConvert.convertToDateViaInstant(date).
+                                            getTime()), user.get().getUserId());
+
+                            if (day.isEmpty()) {
+                                dpd = new DayPlanData();
+
+                                dpd.setUserId(user.get().getUserId());
+                                dpd.setSetDate(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
+                            } else {
+                                dpd = day.get();
+                            }
+
+                            // set request value
+                            switch (requests.get().getType()) {
+                                case rGLAZ -> dpd.setGlaz(true);
+                                case rUrlaub -> dpd.setVacation(true);
+                            }
+
+                            // set uuid
+                            dpd.setUuid(uuid);
+
+                            // save dpd
+                            dayPlanDataRepository.save(dpd);
+                        }
+                        return true;
+                    }
+                }
             }
             return false;
         } catch (Exception exception) {
