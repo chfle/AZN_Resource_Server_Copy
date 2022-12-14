@@ -22,7 +22,7 @@ public class Messages implements Serializable {
     @Setter
     @Getter
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String messageId;
+    private Long messageId;
 
     @Setter
     @Getter

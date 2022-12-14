@@ -4,14 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.MonthPlanRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.MonthPlan;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,6 +34,9 @@ public class MonthPlanController {
 
     @Autowired
     private MonthPlanRepository monthPlanRepository;
+
+    @Autowired
+    private MessagesRepository messagesRepository;
 
     private Map<String, Object> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException, ParseException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
@@ -241,5 +238,41 @@ public class MonthPlanController {
        return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(ret);
+    }
+
+    /**
+     * Get Message if month plan was denied
+     * @return
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
+    @GetMapping("/message")
+    String getMessage(@RequestBody Map<String, Object> payload, Authentication auth) throws JsonProcessingException {
+        Map<String, Object> resData = new HashMap<>();
+
+        try {
+            Jwt jwt = (Jwt) auth.getPrincipal();
+
+            String name = jwt.getClaim("unique_name");
+
+            // get userId;
+            Optional<Users> user = userRepository.findByUsername(name);
+
+            if (user.isPresent()) {
+                System.out.println((String)payload.get("year"));
+                System.out.println((String)payload.get("month"));
+                Optional<Messages> message =  messagesRepository.findMessagesByUserIdAndYearAndMonth(
+                        user.get().getUserId(), (String)payload.get("year"), (String)payload.get("month"));
+
+                if (message.isPresent()) {
+                    resData.put("message", message.get().getMessage());
+                    resData.put("date", message.get().getDate());
+                }
+            }
+        }catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(resData);
     }
 }
