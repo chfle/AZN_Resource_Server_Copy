@@ -266,6 +266,7 @@ public class MonthPlanController {
                 if (message.isPresent()) {
                     resData.put("message", message.get().getMessage());
                     resData.put("date", message.get().getDate());
+                    resData.put("messageId", message.get().getMessageId());
                 }
             }
         }catch (Exception exception) {

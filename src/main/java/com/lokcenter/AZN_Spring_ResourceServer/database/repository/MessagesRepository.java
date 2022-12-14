@@ -17,7 +17,7 @@ public interface MessagesRepository extends CrudRepository<Messages, Long> {
 
     @Transactional
     @Modifying
-    @Query(value = "update messages set read = ?1 where message_id = ?2", nativeQuery = true)
-    void setRead(boolean value, Long messageId);
+    @Query(value = "update messages set read = ?1 where message_id = ?2 and user_id = ?3", nativeQuery = true)
+    void setRead(boolean value, Long messageId, Long userId);
 
 }
