@@ -30,6 +30,8 @@ public class ControllerHelper {
     public Optional<Requests> getValidNonExistingRequest(Map<String, Object> data, Users user) throws ParseException {
         var request = new Requests();
 
+        request.setUsers(user);
+
         var format = new SimpleDateFormat("yyyy-MM-dd");
 
         // check if endDate is valid

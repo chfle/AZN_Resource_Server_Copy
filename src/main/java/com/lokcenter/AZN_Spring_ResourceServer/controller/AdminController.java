@@ -602,7 +602,7 @@ public class AdminController {
                         // generate uuid
                         UUID uuid = UUID.randomUUID();
 
-                        // go over each day from start to end and set request value
+                        // go over each day from start to end and set admin request
                         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
                             System.out.println(date);
                             // get day

@@ -13,6 +13,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
@@ -47,6 +49,9 @@ public class OverviewController {
 
     @Autowired
     private DayPlanDataRepository dayPlanDataRepository;
+
+    @Autowired
+    private ControllerHelper controllerHelper;
 
     @AllArgsConstructor
     /*
@@ -326,39 +331,11 @@ public class OverviewController {
             Optional<Users> user = userRepository.findByUsername(name);
 
             if (user.isPresent()) {
-                var request = new Requests();
+                Optional<Requests> requests = controllerHelper.getValidNonExistingRequest(payload, user.get());
 
-                request.setUsers(user.get());
-
-                var format = new SimpleDateFormat("yyyy-MM-dd");
-
-                // check if endDate is valid
-                var startDate = new Date(format.parse((String) payload.get("startDate")).getTime());
-                var endDate = new Date(format.parse((String) payload.get("endDate")).getTime());
-
-                if (startDate.compareTo(endDate) <= 0) {
-                    request.setStartDate(startDate);
-                    request.setEndDate(endDate);
-
-                    switch ((String) payload.get("tag")) {
-                        case "rUrlaub" -> request.setType(RequestTypeEnum.rUrlaub);
-                        case "rGLAZ" -> request.setType(RequestTypeEnum.rGLAZ);
-                    }
-
-                    request.setUuid(UUID.randomUUID());
-
-                    Optional<DayPlanData> dayPlanData = dayPlanDataRepository.
-                           getDayPlanDataWhereTrue(user.get(), startDate);
-
-                    Optional<GeneralVacation> generalVacation =
-                            generalVacationRepository.getGeneralVacationByDate(startDate);
-
-                    // check if request exists
-                    if (dayPlanData.isEmpty() && generalVacation.isEmpty())  {
-                         // save
-                         requestsRepository.insertSave(request);
-                         return true;
-                    }
+                if (requests.isPresent()) {
+                    requestsRepository.insertSave(requests.get());
+                    return true;
                 }
             }
            return false;
