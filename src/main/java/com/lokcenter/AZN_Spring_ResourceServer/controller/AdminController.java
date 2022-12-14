@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
@@ -56,6 +57,9 @@ public class AdminController {
 
     @Autowired
     private MonthPlanRepository monthPlanRepository;
+
+    @Autowired
+    private MessagesRepository messagesRepository;
 
 
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
@@ -514,6 +518,40 @@ public class AdminController {
         }catch (Exception exception) {
            exception.printStackTrace();
            return false;
+        }
+    }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @PostMapping("/azn/messages")
+    @ResponseBody
+    Boolean saveMessage(@RequestBody Map<String, Object> payload) {
+        try {
+            Optional<Users> user = userRepository.findById(Long.parseLong((String)payload.get("userid")));
+
+            if (user.isPresent()) {
+                Messages messages = new Messages();
+
+                MessageTypes messageTypes = MessageTypes.valueOf((String) payload.get("type"));
+                messages.setMessage((String) payload.get("message"));
+                messages.setUser(user.get());
+                messages.setDate(new java.sql.Date(Calendar.getInstance().getTime().getTime()));
+                messages.setMessageType(messageTypes);
+
+                if (messageTypes == MessageTypes.AZN_MONTH) {
+                    var year = Integer.parseInt((String) payload.get("year"));
+                    var month = (Integer) payload.get("month");
+
+                    messages.setMonthTypeData(Map.of("year", year, "month", month));
+                }
+
+                messagesRepository.save(messages);
+
+                return true;
+            }
+            return false;
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
         }
     }
 }
