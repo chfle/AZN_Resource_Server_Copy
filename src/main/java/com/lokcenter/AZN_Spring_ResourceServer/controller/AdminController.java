@@ -25,6 +25,7 @@ import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -641,5 +642,25 @@ public class AdminController {
             exception.printStackTrace();
             return false;
         }
+    }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @GetMapping("/azn/get")
+    @ResponseBody
+    String getAZNSubmittedByUserId(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
+        List<Map<String, Object>> resList = new ArrayList<>();
+        Optional<Users> user = userRepository.findById(Long.parseLong(userId));
+
+        if (user.isPresent()) {
+           Iterable<MonthPlan> submittedMonthPlans = monthPlanRepository.findSubmittedByUser(user.get().getUserId());
+
+           for (var month : submittedMonthPlans) {
+               resList.add(new HashMap<>(Map.of("year", month.getYear(), "month", month.getMonth())));
+           }
+        }
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(resList);
     }
 }

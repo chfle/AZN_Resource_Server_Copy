@@ -37,8 +37,6 @@ public class MessageController {
             messagesRepository.setRead(true, Long.parseLong(messageId), user.get().getUserId());
             return true;
         }
-
-
         return false;
     }
 }
