@@ -78,4 +78,10 @@ public class Users implements Serializable {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
     @JsonManagedReference
     private Set<MonthPlan> monthplans = new HashSet<>();
+
+    @Setter
+    @Getter
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private UserInfo userInfo;
 }

@@ -12,6 +12,7 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Date;
 import java.sql.Time;
@@ -30,14 +31,14 @@ public class UserInfo {
 
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class WorkTime {
+    public static class WorkTime implements Serializable {
         @Setter
         @Getter
-        private Timestamp start;
+        private Time start;
 
         @Setter
         @Getter
-        private Timestamp end;
+        private Time end;
 
         @Setter
         @Getter
@@ -51,8 +52,7 @@ public class UserInfo {
         private Date startDate;
     }
 
-    @LazyToOne(LazyToOneOption.NO_PROXY)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @Setter
     @Getter

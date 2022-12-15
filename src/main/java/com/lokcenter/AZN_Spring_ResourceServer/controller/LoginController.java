@@ -1,6 +1,10 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DefaultsRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Defaults;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.testing.JunitHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.NullType;
@@ -14,6 +18,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.ConstraintViolationException;
+import java.sql.SQLIntegrityConstraintViolationException;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.time.Year;
 import java.util.*;
 
 /**
@@ -30,6 +39,13 @@ import java.util.*;
 public class LoginController {
     @Autowired
     private final UserRepository userRepository;
+
+    @Autowired
+    final UserInfoRepository userInfoRepository;
+
+    @Autowired
+    final DefaultsRepository defaultsRepository;
+
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
@@ -58,7 +74,59 @@ public class LoginController {
 
                 // try to insert user but check if not a junit test
                 if (!JunitHelper.isJUnitTest()) {
-                    userRepository.save(user);
+                   try {
+                       userRepository.save(user);
+                   }catch (Exception exception) {
+                       exception.printStackTrace();
+                   }
+
+                    // get saved user
+                    Optional<Users> userf = userRepository.findByUsername(user.getUsername());
+
+                    if (userf.isPresent()) {
+                        // set user data
+                        UserInfo userInfo = new UserInfo();
+                        userInfo.setUsers(userf.get());
+
+                        // get current date
+                        java.sql.Date currDate = new java.sql.Date(new Date().getTime());
+
+                        // set default values
+                        var workTime = new UserInfo.WorkTime();
+
+                        SimpleDateFormat format = new SimpleDateFormat("hh:mm a");
+                        // default work time
+
+                        workTime.setStart(new Time(format.parse("07:15 am").getTime()));
+                        workTime.setStart(new Time(format.parse("16:00 pm").getTime()));
+                        workTime.setStart(new Time(format.parse("01:00 am").getTime()));
+
+                        // default vacation
+                        userInfo.setAvailableVacation(new HashMap<>(Map.of("2022", "30")));
+
+                        // set defaults without default values set from admin
+                        if (defaultsRepository.count() != 0) {
+                            // use values from default
+                            Optional<Defaults> defaults =
+                                    defaultsRepository.findClosedDefaultValue(new java.sql.Date(new Date().getTime()));
+
+                            if (defaults.isPresent()) {
+                                workTime.setStart(defaults.get().getDefaultStartTime());
+                                workTime.setEnd(defaults.get().getDefaultEndTime());
+                                workTime.setPause(defaults.get().getDefaultPause());
+
+                                userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()),
+                                        String.valueOf(defaults.get().getDefaultVacationDays()))));
+                            }
+                        }
+
+                        userInfo.setWorkTime(new HashMap<>(Map.of(currDate, workTime)));
+
+                        // save default values
+                        if (userInfoRepository.findByUserId(user.getUserId()).isEmpty()) {
+                            userInfoRepository.save(userInfo);
+                        }
+                    }
                 }
             } else {
                throw new Exception("Bad request");
@@ -67,8 +135,6 @@ public class LoginController {
             exception.printStackTrace();
             return new ResponseEntity<>(false, HttpStatus.BAD_REQUEST);
         }
-
-
        return new ResponseEntity<>(true, HttpStatus.OK);
     }
 }
