@@ -153,6 +153,8 @@ public class AdminController {
 
                    currentUserData.put("requests", requests.spliterator().getExactSizeIfKnown());
 
+                   currentUserData.put("azn_count", monthPlanRepository.findSubmittedByUser(data.getNthValue(0)).spliterator().getExactSizeIfKnown());
+
                    listUserData.add(currentUserData);
                }
 
