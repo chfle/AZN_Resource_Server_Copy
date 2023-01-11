@@ -148,15 +148,16 @@ public class UserInfo {
         Map<String, Map<String, Object>> resultMap = new HashMap<>();
 
         for (Field field: this.getClass().getDeclaredFields()) {
-            System.out.println(field.getName());
             if (field.getType() == Map.class) {
-
                try {
                    for (var entry: ((HashMap<String, Object>)field.get(this)).entrySet()) {
                       if (resultMap.containsKey(entry.getKey())) {
                           resultMap.get(entry.getKey()).put(field.getName(), entry.getValue());
                       } else {
-                         resultMap.put(entry.getKey(), new HashMap<>(Map.of(field.getName(), entry.getValue())));
+                          //  should only add years and not dates
+                          if (entry.getKey().chars().allMatch(Character::isDigit)) {
+                              resultMap.put(entry.getKey(), new HashMap<>(Map.of(field.getName(), entry.getValue())));
+                          }
                       }
 
                    }

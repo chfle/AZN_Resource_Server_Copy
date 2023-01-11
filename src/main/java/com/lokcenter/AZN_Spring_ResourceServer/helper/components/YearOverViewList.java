@@ -60,7 +60,6 @@ public class YearOverViewList {
                 }
             }
         }
-
         return yearDataMap;
     }
 }
