@@ -1,6 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLHStoreType;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,10 @@ import java.util.Map;
         @TypeDef(name = "hstore", typeClass = PostgreSQLHStoreType.class)
 })
 public class UserInfo {
-
+    public enum Balance {
+        SCHULD,
+        GUTHABEN
+    }
     @AllArgsConstructor
     @NoArgsConstructor
     public static class WorkTime implements Serializable {
@@ -94,7 +98,7 @@ public class UserInfo {
     )
     @Setter
     @Getter
-    private Map<String, Time> balanceTime = new HashMap<>();
+    private Map<String, Pair<Balance, Time>> balanceTime = new HashMap<>();
 
     /**
      * A Java Map with Year and glaz days for each year

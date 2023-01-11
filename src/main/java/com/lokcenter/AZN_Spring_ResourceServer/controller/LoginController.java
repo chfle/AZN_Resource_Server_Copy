@@ -6,6 +6,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepositor
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Defaults;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.testing.JunitHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.NullType;
 import lombok.RequiredArgsConstructor;
@@ -102,7 +103,17 @@ public class LoginController {
                         workTime.setStart(new Time(format.parse("01:00 am").getTime()));
 
                         // default vacation
-                        userInfo.setAvailableVacation(new HashMap<>(Map.of("2022", "30")));
+                        userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "30")));
+                        userInfo.setSickDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
+                        userInfo.setGlazDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
+                        userInfo.setSchool(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
+                        userInfo.setVacationSick(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
+
+                        Pair<UserInfo.Balance, Time> balacePair = new Pair<>();
+                        balacePair.setKey(UserInfo.Balance.GUTHABEN);
+                        balacePair.setValue(new Time(format.parse("00:00 am").getTime()));
+
+                        userInfo.setBalanceTime(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), balacePair)));
 
                         // set defaults without default values set from admin
                         if (defaultsRepository.count() != 0) {
