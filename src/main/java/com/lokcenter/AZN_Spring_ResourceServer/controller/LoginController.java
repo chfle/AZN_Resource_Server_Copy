@@ -108,12 +108,8 @@ public class LoginController {
                         userInfo.setGlazDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setSchool(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setVacationSick(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
-
-                        Pair<UserInfo.Balance, Time> balacePair = new Pair<>();
-                        balacePair.setKey(UserInfo.Balance.GUTHABEN);
-                        balacePair.setValue(new Time(format.parse("00:00 am").getTime()));
-
-                        userInfo.setBalanceTime(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), balacePair)));
+                        userInfo.setBalanceTime(new Time(format.parse("00:00 am").getTime()));
+                        userInfo.setBalance(UserInfo.Balance.GUTHABEN);
 
                         // set defaults without default values set from admin
                         if (defaultsRepository.count() != 0) {

@@ -13,6 +13,7 @@ import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
 import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.sql.Date;
@@ -88,17 +89,14 @@ public class UserInfo {
     @Getter
     private Map<String, String> availableVacation = new HashMap<>();
 
-    /**
-     * A Java Map with Year and balance time for each year
-     */
-    @Type(type = "hstore")
-    @Column(
-            name = "balance_time",
-            columnDefinition = "hstore"
-    )
     @Setter
     @Getter
-    private Map<String, Pair<Balance, Time>> balanceTime = new HashMap<>();
+    private Time balanceTime;
+
+    @Setter
+    @Getter
+    @Enumerated(EnumType.STRING)
+    private Balance balance;
 
     /**
      * A Java Map with Year and glaz days for each year
