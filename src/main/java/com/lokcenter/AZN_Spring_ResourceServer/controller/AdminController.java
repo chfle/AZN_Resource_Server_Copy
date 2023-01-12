@@ -6,6 +6,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.keys.GeneralVacationKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
@@ -736,6 +737,7 @@ public class AdminController {
      */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     @GetMapping("/generalOverview")
+    @ResponseBody
     String getGeneralOverviewData(@RequestParam(required = false, name = "firstday") String firstDay,
                                   @RequestParam(required = false, name = "lastday") String lastDay,
                                   @RequestParam(required = false, name = "month") String month,
@@ -789,5 +791,81 @@ public class AdminController {
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(dateRanges);
+    }
+
+    /**
+     * Post data to general vacation table
+     * @param startDate
+     * @param endDate
+     * @param tag
+     * @throws ParseException
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @PostMapping("/generalOverview/request")
+    @ResponseBody
+    Boolean saveGeneralOverviewRequest(@RequestParam(name = "startDate") String startDate,
+                                       @RequestParam(name = "endDate") String endDate,
+                                       @RequestParam(name = "tag") String tag) throws ParseException {
+
+        // get all day plans between start end date
+        var formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+        java.util.Date startDate_  = new java.util.Date(formatter.parse(startDate).getTime());
+        java.util.Date endDate_ = new java.util.Date(formatter.parse(endDate).getTime());
+
+        Iterable<GeneralVacation> generals = generalVacationRepository.getGeneralVacationByDateBetween(
+                new Date(formatter.parse(startDate).getTime()),
+                new Date(formatter.parse(endDate).getTime())
+        );
+
+        // check if requested range is empy
+        if (StreamSupport.stream(generals.spliterator(), false).findAny().isEmpty()) {
+
+            var start = TimeConvert.convertToLocalDateViaInstant(startDate_);
+            var end = TimeConvert.convertToLocalDateViaInstant(endDate_);
+
+            // generate uuid
+            UUID uuid = UUID.randomUUID();
+
+            // go over each day from start to end and set request value
+            for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                // get day
+                GeneralVacation generalVacation = new GeneralVacation();
+                generalVacation.setDate(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
+                generalVacation.setTag(Tags.valueOf(tag));
+                generalVacation.setUuid(uuid);
+
+                String comment = switch (Tags.valueOf(tag)) {
+                    case gUrlaub -> "Urlaub";
+                    case gFeiertag -> "Feiertag";
+                    default -> "?";
+                };
+
+                generalVacation.setComment(comment);
+
+                Calendar c = new GregorianCalendar();
+                c.setTime(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
+
+                System.out.println(TimeConvert.convertToDateViaInstant(date));
+
+                generalVacation.setYear(c.get(Calendar.YEAR));
+
+
+                generalVacationRepository.save(generalVacation);
+
+                // check if value was saved
+                GeneralVacationKey generalVacationKey = new GeneralVacationKey();
+                generalVacationKey.setDate(generalVacation.getDate());
+                generalVacationKey.setYear(generalVacation.getYear());
+
+                if (generalVacationRepository.findById(generalVacationKey).isEmpty()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
     }
 }
