@@ -7,6 +7,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -61,5 +62,36 @@ public class ControllerHelper {
                 return Optional.of(request);
             }}
         return Optional.empty();
+    }
+
+    /**
+     * parse Start and end date
+     * @return Pair of first and last date
+     */
+    public Pair<String, String> parseStartEndDate(String firstDay, String lastDay, String year, String month) {
+        String format = "dd-MM-yyyy";
+
+        int yearParsed = Integer.parseInt(year);
+        var sdf = new SimpleDateFormat(format);
+
+        // we should use last year for start year
+        if (month.equals("01")) {
+            yearParsed -= 1;
+        }
+        String startDate = String.format("%s-%s-%s", firstDay,
+                month.equals("01")? 12 : Integer.parseInt(month) - 1,
+                yearParsed);
+
+        yearParsed = Integer.parseInt(year);
+
+        // should use new year as start year
+        if (month.equals("12")) {
+            yearParsed += 1;
+        }
+
+        String endDate = String.format("%s-%s-%s", lastDay,
+                month.equals("12") ? 1 : Integer.parseInt(month) + 1, yearParsed);
+
+        return new Pair<>(startDate, endDate);
     }
 }

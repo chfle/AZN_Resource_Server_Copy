@@ -221,7 +221,7 @@ public class OverviewController {
         }
 
         // Stuff without roles or userid
-        Pair<String, String> dates = parseStartEndDate(firstDay, lastDay, year, month);
+        Pair<String, String> dates = controllerHelper.parseStartEndDate(firstDay, lastDay, year, month);
 
         String startDate = dates.getKey();
         String endDate = dates.getValue();
@@ -285,37 +285,6 @@ public class OverviewController {
     }
 
     /**
-     * parse Start and end date
-     * @return Pair of first and last date
-     */
-    private Pair<String, String> parseStartEndDate(String firstDay, String lastDay, String year, String month) {
-        String format = "dd-MM-yyyy";
-
-        int yearParsed = Integer.parseInt(year);
-        var sdf = new SimpleDateFormat(format);
-
-        // we should use last year for start year
-        if (month.equals("01")) {
-            yearParsed -= 1;
-        }
-        String startDate = String.format("%s-%s-%s", firstDay,
-                month.equals("01")? 12 : Integer.parseInt(month) - 1,
-                yearParsed);
-
-        yearParsed = Integer.parseInt(year);
-
-        // should use new year as start year
-        if (month.equals("12")) {
-            yearParsed += 1;
-        }
-
-        String endDate = String.format("%s-%s-%s", lastDay,
-                month.equals("12") ? 1 : Integer.parseInt(month) + 1, yearParsed);
-
-        return new Pair<>(startDate, endDate);
-    }
-
-    /**
      * Post data from Calendar request
      * @return Boolean value, true if request was successful and false if not.
      */
@@ -366,7 +335,7 @@ public class OverviewController {
 
         var sdf = new SimpleDateFormat("dd-MM-yyyy");
 
-        Pair<String, String> dates = parseStartEndDate(firstDay, lastDay, year, month);
+        Pair<String, String> dates = controllerHelper.parseStartEndDate(firstDay, lastDay, year, month);
 
         String startDate = dates.getKey();
         String endDate = dates.getValue();

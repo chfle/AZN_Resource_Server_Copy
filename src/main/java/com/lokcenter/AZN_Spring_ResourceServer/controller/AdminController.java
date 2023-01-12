@@ -14,6 +14,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewLis
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
+import lombok.Getter;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -725,5 +726,34 @@ public class AdminController {
             exception.printStackTrace();
             return false;
         }
+    }
+
+    /* General Overview Controller */
+
+    /**
+     * Get all Data from general_vacation
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
+    @GetMapping("/generalOverview")
+    String getGeneralOverviewData(@RequestParam(required = false, name = "firstday") String firstDay,
+                                  @RequestParam(required = false, name = "lastday") String lastDay,
+                                  @RequestParam(required = false, name = "month") String month,
+                                  @RequestParam(required = false, name = "year") String year) throws ParseException, JsonProcessingException {
+
+        var sdf = new SimpleDateFormat("dd-MM-yyyy");
+
+        Pair<String, String> dates = controllerHelper.parseStartEndDate(firstDay, lastDay, year, month);
+
+        String startDate = dates.getKey();
+        String endDate = dates.getValue();
+
+        var data = generalVacationRepository.getGeneralVacationByDateBetween(new Date(sdf.parse(startDate).getTime()),
+                new Date(sdf.parse(endDate).getTime()));
+
+        System.out.println(data);
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(data);
     }
 }
