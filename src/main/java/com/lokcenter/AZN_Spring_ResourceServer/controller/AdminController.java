@@ -169,6 +169,8 @@ public class AdminController {
         }
     }
 
+    /* YearPlan Controller */
+
     /**
      * Get YearPlan Data by individual users
      * @param userId User id from the requested user
@@ -201,6 +203,8 @@ public class AdminController {
     Boolean changeUserData(@RequestParam(name = "userid") String userId) {
         return true;
     }
+
+    /* Calendar  Controller */
 
     /**
      * Get all requests by User
@@ -368,6 +372,8 @@ public class AdminController {
         return false;
     }
 
+    /* Default values  */
+
     /**
      * Add User default values
      * @param payload default data
@@ -412,6 +418,24 @@ public class AdminController {
     }
 
     /**
+     * Delete default values
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @DeleteMapping("defaults/delete")
+    @ResponseBody
+    Boolean deleteDefaults(@RequestBody Map<String, Object> payload) {
+        try {
+            var spl = new SimpleDateFormat("dd.MM.yyyy");
+
+            defaultsRepository.deleteById(new Date(spl.parse((String) payload.get("start_date")).getTime()));
+
+            return defaultsRepository.findById(new Date(spl.parse((String) payload.get("start_date")).getTime())).isEmpty();
+        } catch (Exception ignore) {
+            return false;
+        }
+    }
+
+    /**
      * Consume monthplan if pressent and user has monthplan submitted
      */
     AtomicBoolean monthPlanIfPresentAndSubmitted(Consumer<? super MonthPlan> consumer, Users user, int year, int month) {
@@ -428,20 +452,7 @@ public class AdminController {
        return changed;
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
-    @DeleteMapping("defaults/delete")
-    @ResponseBody
-    Boolean deleteDefaults(@RequestBody Map<String, Object> payload) {
-        try {
-            var spl = new SimpleDateFormat("dd.MM.yyyy");
-
-            defaultsRepository.deleteById(new Date(spl.parse((String) payload.get("start_date")).getTime()));
-
-            return defaultsRepository.findById(new Date(spl.parse((String) payload.get("start_date")).getTime())).isEmpty();
-        } catch (Exception ignore) {
-            return false;
-        }
-    }
+    /* AZN Controller */
 
     /**
      * Accept month plan
@@ -527,49 +538,29 @@ public class AdminController {
         return false;
     }
 
-    /**
-     * Get all users and user id's
-     * @return list of username and user id
-     */
-    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @GetMapping("/azn/get")
     @ResponseBody
-    @GetMapping("/userlist")
-    String getUsernamesAndIds() throws JsonProcessingException {
-        Iterable<Users> users = userRepository.findAll();
-        List<Map<String, Object>> returnData = new ArrayList<>();
+    String getAZNSubmittedByUserId(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
+        List<Map<String, Object>> resList = new ArrayList<>();
+        Optional<Users> user = userRepository.findById(Long.parseLong(userId));
 
-        for (Users user : users) {
-            if (user.getRoles().containsKey("ROLE_User")) {
-                returnData.add(new HashMap<>(Map.of("username", user.getUsername(), "id", user.getUserId())));
+        if (user.isPresent()) {
+            Iterable<MonthPlan> submittedMonthPlans = monthPlanRepository.findSubmittedByUser(user.get().getUserId());
+
+            for (var month : submittedMonthPlans) {
+                resList.add(new HashMap<>(Map.of("year", month.getYear(), "month", month.getMonth())));
             }
         }
 
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
-                .writeValueAsString(returnData);
+                .writeValueAsString(resList);
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
-    @DeleteMapping("/overview/delete")
-    @ResponseBody
-    Boolean deleteOverviewItem(@RequestBody Map<String, Object> payload) {
-        try {
-            String tag = (String)payload.get("tag");
-            String id = (String)payload.get("id");
-
-            Tags tagV = Tags.valueOf(tag);
-
-            if (tagV == Tags.gFeiertag || tagV == Tags.gUrlaub) {
-                return generalVacationRepository.deleteByUuid(UUID.fromString(id)) > 0;
-            } else {
-                return dayPlanDataRepository.deleteByUuid(UUID.fromString(id)) > 0;
-            }
-        }catch (Exception exception) {
-           exception.printStackTrace();
-           return false;
-        }
-    }
-
+    /**
+     * Save AZN message from admin
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping("/azn/messages")
     @ResponseBody
@@ -601,6 +592,56 @@ public class AdminController {
         } catch (Exception exception) {
             exception.printStackTrace();
             return false;
+        }
+    }
+
+    /* User Search Controller */
+
+    /**
+     * Get all users and user id's
+     * @return list of username and user id
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
+    @ResponseBody
+    @GetMapping("/userlist")
+    String getUsernamesAndIds() throws JsonProcessingException {
+        Iterable<Users> users = userRepository.findAll();
+        List<Map<String, Object>> returnData = new ArrayList<>();
+
+        for (Users user : users) {
+            if (user.getRoles().containsKey("ROLE_User")) {
+                returnData.add(new HashMap<>(Map.of("username", user.getUsername(), "id", user.getUserId())));
+            }
+        }
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(returnData);
+    }
+
+    /* Overview Controller */
+
+    /**
+     * Delete overview data
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @DeleteMapping("/overview/delete")
+    @ResponseBody
+    Boolean deleteOverviewItem(@RequestBody Map<String, Object> payload) {
+        try {
+            String tag = (String)payload.get("tag");
+            String id = (String)payload.get("id");
+
+            Tags tagV = Tags.valueOf(tag);
+
+            if (tagV == Tags.gFeiertag || tagV == Tags.gUrlaub) {
+                return generalVacationRepository.deleteByUuid(UUID.fromString(id)) > 0;
+            } else {
+                return dayPlanDataRepository.deleteByUuid(UUID.fromString(id)) > 0;
+            }
+        }catch (Exception exception) {
+           exception.printStackTrace();
+           return false;
         }
     }
 
@@ -684,25 +725,5 @@ public class AdminController {
             exception.printStackTrace();
             return false;
         }
-    }
-
-    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
-    @GetMapping("/azn/get")
-    @ResponseBody
-    String getAZNSubmittedByUserId(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
-        List<Map<String, Object>> resList = new ArrayList<>();
-        Optional<Users> user = userRepository.findById(Long.parseLong(userId));
-
-        if (user.isPresent()) {
-           Iterable<MonthPlan> submittedMonthPlans = monthPlanRepository.findSubmittedByUser(user.get().getUserId());
-
-           for (var month : submittedMonthPlans) {
-               resList.add(new HashMap<>(Map.of("year", month.getYear(), "month", month.getMonth())));
-           }
-        }
-
-        return new ObjectMapper().writer().
-                withDefaultPrettyPrinter()
-                .writeValueAsString(resList);
     }
 }
