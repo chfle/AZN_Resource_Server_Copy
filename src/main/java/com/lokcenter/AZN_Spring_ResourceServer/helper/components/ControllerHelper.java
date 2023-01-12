@@ -1,6 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.helper.components;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
@@ -14,9 +15,7 @@ import org.springframework.stereotype.Component;
 import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Class to reduce duplicate code
@@ -93,5 +92,19 @@ public class ControllerHelper {
                 month.equals("12") ? 1 : Integer.parseInt(month) + 1, yearParsed);
 
         return new Pair<>(startDate, endDate);
+    }
+
+    public Map<UUID, ArrayList<UUIDable>> mapByUUID(Iterable<? extends UUIDable> uuiDableCollection) {
+        Map<UUID, ArrayList<UUIDable>> map = new HashMap<>();
+
+        for (var uuidable : uuiDableCollection) {
+            if (map.containsKey(uuidable.getUuid())) {
+                map.get(uuidable.getUuid()).add(uuidable);
+            } else {
+                map.put(uuidable.getUuid(), new ArrayList<>(List.of(uuidable)));
+            }
+        }
+
+        return map;
     }
 }

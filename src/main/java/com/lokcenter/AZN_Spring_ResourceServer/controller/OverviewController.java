@@ -57,7 +57,7 @@ public class OverviewController {
     /*
      * Converts multiple Calendar classes to a Range.
      */
-    private abstract static class DateRange {
+    abstract static class DateRange {
        @Setter
        @Getter
        private Date start;
@@ -92,8 +92,7 @@ public class OverviewController {
         }
     }
 
-    static
-    class DateRangeComment extends DateRange {
+    public static class DateRangeComment extends DateRange {
         @Setter
         @Getter
         private String comment;
@@ -112,19 +111,6 @@ public class OverviewController {
         }
     }
 
-    private Map<UUID, ArrayList<UUIDable>> mapByUUID(Iterable<? extends UUIDable> uuiDableCollection) {
-        Map<UUID, ArrayList<UUIDable>> map = new HashMap<>();
-
-        for (var uuidable : uuiDableCollection) {
-            if (map.containsKey(uuidable.getUuid())) {
-                map.get(uuidable.getUuid()).add(uuidable);
-            } else {
-                map.put(uuidable.getUuid(), new ArrayList<>(List.of(uuidable)));
-            }
-        }
-
-        return map;
-    }
 
     private Set<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
         Set<DateRange> rangeData = new HashSet<>();
@@ -153,7 +139,7 @@ public class OverviewController {
            // day plan data
            Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get(), first, last);
 
-           Map<UUID, ArrayList<UUIDable>> dayPlanMap = mapByUUID(dayPlanDatas);
+           Map<UUID, ArrayList<UUIDable>> dayPlanMap = controllerHelper.mapByUUID(dayPlanDatas);
 
            // get min and max range from dayPlanData
            for (var dpv: dayPlanMap.entrySet()) {
@@ -233,7 +219,7 @@ public class OverviewController {
                                 new java.sql.Date(sdf.parse(endDate).getTime()));
 
         // map all general vacation with the same comment
-        Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = mapByUUID(generalVacations);
+        Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = controllerHelper.mapByUUID(generalVacations);
 
 
         // get min and max date from general vacation

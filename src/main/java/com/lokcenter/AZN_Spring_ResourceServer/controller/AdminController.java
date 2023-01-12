@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
@@ -741,6 +742,7 @@ public class AdminController {
                                   @RequestParam(required = false, name = "year") String year) throws ParseException, JsonProcessingException {
 
         var sdf = new SimpleDateFormat("dd-MM-yyyy");
+        Set<OverviewController.DateRange> dateRanges = new HashSet<>();
 
         Pair<String, String> dates = controllerHelper.parseStartEndDate(firstDay, lastDay, year, month);
 
@@ -750,10 +752,34 @@ public class AdminController {
         var data = generalVacationRepository.getGeneralVacationByDateBetween(new Date(sdf.parse(startDate).getTime()),
                 new Date(sdf.parse(endDate).getTime()));
 
-        System.out.println(data);
+        Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = controllerHelper.mapByUUID(data);
+
+        // get min and max date from general vacation
+        for (var gv: generalVacationByUUID.entrySet()) {
+            if (gv.getValue().size() > 1) {
+                dateRanges.add(new OverviewController.DateRangeComment(
+                        gv.getValue().stream().map(uuiDable ->
+                                ((GeneralVacation)uuiDable).getDate()).min(Date::compareTo).get(),
+                        gv.getValue().stream().map(uuiDable ->
+                                ((GeneralVacation)uuiDable).getDate()).max(Date::compareTo).get(),
+                        ((GeneralVacation)gv.getValue().get(0)).getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
+                        gv.getKey(),
+                        ((GeneralVacation)gv.getValue().get(0)).getComment()
+                ));
+            } else {
+                GeneralVacation generalVacation = (GeneralVacation)gv.getValue().get(0);
+                dateRanges.add(
+                        new OverviewController.DateRangeComment(generalVacation.getDate(),
+                                generalVacation.getDate(),
+                                generalVacation.getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
+                                gv.getKey(),
+                                generalVacation.getComment()
+                        ));
+            }
+        }
 
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
-                .writeValueAsString(data);
+                .writeValueAsString(dateRanges);
     }
 }
