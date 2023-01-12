@@ -11,6 +11,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
 import org.apache.catalina.User;
@@ -457,9 +458,48 @@ public class AdminController {
                 return monthPlanIfPresentAndSubmitted((e) -> {
                     e.setAccepted(true);
                     monthPlanRepository.save(e);
-                }, user.get(), Integer.parseInt((String)payload.get("year")) , (Integer) payload.get("month")).get();
+
+                    // if month is december new userInfo values should be set for the next year
+                    if (e.getMonth() == 12) {
+                        // Example december 2021 -> create values for 2022
+                        Optional<UserInfo> userInfo = userInfoRepository.findByUserId(user.get().getUserId());
+
+                        if (userInfo.isPresent()) {
+                            // generate new year
+                            int newYear = e.getYear() + 1;
+
+                            var userInfoData = userInfo.get();
+
+                            userInfoRepository.delete(userInfoData);
+
+                            // set vacation days
+                            userInfoData.getAvailableVacation().put(String.valueOf(newYear),
+                                    userInfoData.getAvailableVacation().
+                                            getOrDefault(String.valueOf(e.getYear()), "0"));
+
+                            // sick days
+                            userInfoData.getSickDays().put(String.valueOf(newYear), "0");
+
+                            // glaz days
+                            userInfoData.getGlazDays().put(String.valueOf(newYear), "0");
+
+                            // school days
+                            userInfoData.getSchool().put(String.valueOf(newYear), "0");
+
+                            // vacation sick
+                            userInfoData.getVacationSick().put(String.valueOf(newYear), "0");
+
+                            System.out.println(userInfoData.getUsers().getUserId());
+
+                            userInfoRepository.save(userInfoData);
+                        }
+                    }
+                }, user.get(), Integer.parseInt((String)payload.get("year")) ,
+                        (Integer) payload.get("month")).get();
             }
-        }catch (Exception ignore) {}
+        }catch (Exception exception) {
+            exception.printStackTrace();
+        }
 
         return false;
     }
