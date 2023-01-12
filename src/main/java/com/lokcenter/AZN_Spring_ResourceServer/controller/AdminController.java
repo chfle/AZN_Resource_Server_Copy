@@ -742,6 +742,8 @@ public class AdminController {
                                   @RequestParam(required = false, name = "year") String year) throws ParseException, JsonProcessingException {
 
         var sdf = new SimpleDateFormat("dd-MM-yyyy");
+
+        // remove duplicates
         Set<OverviewController.DateRange> dateRanges = new HashSet<>();
 
         Pair<String, String> dates = controllerHelper.parseStartEndDate(firstDay, lastDay, year, month);
@@ -752,16 +754,21 @@ public class AdminController {
         var data = generalVacationRepository.getGeneralVacationByDateBetween(new Date(sdf.parse(startDate).getTime()),
                 new Date(sdf.parse(endDate).getTime()));
 
+        // sort by uuid
         Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = controllerHelper.mapByUUID(data);
 
+        // show data in the right representation
         // get min and max date from general vacation
         for (var gv: generalVacationByUUID.entrySet()) {
+            // check if general vacation goes over more than one day
             if (gv.getValue().size() > 1) {
                 dateRanges.add(new OverviewController.DateRangeComment(
+                        //get the right start and end date by using min and max
                         gv.getValue().stream().map(uuiDable ->
                                 ((GeneralVacation)uuiDable).getDate()).min(Date::compareTo).get(),
                         gv.getValue().stream().map(uuiDable ->
                                 ((GeneralVacation)uuiDable).getDate()).max(Date::compareTo).get(),
+                        // set the right tag
                         ((GeneralVacation)gv.getValue().get(0)).getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
                         gv.getKey(),
                         ((GeneralVacation)gv.getValue().get(0)).getComment()
@@ -771,6 +778,7 @@ public class AdminController {
                 dateRanges.add(
                         new OverviewController.DateRangeComment(generalVacation.getDate(),
                                 generalVacation.getDate(),
+                                // set the right tag
                                 generalVacation.getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
                                 gv.getKey(),
                                 generalVacation.getComment()
