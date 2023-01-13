@@ -20,4 +20,7 @@ public interface GeneralVacationRepository extends CrudRepository<GeneralVacatio
 
     @Transactional
     long deleteByUuid(UUID uuid);
+
+    @Query
+    Iterable<GeneralVacation> findByUuid(UUID uuid);
 }

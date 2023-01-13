@@ -868,4 +868,19 @@ public class AdminController {
 
         return false;
     }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @DeleteMapping("/generalOverview/delete")
+    @ResponseBody
+    Boolean deleteGeneralOverViewItem(@RequestBody Map<String, Object> payload) {
+        try {
+            UUID uuid = UUID.fromString((String) payload.get("id"));
+
+            generalVacationRepository.deleteByUuid(uuid);
+
+            return generalVacationRepository.findByUuid(uuid).spliterator().getExactSizeIfKnown() == 0;
+        } catch (Exception ignored) {}
+
+        return false;
+    }
 }
