@@ -24,8 +24,8 @@ public class WorkTime implements Serializable {
     @Getter
     private Date date;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     @Setter
     @Getter
     @JsonBackReference

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,7 +58,7 @@ public class LoginController {
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     ResponseEntity<Boolean> postLogin(@RequestBody Map<String, Object> payload) {
-       Users user = new Users();;
+       Users user = new Users();
 
         try {
             if (payload.containsKey("username") && payload.containsKey("roles")) {
@@ -137,16 +138,22 @@ public class LoginController {
                           WorkTime workTimeObj = new WorkTime();
                           workTimeObj.setWorkTime(workTime);
                           workTimeObj.setDate(currDate);
-                          workTimeObj.setUsers(userf.get());
+                          workTimeObj.setUsers(userInfo.getUsers());
 
                         // save default values
-                        if (userInfoRepository.findByUserId(user.getUserId()).isEmpty()) {
-                            userInfoRepository.save(userInfo);
-                        }
+                        try {
+                            if (userInfoRepository.findByUserId(user.getUserId()).isEmpty()) {
+                                userInfoRepository.save(userInfo);
+                            }
+                        }catch (Exception ignore){}
 
                         // save workTime
-                        if (workTimeRepository.findWorkTimeByUsers(user.getUserInfo().getUsers()).spliterator().getExactSizeIfKnown() == 0) {
-                            workTimeRepository.save(workTimeObj);
+                        try {
+                            if (workTimeRepository.findWorkTimeByUsers(userf.get()).spliterator().getExactSizeIfKnown() == 0) {
+                                workTimeRepository.save(workTimeObj);
+                            }
+                        }catch (Exception exception){
+                            exception.printStackTrace();
                         }
                     }
                 }
