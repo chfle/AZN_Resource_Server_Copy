@@ -4,12 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.AznStrings;
@@ -52,6 +48,13 @@ public class DayPlanController {
 
     @Autowired
     private MemService memService;
+
+    @Autowired
+    private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private WorkTimeRepository workTimeRepository;
+
     /**
      * Post User date
      * @param data user data
@@ -246,7 +249,6 @@ public class DayPlanController {
 
         if (user.isPresent()) {
             var dayPlanDataKey = new DayPlanDataKey(user.get().getUserId(), date);
-
 
             // check general vacation for requested day
             Optional<GeneralVacation> optionalGeneralVacation = generalVacationRepository.getGeneralVacationByDate(date);
