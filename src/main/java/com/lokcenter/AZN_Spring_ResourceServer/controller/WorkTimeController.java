@@ -32,10 +32,12 @@ public class WorkTimeController {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Query soll value
+     */
     String getSoll(Optional<Users> users) {
         if (users.isPresent()) {
             Optional<String> workTime = workTimeRepository.getMostRecentSollByUser(users.get());
-
             if (workTime.isPresent()) {
                 return workTime.get();
             }
@@ -44,6 +46,9 @@ public class WorkTimeController {
         return "";
     }
 
+    /**
+     * Get current soll value from user
+     */
     @GetMapping("/soll")
     @ResponseBody
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
