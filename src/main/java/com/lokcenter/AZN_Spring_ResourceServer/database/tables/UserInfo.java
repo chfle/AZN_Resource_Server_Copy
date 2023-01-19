@@ -32,28 +32,6 @@ public class UserInfo {
         SCHULD,
         GUTHABEN
     }
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class WorkTime implements Serializable {
-        @Setter
-        @Getter
-        private Time start;
-
-        @Setter
-        @Getter
-        private Time end;
-
-        @Setter
-        @Getter
-        private Time pause;
-
-        /**
-         * Date when working time applies
-         */
-        @Setter
-        @Getter
-        private Date startDate;
-    }
 
     @OneToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
@@ -67,15 +45,6 @@ public class UserInfo {
     @Getter
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userinfoId;
-
-    /**
-     * Work time -> Start Date and the Worktime
-     */
-    @Setter
-    @Getter
-    @Type(type = "hstore")
-    @Column(columnDefinition = "hstore")
-    private Map<Date, WorkTime> workTime = new HashMap<>();
 
     /**
      * A Java Map with Year and available Vacation for each year

@@ -3,9 +3,12 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DefaultsRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.WorkTimeRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Defaults;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.WorkTime;
+import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.testing.JunitHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.NullType;
@@ -42,10 +45,13 @@ public class LoginController {
     private final UserRepository userRepository;
 
     @Autowired
-    final UserInfoRepository userInfoRepository;
+    private final UserInfoRepository userInfoRepository;
 
     @Autowired
-    final DefaultsRepository defaultsRepository;
+    private final DefaultsRepository defaultsRepository;
+
+    @Autowired
+    private final WorkTimeRepository workTimeRepository;
 
 
     @PostMapping
@@ -78,11 +84,12 @@ public class LoginController {
                    try {
                        userRepository.save(user);
                    }catch (Exception exception) {
-                       exception.printStackTrace();
+                       //exception.printStackTrace();
                    }
 
                     // get saved user
                     Optional<Users> userf = userRepository.findByUsername(user.getUsername());
+
 
                     if (userf.isPresent()) {
                         // set user data
@@ -93,14 +100,14 @@ public class LoginController {
                         java.sql.Date currDate = new java.sql.Date(new Date().getTime());
 
                         // set default values
-                        var workTime = new UserInfo.WorkTime();
+                        DayTime workTime = new DayTime();
 
                         SimpleDateFormat format = new SimpleDateFormat("hh:mm a");
                         // default work time
 
                         workTime.setStart(new Time(format.parse("07:15 am").getTime()));
-                        workTime.setStart(new Time(format.parse("16:00 pm").getTime()));
-                        workTime.setStart(new Time(format.parse("01:00 am").getTime()));
+                        workTime.setEnd(new Time(format.parse("16:00 pm").getTime()));
+                        workTime.setPause(new Time(format.parse("01:00 am").getTime()));
 
                         // default vacation
                         userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "30")));
@@ -127,11 +134,19 @@ public class LoginController {
                             }
                         }
 
-                        userInfo.setWorkTime(new HashMap<>(Map.of(currDate, workTime)));
+                          WorkTime workTimeObj = new WorkTime();
+                          workTimeObj.setWorkTime(workTime);
+                          workTimeObj.setDate(currDate);
+                          workTimeObj.setUsers(userf.get());
 
                         // save default values
                         if (userInfoRepository.findByUserId(user.getUserId()).isEmpty()) {
                             userInfoRepository.save(userInfo);
+                        }
+
+                        // save workTime
+                        if (workTimeRepository.findWorkTimeByUsers(user.getUserInfo().getUsers()).spliterator().getExactSizeIfKnown() == 0) {
+                            workTimeRepository.save(workTimeObj);
                         }
                     }
                 }
