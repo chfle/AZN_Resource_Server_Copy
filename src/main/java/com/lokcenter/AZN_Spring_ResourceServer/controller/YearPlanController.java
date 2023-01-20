@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.WorkTimeRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.WorkTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +21,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.sql.Date;
 import java.sql.Time;
+import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,6 +35,9 @@ public class YearPlanController {
 
     @Autowired
     private YearOverViewList yearOverViewList;
+
+    @Autowired
+    private WorkTimeRepository workTimeRepository;
 
     /**
      * Store all needed Year Plan Data
@@ -54,7 +61,15 @@ public class YearPlanController {
          */
         @Setter
         @Getter
-        private Time DailyWorkTime;
+        private String DailyWorkTime;
+
+        @Setter
+        @Getter
+        private String weeklyWorkTime;
+
+        @Setter
+        @Getter
+        private Date workTimeDate;
 
         @Setter
         @Getter
@@ -107,16 +122,28 @@ public class YearPlanController {
 
             UserInfo userInfo = new UserInfo();
             userInfo.setUsers(user.get());
-//tomtest@2v40nf.onmicrosoft.com
-//            userInfo.setSickDays(Map.of(Year.of(2022), 6, Year.of(2023), 5));
-//            userInfo.setVacationSick(Map.of(Year.of(2022), 2, Year.of(2023), 4));
-//            userInfo.setGlazDays(Map.of(Year.of(2022), 1, Year.of(2023), 3));
-//            userInfo.setAvailableVacation(Map.of(Year.of(2022), 29, Year.of(2023), 4));
-
-//            userInfoRepository.save(userInfo);
 
             yearPlanCurrent.setFullName(realname);
             yearPlanCurrent.setYears(yearOverViewList.getYearsListByUser(user.get()));
+
+            // get worktime
+            Optional<WorkTime> workTime = workTimeRepository.getMostRecentWorkTimeByUser(user.get());
+            Optional<String> soll = workTimeRepository.getMostRecentSollByUser(user.get());
+
+            if (workTime.isPresent() && soll.isPresent()) {
+                yearPlanCurrent.setDailyWorkTime(soll.get());
+                yearPlanCurrent.setWorkTimeDate(workTime.get().getDate());
+
+                SimpleDateFormat p = new SimpleDateFormat("HH:mm");
+                java.util.Date date = p.parse(soll.get());
+
+                double timeAsMin = ((date.getHours() * 60 + date.getMinutes()) * 5) / 60.0;
+
+                yearPlanCurrent.setWeeklyWorkTime(timeAsMin + "h");
+
+            }
+
+
 
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()
