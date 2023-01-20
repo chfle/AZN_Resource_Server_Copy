@@ -7,6 +7,8 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
+import com.lokcenter.AZN_Spring_ResourceServer.services.MonthPlanService;
+import com.lokcenter.AZN_Spring_ResourceServer.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -18,6 +20,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 @RestController
@@ -27,60 +31,16 @@ public class MonthPlanController {
     private UserRepository userRepository;
 
     @Autowired
-    private GeneralVacationRepository generalVacationRepository;
-
-    @Autowired
-    private DayPlanDataRepository dayPlanDataRepository;
-
-    @Autowired
     private MonthPlanRepository monthPlanRepository;
 
     @Autowired
     private MessagesRepository messagesRepository;
 
-    private Map<String, Object> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException, ParseException {
-        Optional<DayPlanData> dayPlanData = Optional.empty();
+    @Autowired
+    private MonthPlanService monthPlanService;
 
-        if (user.isPresent()) {
-            var dayPlanDataKey = new DayPlanDataKey(user.get().getUserId(), date);
-
-            // check general vacation for requested day
-            Optional<GeneralVacation> optionalGeneralVacation = generalVacationRepository.getGeneralVacationByDate(date);
-
-            if (optionalGeneralVacation.isPresent()) {
-                var dpdTemp = new DayPlanData();
-
-                // must be set for later usage
-                dpdTemp.setSetDate(date);
-                dpdTemp.setUsers(user.get());
-
-                switch (optionalGeneralVacation.get().getTag()) {
-                    case gUrlaub -> dpdTemp.setVacation(true);
-                    case gFeiertag -> dpdTemp.setHoliday(true);
-                }
-                dayPlanData = Optional.of(dpdTemp);
-            } else {
-                    dayPlanData = dayPlanDataRepository.findById(dayPlanDataKey);
-            }
-        }
-
-       if (dayPlanData.isPresent()) {
-           var dpd = dayPlanData.get();
-
-           return new HashMap<>(Map.of(
-                   "start", dpd.getWorkTime() != null ? dpd.getWorkTime().getStart(): "",
-                   "end", dpd.getWorkTime() != null ? dpd.getWorkTime().getEnd(): "",
-                   "pause", dpd.getWorkTime() != null ? dpd.getWorkTime().getPause(): "",
-                   "glaz", dpd.getGlaz(),
-                   "sick", dpd.getSick(),
-                   "vacation", dpd.getVacation(),
-                   "holiday", dpd.getHoliday(),
-                   "school", dpd.getSchool(),
-                   "comment", dpd.getComment()));
-       }
-
-       return new HashMap<>();
-    }
+    @Autowired
+    private UserService userService;
 
     private Map<String, Object> getStatus(Optional<Users> user, Map<String, Object> payload) {
         Map<String, Object> ret = new HashMap<>();
@@ -99,48 +59,14 @@ public class MonthPlanController {
         return ret;
     }
 
-    // go over each day one by one
-    private List<Map<String, Object>> getDayPlansOfMonth(String month, String year, Optional<Users> user) throws ParseException, IOException {
-        List<Map<String, Object>> dpd = new ArrayList<>();
-
-        if (user.isPresent()) {
-            // convert to date
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-            java.util.Date date = sdf.parse(String.format("1/%s/%s", month, year));
-
-            System.out.println(year);
-            System.out.println(month);
-
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(date);
-
-            // get the last day of month
-            int lastDayMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-
-            // go over month
-            for (LocalDate i = TimeConvert.convertToLocalDateViaInstant(date);
-                 !i.isAfter(TimeConvert.
-                         convertToLocalDateViaInstant(sdf.parse(String.format("%s/%s/%s",lastDayMonth, month, year)))); i = i.plusDays(1))
-            {
-                Map<String, Object> dayPlanDataOptional =
-                        getDayPlanDataByUserAndDate(user,
-                                new java.sql.Date(TimeConvert.convertToDateViaInstant(i).getTime()));
-
-               dpd.add(dayPlanDataOptional);
-            }
-        }
-
-        return dpd;
-    }
-
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     @GetMapping
     String getMonthPlan( @RequestParam(name = "month", required = true) String month,
                          @RequestParam(name = "year", required = true) String year,
                          @RequestParam(name = "role", required = true) String role,
-                         @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws IOException, ParseException {
+                         @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws IOException, ParseException, ExecutionException, InterruptedException {
 
-        List<Map<String, Object>> monthData = new ArrayList<>();
+        CompletableFuture<List<Map<String, Object>>> monthData = new CompletableFuture<>();
 
         if (userid == null) {
             Jwt jwt = (Jwt) auth.getPrincipal();
@@ -148,19 +74,19 @@ public class MonthPlanController {
             String name = jwt.getClaim("unique_name");
 
             // get userId;
-            Optional<Users> user = userRepository.findByUsername(name);
-            monthData = getDayPlansOfMonth(month, year, user);
+
+            monthData = monthPlanService.getDayPlansOfMonth(month, year, userService.findByName(name));
         } else {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
                 Optional<Users> user = userRepository.findById(Long.valueOf(userid));
-                monthData = getDayPlansOfMonth(month, year, user);
+                monthData = monthPlanService.getDayPlansOfMonth(month, year, userService.findById(Long.valueOf(userid)));
             }
         }
 
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
-                .writeValueAsString(monthData);
+                .writeValueAsString(monthData.get());
     }
 
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
