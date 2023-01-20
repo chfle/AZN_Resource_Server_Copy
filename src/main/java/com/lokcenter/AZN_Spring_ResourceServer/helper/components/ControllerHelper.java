@@ -94,6 +94,9 @@ public class ControllerHelper {
         return new Pair<>(startDate, endDate);
     }
 
+    /**
+     * Map uuid
+     */
     public Map<UUID, ArrayList<UUIDable>> mapByUUID(Iterable<? extends UUIDable> uuiDableCollection) {
         Map<UUID, ArrayList<UUIDable>> map = new HashMap<>();
 

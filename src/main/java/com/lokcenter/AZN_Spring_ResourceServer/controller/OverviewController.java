@@ -2,15 +2,12 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
-import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
@@ -24,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
@@ -176,7 +172,7 @@ public class OverviewController {
 
             // get userId;
             Optional<Users> user = userRepository.findByUsername(name);
-            userDataSet = overviewService.getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+            userDataSet = overviewService.getUserDependingDayplanData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
                     new java.sql.Date(sdf.parse(endDate).getTime()));
 
             requestRange = overviewService.getRequestDataByRange(user, new java.sql.Date(sdf.parse(startDate).getTime()),
@@ -185,7 +181,7 @@ public class OverviewController {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
                 Optional<Users> user = userRepository.findById(Long.valueOf(userid));
-                userDataSet = overviewService.getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+                userDataSet = overviewService.getUserDependingDayplanData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
                         new java.sql.Date(sdf.parse(endDate).getTime()));
 
                 requestRange = overviewService.getRequestDataByRange(user, new java.sql.Date(sdf.parse(startDate).getTime()),

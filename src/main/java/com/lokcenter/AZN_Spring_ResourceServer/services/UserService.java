@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Get user related data from database
+ */
 @Service
 @AllArgsConstructor
 public class UserService {

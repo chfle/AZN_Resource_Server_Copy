@@ -20,6 +20,9 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Get Monthplan related data
+ */
 @Service
 @AllArgsConstructor
 public class MonthPlanService {
@@ -29,6 +32,9 @@ public class MonthPlanService {
     @Autowired
     private final DayPlanDataRepository dayPlanDataRepository;
 
+    /**
+     * Get dayplan data by user
+     */
     @Async
     public CompletableFuture<Map<String, Object>> getDayPlanDataByUserAndDate(Optional<Users> user, java.sql.Date date) throws IOException, ParseException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
@@ -46,6 +52,7 @@ public class MonthPlanService {
                 dpdTemp.setSetDate(date);
                 dpdTemp.setUsers(user.get());
 
+                // set the right tag
                 switch (optionalGeneralVacation.get().getTag()) {
                     case gUrlaub -> dpdTemp.setVacation(true);
                     case gFeiertag -> dpdTemp.setHoliday(true);
@@ -59,6 +66,7 @@ public class MonthPlanService {
         if (dayPlanData.isPresent()) {
             var dpd = dayPlanData.get();
 
+            // create dayplan object
             return CompletableFuture.completedFuture(new HashMap<>(Map.of(
                     "start", dpd.getWorkTime() != null ? dpd.getWorkTime().getStart(): "",
                     "end", dpd.getWorkTime() != null ? dpd.getWorkTime().getEnd(): "",
@@ -74,6 +82,9 @@ public class MonthPlanService {
         return CompletableFuture.completedFuture(new HashMap<>());
     }
 
+    /**
+     * Get dayplan of each month
+     */
     @Async
     public CompletableFuture<List<Map<String, Object>>> getDayPlansOfMonth(String month, String year,
                                                                            CompletableFuture<Optional<Users>> user) throws ParseException, IOException, ExecutionException, InterruptedException {
@@ -83,9 +94,6 @@ public class MonthPlanService {
             // convert to date
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
             java.util.Date date = sdf.parse(String.format("1/%s/%s", month, year));
-
-            System.out.println(year);
-            System.out.println(month);
 
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);

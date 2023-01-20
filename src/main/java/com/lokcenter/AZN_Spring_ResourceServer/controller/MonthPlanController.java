@@ -79,7 +79,6 @@ public class MonthPlanController {
         } else {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
-                Optional<Users> user = userRepository.findById(Long.valueOf(userid));
                 monthData = monthPlanService.getDayPlansOfMonth(month, year, userService.findById(Long.valueOf(userid)));
             }
         }

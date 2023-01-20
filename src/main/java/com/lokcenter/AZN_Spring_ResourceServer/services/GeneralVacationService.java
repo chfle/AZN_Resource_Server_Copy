@@ -25,6 +25,9 @@ public class GeneralVacationService {
     private final ControllerHelper controllerHelper;
 
 
+    /**
+     * get the right min and max range from general vacation
+     */
     @Async
     public CompletableFuture<Set<OverviewController.DateRange>> MinMaxGeneralVacation(Date start, Date end) {
          Set<OverviewController.DateRange> dateRanges = new HashSet<>();
