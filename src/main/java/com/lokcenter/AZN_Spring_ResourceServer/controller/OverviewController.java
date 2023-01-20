@@ -15,6 +15,8 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
+import com.lokcenter.AZN_Spring_ResourceServer.services.GeneralVacationService;
+import com.lokcenter.AZN_Spring_ResourceServer.services.OverviewService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +31,8 @@ import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * OverviewController
@@ -53,11 +57,17 @@ public class OverviewController {
     @Autowired
     private ControllerHelper controllerHelper;
 
+    @Autowired
+    private GeneralVacationService generalVacationService;
+
+    @Autowired
+    private  OverviewService overviewService;
+
     @AllArgsConstructor
     /*
      * Converts multiple Calendar classes to a Range.
      */
-    abstract static class DateRange {
+    public abstract static class DateRange {
        @Setter
        @Getter
        private Date start;
@@ -112,65 +122,6 @@ public class OverviewController {
     }
 
 
-    private Set<DateRange> getUserDependingData(Optional<Users> user, Date first, Date last) {
-        Set<DateRange> rangeData = new HashSet<>();
-
-       if (user.isPresent()) {
-           // requests stuff
-           Iterable<Requests> requests = requestsRepository.getRequestsByRange(first, last, user.get());
-
-           // convert requests to DataRange
-           for (var r: requests) {
-               String text;
-               Tags tag;
-
-               if (r.getType() == RequestTypeEnum.rGLAZ) {
-                   text = "GLAZ (wartend)";
-                   tag = Tags.rGLAZ;
-               } else {
-                   text = "Urlaub (wartend)";
-                   tag = Tags.rUrlaub;
-               }
-
-               rangeData.add(new DateRangeComment(r.getStartDate(), r.getEndDate(), tag, r.getUuid(), text));
-           }
-
-
-           // day plan data
-           Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get(), first, last);
-
-           Map<UUID, ArrayList<UUIDable>> dayPlanMap = controllerHelper.mapByUUID(dayPlanDatas);
-
-           // get min and max range from dayPlanData
-           for (var dpv: dayPlanMap.entrySet()) {
-               if (dpv.getValue().size() > 1) {
-                   rangeData.add(new DateRangeComment(
-                           dpv.getValue().stream().map(uuiDable ->
-                                   ((DayPlanData)uuiDable).getSetDate()).min(Date::compareTo).get(),
-                           dpv.getValue().stream().map(uuiDable ->
-                                   ((DayPlanData)uuiDable).getSetDate()).max(Date::compareTo).get(),
-                           DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)),
-                           dpv.getKey(),
-                           DayPlanData.getTag((DayPlanData)dpv.getValue().get(0)).name()
-                   ));
-               } else {
-                   DayPlanData  dayPlanData = (DayPlanData)dpv.getValue().get(0);
-                   rangeData.add(
-                           new DateRangeComment(dayPlanData.getSetDate(),
-                                   dayPlanData.getSetDate(),
-                                   DayPlanData.getTag(dayPlanData),
-                                   dpv.getKey(),
-                                   DayPlanData.getTag(dayPlanData).name()
-                           ));
-               }
-           }
-       }
-
-
-
-        return rangeData;
-    }
-
     /**
      * Get Data from All Databases to get everything to the calendar
      *
@@ -192,8 +143,10 @@ public class OverviewController {
             @RequestParam(name = "month", required = false) String month,
             @RequestParam(name = "year", required = false) String year,
             @RequestParam(name = "role", required = true) String role,
-            @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws JsonProcessingException, ParseException {
+            @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws JsonProcessingException, ParseException, ExecutionException, InterruptedException {
 
+        CompletableFuture<Set<DateRange>> userDataSet =  new CompletableFuture<>();
+        CompletableFuture<Set<DateRange>> requestRange = new CompletableFuture<>();
         Set<DateRange> dateRanges = new HashSet<>();
         String format = "dd-MM-yyyy";
 
@@ -212,39 +165,8 @@ public class OverviewController {
         String startDate = dates.getKey();
         String endDate = dates.getValue();
 
-        var generalVacations =
-                generalVacationRepository.
-                        getGeneralVacationByDateBetween(
-                                new java.sql.Date(sdf.parse(startDate).getTime()),
-                                new java.sql.Date(sdf.parse(endDate).getTime()));
-
-        // map all general vacation with the same comment
-        Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = controllerHelper.mapByUUID(generalVacations);
-
-
-        // get min and max date from general vacation
-        for (var gv: generalVacationByUUID.entrySet()) {
-            if (gv.getValue().size() > 1) {
-                dateRanges.add(new DateRangeComment(
-                        gv.getValue().stream().map(uuiDable ->
-                                ((GeneralVacation)uuiDable).getDate()).min(Date::compareTo).get(),
-                        gv.getValue().stream().map(uuiDable ->
-                                ((GeneralVacation)uuiDable).getDate()).max(Date::compareTo).get(),
-                        ((GeneralVacation)gv.getValue().get(0)).getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
-                        gv.getKey(),
-                        ((GeneralVacation)gv.getValue().get(0)).getComment()
-                ));
-            } else {
-                GeneralVacation generalVacation = (GeneralVacation)gv.getValue().get(0);
-                dateRanges.add(
-                        new DateRangeComment(generalVacation.getDate(),
-                                generalVacation.getDate(),
-                                generalVacation.getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
-                                gv.getKey(),
-                                generalVacation.getComment()
-                                ));
-            }
-        }
+         CompletableFuture<Set<DateRange>> genRange = generalVacationService.MinMaxGeneralVacation(new java.sql.Date(sdf.parse(startDate).getTime()),
+                new java.sql.Date(sdf.parse(endDate).getTime()));
 
         // roles and userid stuff
         if (userid == null) {
@@ -254,20 +176,31 @@ public class OverviewController {
 
             // get userId;
             Optional<Users> user = userRepository.findByUsername(name);
-            dateRanges.addAll(getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
-                    new java.sql.Date(sdf.parse(endDate).getTime())));
+            userDataSet = overviewService.getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+                    new java.sql.Date(sdf.parse(endDate).getTime()));
+
+            requestRange = overviewService.getRequestDataByRange(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+                    new java.sql.Date(sdf.parse(endDate).getTime()));
         } else {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
                 Optional<Users> user = userRepository.findById(Long.valueOf(userid));
-                dateRanges.addAll(getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
-                        new java.sql.Date(sdf.parse(endDate).getTime())));
+                userDataSet = overviewService.getUserDependingData(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+                        new java.sql.Date(sdf.parse(endDate).getTime()));
+
+                requestRange = overviewService.getRequestDataByRange(user, new java.sql.Date(sdf.parse(startDate).getTime()),
+                        new java.sql.Date(sdf.parse(endDate).getTime()));
             }
         }
 
+
+        dateRanges.addAll(genRange.get());
+        dateRanges.addAll(requestRange.get());
+        dateRanges.addAll(userDataSet.get());
+
         return new ObjectMapper().writer().
-                withDefaultPrettyPrinter()
-                .writeValueAsString(dateRanges);
+                    withDefaultPrettyPrinter()
+                    .writeValueAsString(dateRanges);
     }
 
     /**
