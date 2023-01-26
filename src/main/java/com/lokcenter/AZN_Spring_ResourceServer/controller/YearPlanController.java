@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Map;
 import java.util.Optional;
 
@@ -38,6 +39,9 @@ public class YearPlanController {
 
     @Autowired
     private WorkTimeRepository workTimeRepository;
+
+    @Autowired
+    private UserInfoRepository userInfoRepository;
 
     /**
      * Store all needed Year Plan Data
@@ -119,9 +123,10 @@ public class YearPlanController {
             // get realname from user
             String realname = jwt.getClaim("name");
             var yearPlanCurrent = new YearPlan();
+            var calendar = Calendar.getInstance();
 
-            UserInfo userInfo = new UserInfo();
-            userInfo.setUsers(user.get());
+            calendar.add(Calendar.YEAR, -1);
+            int lastYear = calendar.get(Calendar.YEAR);
 
             yearPlanCurrent.setFullName(realname);
             yearPlanCurrent.setYears(yearOverViewList.getYearsListByUser(user.get()));
@@ -129,6 +134,7 @@ public class YearPlanController {
             // get worktime
             Optional<WorkTime> workTime = workTimeRepository.getMostRecentWorkTimeByUser(user.get());
             Optional<String> soll = workTimeRepository.getMostRecentSollByUser(user.get());
+            Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
 
             if (workTime.isPresent() && soll.isPresent()) {
                 yearPlanCurrent.setDailyWorkTime(soll.get());
@@ -140,10 +146,16 @@ public class YearPlanController {
                 double timeAsMin = ((date.getHours() * 60 + date.getMinutes()) * 5) / 60.0;
 
                 yearPlanCurrent.setWeeklyWorkTime(timeAsMin + "h");
-
             }
 
+            if (optionalUserInfo.isPresent()) {
+                // get vacation from last year
+                Map<String, String> avVacation = optionalUserInfo.get().getAvailableVacation();
 
+                yearPlanCurrent.setVacationFromLastYear(Integer.
+                        parseInt(avVacation.getOrDefault(String.valueOf(lastYear), "0")));
+
+            }
 
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()
