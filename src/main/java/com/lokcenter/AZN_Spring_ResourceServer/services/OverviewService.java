@@ -22,6 +22,8 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.StreamSupport;
 
 @Service
 @AllArgsConstructor
@@ -137,15 +139,14 @@ public class OverviewService {
 
     @Async
     public CompletableFuture<Integer> getVacationDaysUsedByRequests(int year, Optional<Users> users) {
-        int vacationDays = 0;
+        AtomicInteger vacationDays = new AtomicInteger();
 
         if (users.isPresent()) {
             Iterable<Requests> requests = requestsRepository.getVacationRequestsByYear(year);
 
-            for (Requests req: requests) {
+            StreamSupport.stream(requests.spliterator(), true).forEach((req) -> {
                 var start = TimeConvert.convertToLocalDateViaInstant(new java.util.Date(req.getStartDate().getTime()));
                 var end = TimeConvert.convertToLocalDateViaInstant(new java.util.Date(req.getEndDate().getTime()));
-
 
                 // go over each day from start to end and set request value
                 for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
@@ -155,11 +156,11 @@ public class OverviewService {
                     }
 
                     // add new vacation day
-                    vacationDays++;
+                    vacationDays.getAndIncrement();
                 }
-            }
+            });
         }
 
-        return CompletableFuture.completedFuture(vacationDays);
+        return CompletableFuture.completedFuture(vacationDays.get());
     }
 }
