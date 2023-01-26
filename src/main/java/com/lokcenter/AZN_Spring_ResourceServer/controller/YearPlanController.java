@@ -55,7 +55,6 @@ public class YearPlanController {
          */
         @Setter
         @Getter
-
         private String FullName;
 
         /**
@@ -96,13 +95,6 @@ public class YearPlanController {
         private int totalVacationDays;
 
         /**
-         * Vacation used
-         */
-        @Setter
-        @Getter
-        private int usedVacationDays;
-
-        /**
          * Vacation from last year
          */
         @Setter
@@ -123,18 +115,22 @@ public class YearPlanController {
             // get realname from user
             String realname = jwt.getClaim("name");
             var yearPlanCurrent = new YearPlan();
-            var calendar = Calendar.getInstance();
-
-            calendar.add(Calendar.YEAR, -1);
-            int lastYear = calendar.get(Calendar.YEAR);
 
             yearPlanCurrent.setFullName(realname);
             yearPlanCurrent.setYears(yearOverViewList.getYearsListByUser(user.get()));
 
-            // get worktime
+            // create last year
+            var calendar = Calendar.getInstance();
+            calendar.add(Calendar.YEAR, -1);
+            int lastYear = calendar.get(Calendar.YEAR);
+
+
+            // query tables
             Optional<WorkTime> workTime = workTimeRepository.getMostRecentWorkTimeByUser(user.get());
             Optional<String> soll = workTimeRepository.getMostRecentSollByUser(user.get());
             Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
+
+            // get worktime stuff
 
             if (workTime.isPresent() && soll.isPresent()) {
                 yearPlanCurrent.setDailyWorkTime(soll.get());
@@ -148,6 +144,7 @@ public class YearPlanController {
                 yearPlanCurrent.setWeeklyWorkTime(timeAsMin + "h");
             }
 
+            // userinfo stuff
             if (optionalUserInfo.isPresent()) {
                 // get vacation from last year
                 Map<String, String> avVacation = optionalUserInfo.get().getAvailableVacation();
@@ -155,6 +152,12 @@ public class YearPlanController {
                 yearPlanCurrent.setVacationFromLastYear(Integer.
                         parseInt(avVacation.getOrDefault(String.valueOf(lastYear), "0")));
 
+                // get available vacation days from this year
+                yearPlanCurrent.setTotalVacationDays(
+                        Integer.parseInt(
+                                avVacation.getOrDefault(
+                                        String.valueOf(Calendar.getInstance().get(Calendar.YEAR)),
+                                        "0")) + yearPlanCurrent.getVacationFromLastYear());
             }
 
             return new ObjectMapper().writer().
