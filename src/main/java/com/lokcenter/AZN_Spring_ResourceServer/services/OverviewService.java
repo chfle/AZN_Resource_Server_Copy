@@ -6,8 +6,10 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import lombok.AllArgsConstructor;
@@ -30,6 +32,9 @@ public class OverviewService {
 
     @Autowired
     private final ControllerHelper controllerHelper;
+
+    @Autowired
+    private UserInfoRepository userInfoRepository;
 
     /**
      * Get requested date ranges for calendar
@@ -103,5 +108,27 @@ public class OverviewService {
         }
 
         return CompletableFuture.completedFuture(rangeData);
+    }
+
+    /**
+     * Free vacation from userinfo
+     */
+    @Async
+    public CompletableFuture<Integer> getFreeVacationDays(int year, Optional<Users> users) {
+        int availableVacation = 0;
+
+        if (users.isPresent()) {
+            Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(users.get().getUserId());
+
+            if (optionalUserInfo.isPresent()) {
+                UserInfo userInfo = optionalUserInfo.get();
+
+                String lastYearCount = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year -1), "0");
+
+                availableVacation =  Integer.parseInt(lastYearCount) + Integer.parseInt(userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0"));
+            }
+        }
+
+        return CompletableFuture.completedFuture(availableVacation);
     }
 }

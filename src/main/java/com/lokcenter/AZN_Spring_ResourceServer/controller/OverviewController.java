@@ -3,12 +3,10 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
@@ -18,12 +16,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -58,6 +58,30 @@ public class OverviewController {
 
     @Autowired
     private  OverviewService overviewService;
+
+    @Autowired
+    private UserInfoRepository userInfoRepository;
+
+    /**
+     * Stats for overview side bar
+     */
+    public static class Stats {
+        @Setter
+        @Getter
+        int availableVacation;
+
+        @Setter
+        @Getter
+        int availableVacationWithoutRequestedCount;
+
+        @Setter
+        @Getter
+        Time balanceTime;
+
+        @Setter
+        @Getter
+        UserInfo.Balance balance;
+    }
 
     @AllArgsConstructor
     /*
@@ -279,6 +303,37 @@ public class OverviewController {
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(dayPlansDone);
+    }
+
+    @GetMapping("/stats")
+    String getStats(@RequestParam(name = "year", required = false) String year,
+                    @RequestParam(name = "role", required = true) String role,
+                    @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws JsonProcessingException, ExecutionException, InterruptedException {
+
+        Stats stats = new Stats();
+
+        // roles and userid stuff
+        if (userid == null) {
+            Jwt jwt = (Jwt) auth.getPrincipal();
+
+            String name = jwt.getClaim("unique_name");
+
+            // get userId;
+            Optional<Users> user = userRepository.findByUsername(name);
+
+            overviewService.getFreeVacationDays(Integer.parseInt(year), user);
+
+        } else {
+            // user must be admin to use userid
+            if (role.equals("ROLE_Admin")) {
+                Optional<Users> user = userRepository.findById(Long.valueOf(userid));
+                stats.setAvailableVacation(overviewService.getFreeVacationDays(Integer.parseInt(year), user).get());
+            }
+        }
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(stats);
     }
 
 }
