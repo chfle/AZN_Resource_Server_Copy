@@ -255,6 +255,7 @@ public class AdminController {
                                 @RequestParam(name = "userid", required = true) String userId) throws ParseException {
 
         Optional<Users> users = userRepository.findById(Long.parseLong(userId));
+        int vacationDaysUsed = 0;
 
         if (users.isPresent()) {
             // get all day plans between start end date
@@ -270,6 +271,7 @@ public class AdminController {
                 java.util.Date startDateDate = new java.util.Date(formatter.parse(startDate).getTime());
                 java.util.Date endDateDate = new java.util.Date(formatter.parse(endDate).getTime());
 
+                // query tables by date
                 Iterable<DayPlanData> dayPlanData = dayPlanDataRepository.
                         getDayPlanDataBySetDateBetweenAndUserId(
                                 new Date(formatter.parse(startDate).getTime()),
@@ -299,7 +301,8 @@ public class AdminController {
 
                     // go over each day from start to end and set request value
                     for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-                        System.out.println(date);
+                        // add 1 to vacationDaysUsed
+                        vacationDaysUsed++;
                         // get day
                         DayPlanData dpd;
                         Optional<DayPlanData> day =
@@ -326,6 +329,25 @@ public class AdminController {
 
                         // save dpd
                         dayPlanDataRepository.save(dpd);
+                    }
+
+                    // remove used days from userInfo
+                    Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(users.get().getUserId());
+
+                    if (optionalUserInfo.isPresent()) {
+                        Map<String, String> availableVacations = optionalUserInfo.get().getAvailableVacation();
+
+                        int currYear = Calendar.getInstance().get(Calendar.YEAR);
+
+                        availableVacations.put(String.valueOf(currYear),
+                                String.valueOf(
+                                        (Integer.parseInt(availableVacations.getOrDefault(String.valueOf(currYear),
+                                                "0")) - vacationDaysUsed)));
+
+                        optionalUserInfo.get().setAvailableVacation(availableVacations);
+
+                        userInfoRepository.deleteById(optionalUserInfo.get().getUserinfoId());
+                        userInfoRepository.save(optionalUserInfo.get());
                     }
 
                     // delete requests
