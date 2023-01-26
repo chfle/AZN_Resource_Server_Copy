@@ -152,7 +152,7 @@ public class OverviewService {
                 for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
                     // only count days from current year
                     if (date.getYear() != year) {
-                        break;
+                        continue;
                     }
 
                     // add new vacation day
