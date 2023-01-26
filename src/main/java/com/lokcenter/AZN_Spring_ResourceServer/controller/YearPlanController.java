@@ -43,6 +43,9 @@ public class YearPlanController {
     @Autowired
     private UserInfoRepository userInfoRepository;
 
+    @Autowired
+    private DayPlanDataRepository dayPlanDataRepository;
+
     /**
      * Store all needed Year Plan Data
      */
@@ -100,6 +103,14 @@ public class YearPlanController {
         @Setter
         @Getter
         private int vacationFromLastYear;
+
+        @Setter
+        @Getter
+        private int usedVacationDays;
+
+        @Setter
+        @Getter
+        private int sumVacationDays;
     }
 
     @GetMapping
@@ -158,7 +169,17 @@ public class YearPlanController {
                                 avVacation.getOrDefault(
                                         String.valueOf(Calendar.getInstance().get(Calendar.YEAR)),
                                         "0")) + yearPlanCurrent.getVacationFromLastYear());
+
             }
+
+            // count used vacation days from day plan data
+            long usedDays = dayPlanDataRepository.countByUserIdAndVacationTrue(user.get().getUserId());
+
+            yearPlanCurrent.setUsedVacationDays((int) usedDays);
+
+            // sum of vacation days
+            yearPlanCurrent.setSumVacationDays( yearPlanCurrent.getUsedVacationDays()
+                            + yearPlanCurrent.totalVacationDays);
 
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()

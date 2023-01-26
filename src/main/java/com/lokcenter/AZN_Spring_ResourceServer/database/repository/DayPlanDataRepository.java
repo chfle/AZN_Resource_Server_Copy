@@ -53,4 +53,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
 
     @Transactional
     Long deleteByUuid(UUID uuid);
+
+    @Query(value = "select count(*) from day_plan_data where user_id = ?1 and vacation = true", nativeQuery = true)
+    long countByUserIdAndVacationTrue(Long userId);
 }
