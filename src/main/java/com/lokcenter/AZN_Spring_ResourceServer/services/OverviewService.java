@@ -11,6 +11,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.sql.Date;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -35,6 +37,7 @@ public class OverviewService {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+
 
     /**
      * Get requested date ranges for calendar
@@ -130,5 +133,33 @@ public class OverviewService {
         }
 
         return CompletableFuture.completedFuture(availableVacation);
+    }
+
+    @Async
+    public CompletableFuture<Integer> getVacationDaysUsedByRequests(int year, Optional<Users> users) {
+        int vacationDays = 0;
+
+        if (users.isPresent()) {
+            Iterable<Requests> requests = requestsRepository.getVacationRequestsByYear(year);
+
+            for (Requests req: requests) {
+                var start = TimeConvert.convertToLocalDateViaInstant(new java.util.Date(req.getStartDate().getTime()));
+                var end = TimeConvert.convertToLocalDateViaInstant(new java.util.Date(req.getEndDate().getTime()));
+
+
+                // go over each day from start to end and set request value
+                for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                    // only count days from current year
+                    if (date.getYear() != year) {
+                        break;
+                    }
+
+                    // add new vacation day
+                    vacationDays++;
+                }
+            }
+        }
+
+        return CompletableFuture.completedFuture(vacationDays);
     }
 }
