@@ -24,7 +24,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     Iterable<DayPlanData> getAllByUserWhereTrue(Users user, Date startDate, Date endDate);
 
     /**
-     * get dayplan where where one or more fields are true
+     * get dayplan where one or more fields are true
      */
     @Query(value = "select * from day_plan_data where user_id=?1 and (glaz or sick or vacation or school) and set_date = ?2", nativeQuery = true)
     Optional<DayPlanData> getDayPlanDataWhereTrue(Users user, Date startDate);
@@ -56,4 +56,9 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
 
     @Query(value = "select count(*) from day_plan_data where user_id = ?1 and vacation = true", nativeQuery = true)
     long countByUserIdAndVacationTrue(Long userId);
+
+    @Query(value = "select sum(dpd_soll - soll)\\:\\:varchar as final_soll from " +
+            "(select  (worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) as dpd_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and extract(year from set_date) = ?2) as dpd cross join " +
+            "(select (worktime_end - worktime_start - worktime_pause) as soll from work_time where user_id = ?1 ORDER BY work_time.date DESC  limit 1) work_time;", nativeQuery = true)
+    String getSumOfSollTime(Long userid, int year);
 }
