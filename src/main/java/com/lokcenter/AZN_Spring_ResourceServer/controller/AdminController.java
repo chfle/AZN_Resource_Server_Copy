@@ -72,6 +72,9 @@ public class AdminController {
     @Autowired
     private ControllerHelper controllerHelper;
 
+    @Autowired
+    private BalanceRepository balanceRepository;
+
 
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
             Long.class,
@@ -500,6 +503,7 @@ public class AdminController {
                         // Example december 2021 -> create values for 2022
                         Optional<UserInfo> userInfo = userInfoRepository.findByUserId(user.get().getUserId());
 
+                        // update userinfo for new year
                         if (userInfo.isPresent()) {
                             // generate new year
                             int newYear = e.getYear() + 1;
@@ -528,6 +532,43 @@ public class AdminController {
                             System.out.println(userInfoData.getUsers().getUserId());
 
                             userInfoRepository.save(userInfoData);
+                        }
+
+                        // update balance time for new year
+                        Optional<Balance> optionalBalanceThisYear = balanceRepository.
+                                findBalanceByUsersAndYear(user.get().getUserId(), e.getYear());
+
+                        if (optionalBalanceThisYear.isPresent()) {
+                            Balance balanceNexYear = new Balance();
+                            Balance balanceThisYear = optionalBalanceThisYear.get();
+
+                            // init base values
+                            balanceNexYear.setYear(e.getYear() + 1);
+                            balanceNexYear.setUsers(user.get());
+                            balanceNexYear.setUserId(user.get().getUserId());
+                            balanceNexYear.setBalanceHours(0);
+                            balanceNexYear.setBalanceHours(0);
+                            balanceNexYear.setBalance(UserInfo.Balance.GUTHABEN);
+
+                            // calculate base values from this year with next year
+                            balanceNexYear.setBalanceMinutes(balanceThisYear.getBalanceMinutes()
+                                    + balanceNexYear.getBalanceMinutes());
+
+                            if (balanceNexYear.getBalanceMinutes() > 59) {
+                                balanceNexYear.setBalanceMinutes(balanceNexYear.getBalanceMinutes() % 60);
+                                balanceNexYear.setBalanceHours(balanceNexYear.getBalanceHours() +
+                                        (Integer.parseInt(String.format("%.0f", balanceNexYear.getBalanceMinutes() / 60.0))));
+                            }
+
+                            balanceNexYear.setBalanceHours(balanceThisYear.getBalanceHours() +
+                                    balanceNexYear.getBalanceHours());
+
+                            if (balanceNexYear.getBalanceHours() < 0) {
+                                balanceNexYear.setBalance(UserInfo.Balance.SCHULD);
+                            }
+
+                            // save
+                            balanceRepository.save(balanceNexYear);
                         }
                     }
                 }, user.get(), Integer.parseInt((String)payload.get("year")) ,
@@ -891,6 +932,9 @@ public class AdminController {
         return false;
     }
 
+    /**
+     * delete from general overview calendar
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @DeleteMapping("/generalOverview/delete")
     @ResponseBody

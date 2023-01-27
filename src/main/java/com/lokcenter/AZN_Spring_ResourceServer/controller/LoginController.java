@@ -124,9 +124,10 @@ public class LoginController {
                         balance.setBalance(UserInfo.Balance.GUTHABEN);
                         balance.setYear(Calendar.getInstance().get(Calendar.YEAR));
                         balance.setUsers(userf.get());
+                        balance.setUserId(userf.get().getUserId());
 
                         // only create if there is no balance time
-                        if (balanceRepository.findByUsers(userf.get()).spliterator().getExactSizeIfKnown() == 0) {
+                        if (balanceRepository.findByUsers(userf.get().getUserId()).spliterator().getExactSizeIfKnown() == 0) {
                             balanceRepository.save(balance);
                         }
 
