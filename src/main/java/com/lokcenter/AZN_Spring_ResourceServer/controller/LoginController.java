@@ -1,13 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DefaultsRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.WorkTimeRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Defaults;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.WorkTime;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.testing.JunitHelper;
@@ -26,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.ConstraintViolationException;
 import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Time;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Year;
 import java.util.*;
@@ -54,10 +49,13 @@ public class LoginController {
     @Autowired
     private final WorkTimeRepository workTimeRepository;
 
+    @Autowired
+    private final BalanceRepository balanceRepository;
+
 
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
-    ResponseEntity<Boolean> postLogin(@RequestBody Map<String, Object> payload) {
+    ResponseEntity<Boolean> postLogin(@RequestBody Map<String, Object> payload) throws ParseException {
        Users user = new Users();
 
         try {
@@ -116,8 +114,21 @@ public class LoginController {
                         userInfo.setGlazDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setSchool(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setVacationSick(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
-                        userInfo.setBalanceTime(new Time(format.parse("00:00 am").getTime()));
-                        userInfo.setBalance(UserInfo.Balance.GUTHABEN);
+
+                        // balance time
+                        Balance balance = new Balance();
+
+                        // create
+                        balance.setBalanceHours(0);
+                        balance.setBalanceMinutes(0);
+                        balance.setBalance(UserInfo.Balance.GUTHABEN);
+                        balance.setYear(Calendar.getInstance().get(Calendar.YEAR));
+                        balance.setUsers(userf.get());
+
+                        // only create if there is no balance time
+                        if (balanceRepository.findByUsers(userf.get()).spliterator().getExactSizeIfKnown() == 0) {
+                            balanceRepository.save(balance);
+                        }
 
                         // set defaults without default values set from admin
                         if (defaultsRepository.count() != 0) {

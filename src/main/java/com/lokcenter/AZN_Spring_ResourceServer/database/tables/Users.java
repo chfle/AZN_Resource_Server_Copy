@@ -90,4 +90,10 @@ public class Users implements Serializable {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
     @JsonManagedReference
     private Set<WorkTime> worktimes = new HashSet<>();
+
+    @Setter
+    @Getter
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
+    @JsonManagedReference
+    private Set<WorkTime> balanceTimes = new HashSet<>();
 }

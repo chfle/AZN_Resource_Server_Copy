@@ -1,23 +1,16 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLHStoreType;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
 
 import javax.persistence.*;
-import java.io.Serial;
-import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.sql.Date;
-import java.sql.Time;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,15 +50,6 @@ public class UserInfo {
     @Setter
     @Getter
     private Map<String, String> availableVacation = new HashMap<>();
-
-    @Setter
-    @Getter
-    private Time balanceTime;
-
-    @Setter
-    @Getter
-    @Enumerated(EnumType.STRING)
-    private Balance balance;
 
     /**
      * A Java Map with Year and glaz days for each year
