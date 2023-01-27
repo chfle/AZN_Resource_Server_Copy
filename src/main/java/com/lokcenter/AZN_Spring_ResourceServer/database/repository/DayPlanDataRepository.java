@@ -65,6 +65,6 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select sum (final_soll + timeV)\\:\\:varchar from (select sum(dpd_soll - soll) as final_soll from\n" +
             "            ((select  (worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) as dpd_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and extract(year from set_date) = ?2) as dpd cross join\n" +
             "            (select (worktime_end - worktime_start - worktime_pause) as soll from work_time where user_id = ?1 ORDER BY work_time.date DESC  limit 1) work_time)) as dwtfs cross join" +
-            " (select to_timestamp(balance_hours::varchar || ':'  || balance_minutes::varchar, 'hh24:MI')::Time as tim", nativeQuery = true)
+            " (select to_timestamp(balance_hours\\:\\:varchar || ':'  || balance_minutes\\:\\:varchar, 'hh24:MI')\\:\\:Time as timeV from balance where user_id = ?1 and year = ?2) as b", nativeQuery = true)
     String getdpdAndBalaceAsSum(Long userId, int year);
 }

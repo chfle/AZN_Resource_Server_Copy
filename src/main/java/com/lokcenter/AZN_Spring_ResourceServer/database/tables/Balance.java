@@ -2,14 +2,17 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.BalanceKey;
-import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import lombok.Getter;
 import lombok.Setter;
-import net.bytebuddy.dynamic.loading.InjectionClassLoader;
 
 import javax.persistence.*;
-import java.sql.Time;
 
+/**
+ * Balance
+ *
+ * @implNote Save total balance time to the database after all 12 months are submitted. Create new Balance Time for the
+ * next year with data of the last year
+ */
 @Entity
 @IdClass(BalanceKey.class)
 public class Balance {
