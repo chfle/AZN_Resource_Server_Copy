@@ -1,7 +1,9 @@
 package com.lokcenter.AZN_Spring_ResourceServer.helper.components;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.BalanceRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Balance;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
@@ -24,6 +26,9 @@ public class YearOverViewList {
     @Autowired
     private DayPlanDataRepository dayPlanDataRepository;
 
+    @Autowired
+    private BalanceRepository balanceRepository;
+
     /**
      * Get All Years and Data as list by user
      *
@@ -33,12 +38,20 @@ public class YearOverViewList {
      */
     public Map<String, Map<String, Object>> getYearsListByUser(Users user) {
         Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.getUserId());
-        Map<String, Map<String, Object>> yearDataMap = new HashMap<>();
+        Map<String, Map<String, Object>> yearDataMap;
+
+        var userinfo = optionalUserInfo.get();
+
+        yearDataMap = userinfo.yearToMap();
 
         if (optionalUserInfo.isPresent()) {
-            var userinfo = optionalUserInfo.get();
+            // get balance time data from user
+            Iterable<Balance> balances = balanceRepository.findByUsers(user.getUserId());
 
-            yearDataMap = userinfo.yearToMap();
+            for (var year: yearDataMap.entrySet()) {
+                yearDataMap.get(year.getKey()).put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(user.getUserId(),
+                        Integer.parseInt(year.getKey())));
+            }
 
             // get every day plan from user with checked
             // Only Valid and checked Data will be used
