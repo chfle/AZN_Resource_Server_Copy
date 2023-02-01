@@ -28,6 +28,10 @@ public class BalanceService {
         if (user.isPresent()) {
             String time = dayPlanDataRepository.getdpdAndBalaceAsSum(user.get().getUserId(), year);
 
+            if (time == null) {
+                time = "00:00";
+            }
+
             return CompletableFuture.completedFuture(time);
         }
         return CompletableFuture.completedFuture("");
