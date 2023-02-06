@@ -498,6 +498,36 @@ public class AdminController {
                     e.setAccepted(true);
                     monthPlanRepository.save(e);
 
+                    // set all dayplan data from this month as checked
+                    Calendar c = Calendar.getInstance();
+
+                    c.set(Calendar.YEAR, e.getYear());
+                    c.set(Calendar.MONTH, e.getMonth());
+
+                    var lastDayOfMonth = c.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+                    // find every day and mark as checked
+                    for (int i = 1; i <= lastDayOfMonth; i++) {
+                        // create date
+                        String date = String.format("%s-%s-%d", e.getYear(), e.getMonth(), i);
+                        try {
+                            Optional<DayPlanData> dpd = dayPlanDataRepository.
+                                    getBySetDateAndUserId(new Date(new SimpleDateFormat("yyyy-MM-dd")
+                                            .parse(date).getTime()), user.get().getUserId());
+
+                            if (dpd.isPresent()) {
+                                DayPlanData dayPlanData = dpd.get();
+
+                                dayPlanData.setChecked(true);
+
+                                // save
+                                dayPlanDataRepository.save(dayPlanData);
+                            }
+                        } catch (ParseException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+
                     // if month is december new userInfo values should be set for the next year
                     if (e.getMonth() == 12) {
                         // Example december 2021 -> create values for 2022

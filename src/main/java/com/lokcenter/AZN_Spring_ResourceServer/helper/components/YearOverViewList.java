@@ -38,15 +38,12 @@ public class YearOverViewList {
      */
     public Map<String, Map<String, Object>> getYearsListByUser(Users user) {
         Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.getUserId());
-        Map<String, Map<String, Object>> yearDataMap;
-
-        var userinfo = optionalUserInfo.get();
-
-        yearDataMap = userinfo.yearToMap();
+        Map<String, Map<String, Object>> yearDataMap = new HashMap<>();
 
         if (optionalUserInfo.isPresent()) {
-            // get balance time data from user
-            Iterable<Balance> balances = balanceRepository.findByUsers(user.getUserId());
+            var userinfo = optionalUserInfo.get();
+
+            yearDataMap = userinfo.yearToMap();
 
             for (var year: yearDataMap.entrySet()) {
                 yearDataMap.get(year.getKey()).put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(user.getUserId(),
