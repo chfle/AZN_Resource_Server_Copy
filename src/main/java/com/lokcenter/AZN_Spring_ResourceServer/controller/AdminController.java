@@ -3,9 +3,8 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
-import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
-import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.GeneralVacationKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
@@ -16,8 +15,6 @@ import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewLis
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
-import lombok.Getter;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +26,6 @@ import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.Month;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -850,7 +846,7 @@ public class AdminController {
                 new Date(sdf.parse(endDate).getTime()));
 
         // sort by uuid
-        Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = controllerHelper.mapByUUID(data);
+        Map<UUID, ArrayList<IUuidable>> generalVacationByUUID = controllerHelper.mapByUUID(data);
 
         // show data in the right representation
         // get min and max date from general vacation

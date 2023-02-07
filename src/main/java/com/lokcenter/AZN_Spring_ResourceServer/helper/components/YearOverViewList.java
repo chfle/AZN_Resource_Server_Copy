@@ -1,9 +1,9 @@
 package com.lokcenter.AZN_Spring_ResourceServer.helper.components;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.BalanceRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Balance;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
@@ -50,25 +50,19 @@ public class YearOverViewList {
                         Integer.parseInt(year.getKey())));
             }
 
-            // get every day plan from user with checked
-            // Only Valid and checked Data will be used
-            Iterable<DayPlanData> dayPlanDataIterable = dayPlanDataRepository.getAllByUserIdAndAndChecked(user);
+            // work days grouped by year
+            Iterable<IYearCount> workYearCountIterable = dayPlanDataRepository.getWorkDayCountGrouped(user.getUserId());
 
-            for (var dpd : dayPlanDataIterable) {
-                var calender = Calendar.getInstance();
-                calender.setTime(dpd.getSetDate());
-
-                var year = calender.get(Calendar.YEAR);
-
-                if (yearDataMap.containsKey(String.valueOf(year))) {
-                    yearDataMap.get(String.valueOf(year))
-                            .put("workDay",
-                                    ((Integer) yearDataMap.get(String.valueOf(year))
-                                            .getOrDefault("workDay", 0)) + 1);
+            // set work days
+            for (var workYearCount: workYearCountIterable) {
+                if (yearDataMap.containsKey(String.valueOf(workYearCount.getYear()))) {
+                    yearDataMap.get(String.valueOf(workYearCount.getYear())).put("workDay", workYearCount.getCount());
                 } else {
-                    yearDataMap.put(String.valueOf(year), new HashMap<>(Map.of("workDay", 1)));
+                    yearDataMap.put(String.valueOf(workYearCount.getYear()),
+                            new HashMap<>(Map.of("workDay", workYearCount.getCount())));
                 }
             }
+
         }
         return yearDataMap;
     }

@@ -2,7 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.services;
 
 import com.lokcenter.AZN_Spring_ResourceServer.controller.OverviewController;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
-import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
@@ -37,7 +37,7 @@ public class GeneralVacationService {
                         getGeneralVacationByDateBetween(start, end);
 
         // map all general vacation with the same comment
-        Map<UUID, ArrayList<UUIDable>> generalVacationByUUID = controllerHelper.mapByUUID(generalVacations);
+        Map<UUID, ArrayList<IUuidable>> generalVacationByUUID = controllerHelper.mapByUUID(generalVacations);
 
 
         // get min and max date from general vacation

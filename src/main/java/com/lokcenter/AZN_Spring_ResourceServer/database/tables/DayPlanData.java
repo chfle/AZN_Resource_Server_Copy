@@ -2,12 +2,11 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.tables;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
-import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Comment;
 import org.hibernate.annotations.LazyToOne;
 import org.hibernate.annotations.LazyToOneOption;
 
@@ -20,7 +19,7 @@ import java.util.UUID;
 
 @Entity
 @IdClass(DayPlanDataKey.class)
-public class DayPlanData implements Serializable, UUIDable {
+public class DayPlanData implements Serializable, IUuidable {
     @Serial
     private static final long serialVersionUID = 1L;
 

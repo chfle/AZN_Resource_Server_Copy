@@ -3,7 +3,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.services;
 import com.lokcenter.AZN_Spring_ResourceServer.controller.OverviewController;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
-import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.RequestsRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserInfoRepository;
@@ -85,7 +85,7 @@ public class OverviewService {
             // day plan data
             Iterable<DayPlanData> dayPlanDatas = dayPlanDataRepository.getAllByUserWhereTrue(user.get(), first, last);
 
-            Map<UUID, ArrayList<UUIDable>> dayPlanMap = controllerHelper.mapByUUID(dayPlanDatas);
+            Map<UUID, ArrayList<IUuidable>> dayPlanMap = controllerHelper.mapByUUID(dayPlanDatas);
 
             // get min and max range from dayPlanData
             for (var dpv: dayPlanMap.entrySet()) {

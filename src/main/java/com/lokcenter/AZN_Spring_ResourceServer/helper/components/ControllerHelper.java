@@ -1,7 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.helper.components;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
-import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.UUIDable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.DayPlanDataRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.GeneralVacationRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
@@ -97,8 +97,8 @@ public class ControllerHelper {
     /**
      * Map uuid
      */
-    public Map<UUID, ArrayList<UUIDable>> mapByUUID(Iterable<? extends UUIDable> uuiDableCollection) {
-        Map<UUID, ArrayList<UUIDable>> map = new HashMap<>();
+    public Map<UUID, ArrayList<IUuidable>> mapByUUID(Iterable<? extends IUuidable> uuiDableCollection) {
+        Map<UUID, ArrayList<IUuidable>> map = new HashMap<>();
 
         for (var uuidable : uuiDableCollection) {
             if (map.containsKey(uuidable.getUuid())) {
