@@ -155,6 +155,7 @@ public class YearPlanController {
                 yearPlanCurrent.setWeeklyWorkTime(timeAsMin + "h");
             }
 
+            // Note: should only do vacation stuff.
             // userinfo stuff
             if (optionalUserInfo.isPresent()) {
                 // get vacation from last year

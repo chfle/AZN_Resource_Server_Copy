@@ -44,6 +44,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     /**
      * get work days grouped by year
      * @param userId userId
+     *
      * @return IYearCount object
      */
     @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id=?1 and" +
@@ -51,6 +52,16 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             "            (not school or school is null) and (not vacation or vacation is null) and" +
             "            (not sick or sick is null)) group by extract(year from set_date);", nativeQuery = true)
     Iterable<IYearCount> getWorkDayCountGrouped(Long userId);
+
+    /**
+     * Checked Sick days grouped
+     * @param userId userId
+     *
+     * @return IYearCount object
+     */
+    @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id = ?1 and sick" +
+            " and checked group by extract(year from set_date);", nativeQuery = true)
+    Iterable<IYearCount> getSickDayCountGrouped(Long userId);
 
     @Transactional
     Long deleteByUuid(UUID uuid);

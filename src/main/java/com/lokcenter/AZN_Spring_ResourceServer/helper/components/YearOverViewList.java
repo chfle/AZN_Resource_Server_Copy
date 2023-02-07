@@ -37,6 +37,8 @@ public class YearOverViewList {
      * @return Years of Year data
      */
     public Map<String, Map<String, Object>> getYearsListByUser(Users user) {
+        // Note: Only checked Month plan data will be set here.
+
         Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.getUserId());
         Map<String, Map<String, Object>> yearDataMap = new HashMap<>();
 
@@ -53,13 +55,24 @@ public class YearOverViewList {
             // work days grouped by year
             Iterable<IYearCount> workYearCountIterable = dayPlanDataRepository.getWorkDayCountGrouped(user.getUserId());
 
-            // set work days
             for (var workYearCount: workYearCountIterable) {
                 if (yearDataMap.containsKey(String.valueOf(workYearCount.getYear()))) {
                     yearDataMap.get(String.valueOf(workYearCount.getYear())).put("workDay", workYearCount.getCount());
                 } else {
                     yearDataMap.put(String.valueOf(workYearCount.getYear()),
                             new HashMap<>(Map.of("workDay", workYearCount.getCount())));
+                }
+            }
+
+            // sick days
+            Iterable<IYearCount> sickYearCountIterable = dayPlanDataRepository.getSickDayCountGrouped(user.getUserId());
+
+            for (var sickYearCount: sickYearCountIterable) {
+                if (yearDataMap.containsKey(String.valueOf(sickYearCount.getYear()))) {
+                    yearDataMap.get(String.valueOf(sickYearCount.getYear())).put("sickDay", sickYearCount.getCount());
+                } else {
+                    yearDataMap.put(String.valueOf(sickYearCount.getYear()),
+                            new HashMap<>(Map.of("sickDay", sickYearCount.getCount())));
                 }
             }
 
