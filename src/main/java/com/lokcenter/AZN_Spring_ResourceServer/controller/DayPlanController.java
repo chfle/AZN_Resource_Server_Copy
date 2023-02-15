@@ -23,10 +23,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Dayplan endpoint
@@ -48,6 +45,9 @@ public class DayPlanController {
 
     @Autowired
     private MemService memService;
+
+    @Autowired
+    private MonthPlanRepository monthPlanRepository;
 
     @Autowired
     private UserInfoRepository userInfoRepository;
@@ -227,8 +227,19 @@ public class DayPlanController {
                 // check if Dayplan Data is valid
                if (optionalDayPlanData.isPresent() && optionalDayPlanData.get().isValid()) {
                    optionalDayPlanData.get().setUuid(UUID.randomUUID());
-                    dayPlanDataRepository.save(optionalDayPlanData.get());
-                    return true;
+                   // check if dayplan is inside a checked month
+                   Calendar c = Calendar.getInstance();
+                   c.setTime(optionalDayPlanData.get().getSetDate());
+
+                   Optional<MonthPlan> optionalMonthPlan = monthPlanRepository.
+                            findMonthPlanByMonthAndYear(c.get(Calendar.MONTH)+1,
+                                    c.get(Calendar.YEAR), optionalDayPlanData.get().getUserId());
+
+                   if (optionalMonthPlan.isEmpty()) {
+                       dayPlanDataRepository.save(optionalDayPlanData.get());
+                       return true;
+                   }
+
                }
 
               return false;
