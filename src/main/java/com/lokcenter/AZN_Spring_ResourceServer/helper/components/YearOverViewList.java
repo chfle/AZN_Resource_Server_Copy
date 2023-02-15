@@ -76,6 +76,17 @@ public class YearOverViewList {
                 }
             }
 
+            Iterable<IYearCount> glazYearCountIterable = dayPlanDataRepository.getGlazDayCountGrouped(user.getUserId());
+
+            for (var glazYearCount: glazYearCountIterable) {
+                if (yearDataMap.containsKey(String.valueOf(glazYearCount.getYear()))) {
+                    yearDataMap.get(String.valueOf(glazYearCount.getYear())).put("glazDay", glazYearCount.getCount());
+                } else {
+                    yearDataMap.put(String.valueOf(glazYearCount.getYear()),
+                            new HashMap<>(Map.of("glazDay", glazYearCount.getCount())));
+                }
+            }
+
         }
         return yearDataMap;
     }

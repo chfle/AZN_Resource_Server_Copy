@@ -63,6 +63,10 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             " and checked group by extract(year from set_date);", nativeQuery = true)
     Iterable<IYearCount> getSickDayCountGrouped(Long userId);
 
+    @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id = ?1 and glaz" +
+            "             and checked group by extract(year from set_date);", nativeQuery = true)
+    Iterable<IYearCount> getGlazDayCountGrouped(Long userId);
+
     @Transactional
     Long deleteByUuid(UUID uuid);
 
