@@ -64,5 +64,5 @@ public class Messages implements Serializable {
     @Getter
     @Type(type = "hstore")
     @Column(columnDefinition = "hstore", nullable = false)
-    private Map<String, Object> monthTypeData = new HashMap<>();
+    private Map<String, Object> messageTypeData = new HashMap<>();
 }

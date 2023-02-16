@@ -673,7 +673,7 @@ public class AdminController {
                     var year = Integer.parseInt((String) payload.get("year"));
                     var month = (Integer) payload.get("month");
 
-                    messages.setMonthTypeData(Map.of("year", year, "month", month));
+                    messages.setMessageTypeData(Map.of("year", year, "month", month));
                 }
 
                 messagesRepository.save(messages);
