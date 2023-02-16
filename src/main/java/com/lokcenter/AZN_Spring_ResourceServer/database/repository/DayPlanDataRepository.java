@@ -73,14 +73,14 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select count(*) from day_plan_data where user_id = ?1 and vacation = true", nativeQuery = true)
     long countByUserIdAndVacationTrue(Long userId);
 
-    @Query(value = "select sum(dpd_soll - soll)\\:\\:varchar as final_soll from " +
-            "(select  (worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) as dpd_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and extract(year from set_date) = ?2) as dpd cross join " +
-            "(select (worktime_end - worktime_start - worktime_pause) as soll from work_time where user_id = ?1 ORDER BY work_time.date DESC  limit 1) work_time;", nativeQuery = true)
-    String getSumOfSollTime(Long userid, int year);
-
-    @Query(value = "select sum (final_soll + timeV)\\:\\:varchar from (select sum(dpd_soll - soll) as final_soll from\n" +
-            "            ((select  (worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) as dpd_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and extract(year from set_date) = ?2) as dpd cross join\n" +
-            "            (select (worktime_end - worktime_start - worktime_pause) as soll from work_time where user_id = ?1 ORDER BY work_time.date DESC  limit 1) work_time)) as dwtfs cross join" +
-            " (select make_interval(0, 0, 0, 0, balance_hours\\:\\:integer, balance_minutes\\:\\:integer, 0) as timeV from balance where user_id = ?1 and year = ?2) as b", nativeQuery = true)
+    @Query(value = "select (final_soll + timeV)\\:\\:varchar from (select (weekend_soll + weekday_soll) as final_soll from (select sum(weekdays_soll - soll) as weekday_soll from\n" +
+            "(select  (worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) as\n" +
+            "weekdays_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and EXTRACT(ISODOW FROM set_date) not IN (6, 7)\n" +
+            "and extract(year from set_date) = ?2) as dpd cross join (select (worktime_end - worktime_start - worktime_pause)\n" +
+            "as soll from work_time where user_id = ?1 ORDER BY work_time.date DESC  limit 1) work_time) as weekdays cross join\n" +
+            "(select  sum(worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) as\n" +
+            "weekend_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and EXTRACT(ISODOW FROM set_date)\n" +
+            "IN (6, 7)) as weekend) as soll cross join (select make_interval(0, 0, 0, 0, balance_hours\\:\\:integer, balance_minutes\\:\\:integer, 0)\n" +
+            "as timeV from balance where user_id = ?1 and year = ?2) as b", nativeQuery = true)
     String getdpdAndBalaceAsSum(Long userId, int year);
 }

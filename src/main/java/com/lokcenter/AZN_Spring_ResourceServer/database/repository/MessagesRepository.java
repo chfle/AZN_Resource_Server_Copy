@@ -12,7 +12,7 @@ public interface MessagesRepository extends CrudRepository<Messages, Long> {
     /**
      * Only one message should exist
      */
-    @Query(value = "select * FROM messages where user_id = ?1 and  month_type_data->'year'=?2 and month_type_data->'month'=?3 and read = false", nativeQuery = true)
+    @Query(value = "select * FROM messages where user_id = ?1 and  message_type_data->'year'=?2 and message_type_data->'month'=?3 and read = false", nativeQuery = true)
     Optional<Messages> findMessagesByUserIdAndYearAndMonth(Long userid, String year, String month);
 
     @Transactional

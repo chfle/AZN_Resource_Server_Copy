@@ -183,8 +183,6 @@ public class MonthPlanController {
             Optional<Users> user = userRepository.findByUsername(name);
 
             if (user.isPresent()) {
-                System.out.println((String)payload.get("year"));
-                System.out.println((String)payload.get("month"));
                 Optional<Messages> message =  messagesRepository.findMessagesByUserIdAndYearAndMonth(
                         user.get().getUserId(), (String)payload.get("year"), (String)payload.get("month"));
 
