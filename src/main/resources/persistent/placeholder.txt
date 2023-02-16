@@ -1,0 +1,3 @@
+Placeholder in order to upload the parent folder to github.
+This file will be obsolete, once the Server is running.
+The SSL-Certificate will be placed in this folder.
