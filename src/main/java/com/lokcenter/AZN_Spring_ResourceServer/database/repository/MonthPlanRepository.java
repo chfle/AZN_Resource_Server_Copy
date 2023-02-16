@@ -13,6 +13,6 @@ public interface MonthPlanRepository extends CrudRepository<MonthPlan, MonthPlan
     @Query(value = "select * from month_plan where user_id = ?1 and accepted = false and submitted = true", nativeQuery = true)
     Iterable<MonthPlan> findSubmittedByUser(Long userId);
 
-    @Query(value = "select * from month_plan where month = ?1 and year = ?2 and user_id = ?3 and accepted;", nativeQuery = true)
+    @Query(value = "select * from month_plan where month = ?1 and year = ?2 and user_id = ?3 and (accepted or submitted);", nativeQuery = true)
     Optional<MonthPlan> findMonthPlanByMonthAndYear(int month, int year, long user_id);
 }
