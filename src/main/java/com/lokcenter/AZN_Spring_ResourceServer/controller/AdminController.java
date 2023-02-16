@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.GeneralVacationKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
@@ -126,30 +127,26 @@ public class AdminController {
                    currentUserData.put("userId", data.getNthValue(0));
                    currentUserData.put("department", data.getNthValue(2));
 
+                   // current year
+                   Calendar calendar = Calendar.getInstance();
+
                    // get userinfo from each user
                    Optional<UserInfo> userInfo = userInfoRepository.findByUserId(data.getNthValue(0));
+                   Long glazCount = dayPlanDataRepository.glazCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
+                   Long sickCount = dayPlanDataRepository.sickCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
+
+                   // add values
+                   currentUserData.put("sick", sickCount);
+                   currentUserData.put("glaz", glazCount);
 
                    if (userInfo.isPresent()) {
-                       // current year
-                       Calendar calendar = Calendar.getInstance();
-
-
-                       String currSickDays = userInfo.get().getSickDays()
-                               .getOrDefault(String.valueOf(calendar.get(Calendar.YEAR)), "0");
-
-                       System.out.println(currSickDays);
-
-                       String glaz = userInfo.get().getGlazDays()
-                               .getOrDefault(String.valueOf(calendar.get(Calendar.YEAR)), "0");
-
                        String availableVacation = userInfo.get().getAvailableVacation()
                                .getOrDefault(String.valueOf(calendar.get(Calendar.YEAR)), "0");
 
-                       // add values
-                       currentUserData.put("sick", Integer.parseInt(currSickDays));
-                       currentUserData.put("glaz", Integer.parseInt(glaz));
                        currentUserData.put("availableVacation", Integer.parseInt(availableVacation));
                    }
+
+                   currentUserData.put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(data.getNthValue(0), calendar.get(Calendar.YEAR)));
 
                    // get total requests
                    Iterable<Requests> requests = requestsRepository.findByUserId(data.getNthValue(0));
@@ -161,7 +158,6 @@ public class AdminController {
                    listUserData.add(currentUserData);
                }
 
-                // TODO: Get Zeitkonto
                 return new ResponseEntity<>(new ObjectMapper().writer().
                         withDefaultPrettyPrinter()
                         .writeValueAsString(listUserData), HttpStatus.OK);
