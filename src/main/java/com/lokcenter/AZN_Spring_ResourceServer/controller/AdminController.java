@@ -73,6 +73,9 @@ public class AdminController {
     @Autowired
     private BalanceRepository balanceRepository;
 
+    @Autowired
+    private WorkTimeRepository workTimeRepository;
+
 
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
             Long.class,
@@ -976,5 +979,29 @@ public class AdminController {
         } catch (Exception ignored) {}
 
         return false;
+    }
+
+    /**
+     * Worktime list for admin panel
+     * @param userId userid
+     * @return Worktime list
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @GetMapping("/worktimeList")
+    @ResponseBody
+    String getWorkTimeListByUser(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
+        Optional<Users> optionalUsers = userRepository.findById(Long.parseLong(userId));
+
+        if (optionalUsers.isPresent()) {
+            Iterable<WorkTime> workTimeRepositories =
+                    workTimeRepository.getWorkTimeByUser(optionalUsers.get().getUserId());
+
+            return new ObjectMapper().writer().
+                    withDefaultPrettyPrinter()
+                    .writeValueAsString(workTimeRepositories);
+        }
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(null);
     }
 }
