@@ -26,6 +26,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -296,6 +297,11 @@ public class AdminController {
 
                     // go over each day from start to end and set request value
                     for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                        // check if date is a weekend day
+                        if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                            continue;
+                        }
+
                         // add 1 to vacationDaysUsed
                         vacationDaysUsed++;
                         // get day
