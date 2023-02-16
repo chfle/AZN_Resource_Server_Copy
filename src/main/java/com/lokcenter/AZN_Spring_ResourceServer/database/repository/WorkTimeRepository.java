@@ -21,6 +21,6 @@ public interface WorkTimeRepository extends JpaRepository<WorkTime, Long> {
     @Query(value = "select (worktime_end - worktime_start - worktime_pause)\\:\\:varchar as soll from work_time where user_id = ?1 ORDER BY date DESC  limit 1", nativeQuery = true)
     Optional<String> getMostRecentSollByUser(Users users);
 
-    @Query(value = "select * from work_time where user_id = ?1", nativeQuery = true)
+    @Query(value = "select * from work_time where user_id = ?1 order by date desc", nativeQuery = true)
     Iterable<WorkTime> getWorkTimeByUser(Long userId);
 }
