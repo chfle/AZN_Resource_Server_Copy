@@ -79,7 +79,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select count(*) from day_plan_data where user_id = ?1 and vacation = true", nativeQuery = true)
     long countByUserIdAndVacationTrue(Long userId);
 
-    @Query(value = "select (final_soll + timeV)\\:\\:varchar from (select (weekend_soll + weekday_soll) as final_soll from (select sum(weekdays_soll - soll) as weekday_soll from\n" +
+    @Query(value = "select (final_soll + timeV)\\:\\:varchar from (select (weekend_soll + weekday_soll) as final_soll from (select case when sum(weekdays_soll - soll) is null then INTERVAL '0 days' else sum(weekdays_soll - soll) end as weekday_soll from\n" +
             "(select  case when (worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) IS NULL then INTERVAL '0 days' else (worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause) end as\n" +
             "weekdays_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and EXTRACT(ISODOW FROM set_date) not IN (6, 7)\n" +
             "and extract(year from set_date) = ?2) as dpd cross join (select (worktime_end - worktime_start - worktime_pause)\n" +
