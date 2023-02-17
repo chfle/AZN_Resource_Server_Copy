@@ -79,13 +79,14 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select count(*) from day_plan_data where user_id = ?1 and vacation = true", nativeQuery = true)
     long countByUserIdAndVacationTrue(Long userId);
 
-    @Query(value = "select (final_soll + timeV)\\:\\:varchar from (select (weekend_soll + weekdays) as final_soll from (select case when (day_plan_data.worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause -\n" +
-            "       (select (w.worktime_end - w.worktime_start - w.worktime_pause) from work_time as w where w.date <= set_date and user_id = ?1 order by w.date desc limit 1 )) is null then INTERVAL '0 days' else (day_plan_data.worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause -\n" +
+    @Query(value = "select sum(final_soll + timeV)\\:\\:varchar from (select (weekend_soll + weekdays) as final_soll from (select case when sum(day_plan_data.worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause -\n" +
+            "       (select (w.worktime_end - w.worktime_start - w.worktime_pause) from work_time as w where w.date <= set_date and user_id = ?1 order by w.date desc limit 1 )) is null then INTERVAL '0 days' else sum(day_plan_data.worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause -\n" +
             "       (select (w.worktime_end - w.worktime_start - w.worktime_pause) from work_time as w where w.date <= set_date and user_id = ?1 order by w.date desc limit 1 )) end as weekdays from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and EXTRACT(ISODOW FROM set_date) not IN (6, 7)\n" +
-            "and extract(year from set_date) = 2023) as weekday_soll cross join\n" +
-            "(select  case when (sum(worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause)) IS NULL then INTERVAL '0 days' else (sum(worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause)) end as\n" +
+            "and extract(year from set_date) = ?2) as weekdays cross join\n" +
+            "(select  case when (sum(worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause)) IS NULL then INTERVAL '0 days'\n" +
+            "    else (sum(worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause)) end\n" +
             "weekend_soll from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and EXTRACT(ISODOW FROM set_date)\n" +
             "IN (6, 7)) as weekend) as soll cross join (select make_interval(0, 0, 0, 0, balance_hours\\:\\:integer, balance_minutes\\:\\:integer, 0)\n" +
-            "as timeV from balance where user_id = ?1 and year = ?2) as b", nativeQuery = true)
+            "as timeV from balance where user_id = ?1 and year = ?2) as b;", nativeQuery = true)
     String getdpdAndBalaceAsSum(Long userId, int year);
 }
