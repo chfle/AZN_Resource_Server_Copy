@@ -97,7 +97,7 @@
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<version>1.7.0</version>
+			<version>1.19.0</version>
 			<scope>test</scope>
 		</dependency>
 <!--Memcached-->
