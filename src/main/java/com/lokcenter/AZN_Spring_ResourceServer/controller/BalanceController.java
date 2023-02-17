@@ -25,6 +25,14 @@ public class BalanceController {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Get balance data by user
+     * @param year year from balance
+     * @param role ROLE_ADMIN or ROLE_USER
+     * @param userid userid
+     *
+     * @return Json String
+     */
     @GetMapping
     @ResponseBody
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")

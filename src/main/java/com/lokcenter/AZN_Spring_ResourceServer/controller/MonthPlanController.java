@@ -2,11 +2,13 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
-import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
-import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
-import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.MessagesRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.MonthPlanRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Messages;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.MonthPlan;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.services.MonthPlanService;
 import com.lokcenter.AZN_Spring_ResourceServer.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +19,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Monthplan related controller
+ */
 
 @RestController
 @RequestMapping("/monthplan")
@@ -59,6 +65,16 @@ public class MonthPlanController {
         return ret;
     }
 
+    /**
+     * Get monthplan by userid or user
+     * @param month requested month
+     * @param year requested year
+     * @param role role if admin
+     * @param userid userid if admin
+     *
+     * @return Json string of data
+     *
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     @GetMapping
     String getMonthPlan( @RequestParam(name = "month", required = true) String month,
@@ -88,6 +104,10 @@ public class MonthPlanController {
                 .writeValueAsString(monthData.get());
     }
 
+    /**
+     * Submit Monthplan
+     *
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PutMapping("/submit")
     @ResponseBody
@@ -106,8 +126,7 @@ public class MonthPlanController {
                         Integer.parseInt((String)payload.get("year")) ,
                         (Integer) payload.get("month"));
 
-                // ch
-                // eck if monthplan exists
+                // check if monthplan exists
                 if (monthPlanRepository.findById(MK).isPresent()) {
                     monthPlanRepository.deleteById(MK);
                 }
@@ -135,6 +154,9 @@ public class MonthPlanController {
         }
     }
 
+    /**
+     * Show status of monthplan
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     @GetMapping("/status")
     String getSubmittedStatus(@RequestBody Map<String, Object> payload, Authentication auth) throws JsonProcessingException {

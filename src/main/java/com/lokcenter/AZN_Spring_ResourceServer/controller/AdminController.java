@@ -635,6 +635,12 @@ public class AdminController {
         return false;
     }
 
+    /**
+     * Get all AZN submitted by user by userid
+     * @param userId userid from user
+     * @return Json String
+     * @throws JsonProcessingException
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @GetMapping("/azn/get")
     @ResponseBody

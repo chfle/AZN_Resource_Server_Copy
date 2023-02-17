@@ -53,6 +53,12 @@ public class LoginController {
     private final BalanceRepository balanceRepository;
 
 
+    /**
+     * First login of user. Save basic data for new user
+     * @param payload basic information
+     *
+     * @return true or false
+     */
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     ResponseEntity<Boolean> postLogin(@RequestBody Map<String, Object> payload) throws ParseException {

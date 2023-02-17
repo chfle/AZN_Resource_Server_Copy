@@ -305,6 +305,14 @@ public class OverviewController {
                 .writeValueAsString(dayPlansDone);
     }
 
+    /**
+     * get stats for calendar
+     * @param year requested year
+     * @param role admin role if admin
+     * @param userid needed if admin
+     *
+     * @return JSON String
+     */
     @GetMapping("/stats")
     String getStats(@RequestParam(name = "year", required = false) String year,
                     @RequestParam(name = "role", required = true) String role,

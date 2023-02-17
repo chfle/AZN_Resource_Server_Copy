@@ -60,7 +60,6 @@ public class DayPlanController {
      * @param data user data
      * @return boolean
      */
-
      Optional<DayTime> setDayTimeData(Map<String, Object> data) {
          Optional<DayTime> optionalDateTime = Optional.empty();
          SimpleDateFormat sdf = new SimpleDateFormat("k:m");
@@ -112,6 +111,13 @@ public class DayPlanController {
     Boolean isGeneralVacationDay(Date date) {
         return generalVacationRepository.getGeneralVacationByDate(date).isPresent();
     }
+
+    /**
+     * Post new dayplan from user
+     * @param data Dayplan Data
+     *
+     * @return true or false
+     */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data, Authentication auth) {
@@ -299,6 +305,7 @@ public class DayPlanController {
 
         return dayPlanData;
     }
+
     /**
      * Get data by Date and User id
      *

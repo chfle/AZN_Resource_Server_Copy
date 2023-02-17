@@ -5,18 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.UserRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.WorkTimeRepository;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
-import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLInetType;
-import com.vladmihalcea.hibernate.type.interval.PostgreSQLIntervalType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.Time;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Optional;
 
 /**

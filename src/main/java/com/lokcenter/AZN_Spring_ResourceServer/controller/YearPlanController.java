@@ -28,6 +28,9 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Yearplan related controller
+ */
 @RestController
 @RequestMapping("/yearplan")
 public class YearPlanController {
@@ -113,6 +116,11 @@ public class YearPlanController {
         private int sumVacationDays;
     }
 
+    /**
+     * Get yearplan by user
+     *
+     * @return Json String
+     */
     @GetMapping
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     String getYearPlanByUser(Authentication auth) throws Exception {
