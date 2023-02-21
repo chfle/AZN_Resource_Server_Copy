@@ -183,6 +183,11 @@ public class DayPlanController {
                             cachedDayPlanData.setWorkTime(dayTime.get());
                             cachedDayPlanData.setComment((String) data.get("comment"));
 
+                            // check if soll
+                            if ((Boolean) data.get("school")) {
+                                cachedDayPlanData.setSchool(true);
+                            }
+
                             // mark dayplan as valid
                             cachedDayPlanData.setValid(true);
 
