@@ -76,7 +76,14 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Transactional
     Long deleteByUuid(UUID uuid);
 
-    @Query(value = "select count(*) from day_plan_data where user_id = ?1 and vacation = true", nativeQuery = true)
+    /**
+     * Get vacation by user + general vacation
+     * @implNote if something is in general vacation do not count dayplan data
+     * @param userId userid
+     *
+     * @return count
+     */
+    @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub')) as vacation from day_plan_data where user_id = ?1 and vacation = true and set_date not in (select date from general_vacation where tag = 'gUrlaub')", nativeQuery = true)
     long countByUserIdAndVacationTrue(Long userId);
 
     @Query(value = "select sum(final_soll + timeV)\\:\\:varchar from (select (weekend_soll + weekdays) as final_soll from (select case when sum(day_plan_data.worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause -\n" +
