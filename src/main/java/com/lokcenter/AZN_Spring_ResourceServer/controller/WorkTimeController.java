@@ -11,6 +11,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -29,9 +35,9 @@ public class WorkTimeController {
     /**
      * Query soll value
      */
-    String getSoll(Optional<Users> users) {
+    String getSoll(Optional<Users> users, Date date) {
         if (users.isPresent()) {
-            Optional<String> workTime = workTimeRepository.getMostRecentSollByUser(users.get());
+            Optional<String> workTime = workTimeRepository.getMostRecentSollByUserAndDate(users.get(), date);
             if (workTime.isPresent()) {
                 return workTime.get();
             }
@@ -40,16 +46,15 @@ public class WorkTimeController {
         return "";
     }
 
-    /**
-     * Get current soll value from user
-     */
-    @GetMapping("/soll")
+    @GetMapping("/sollMonth")
     @ResponseBody
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
-    String getSollTime(@RequestParam(name = "role", required = true) String role,
-                       @RequestParam(name = "userid", required = false) String userid,  Authentication auth) throws JsonProcessingException {
+    String getSollByMonth(@RequestParam(name = "role", required = true) String role,
+                          @RequestParam(name = "userid", required = false) String userid,
+                          @RequestParam(name = "month", required = true) String month, Authentication auth) throws JsonProcessingException {
 
-        String soll = "";
+        List<String> solls = new ArrayList<>();
+
 
         if (userid == null) {
             Jwt jwt = (Jwt) auth.getPrincipal();
@@ -58,14 +63,50 @@ public class WorkTimeController {
 
             // get userId;
             Optional<Users> user = userRepository.findByUsername(name);
-            soll = getSoll(user);
 
 
         } else {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
                 Optional<Users> user = userRepository.findById(Long.valueOf(userid));
-                soll = getSoll(user);
+            }
+        }
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(solls);
+    }
+
+    /**
+     * Get current soll value from user and by day
+     */
+    @GetMapping("/soll")
+    @ResponseBody
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    String getSollTime(@RequestParam(name = "role", required = true) String role,
+                       @RequestParam(name = "userid", required = false) String userid,
+                       @RequestParam(name = "date", required = true) String date, Authentication auth) throws JsonProcessingException, ParseException {
+
+        String soll = "";
+        DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+        Date dt = new Date(df.parse(date).getTime());
+
+
+        if (userid == null) {
+            Jwt jwt = (Jwt) auth.getPrincipal();
+
+            String name = jwt.getClaim("unique_name");
+
+            // get userId;
+            Optional<Users> user = userRepository.findByUsername(name);
+            soll = getSoll(user, dt);
+
+
+        } else {
+            // user must be admin to use userid
+            if (role.equals("ROLE_Admin")) {
+                Optional<Users> user = userRepository.findById(Long.valueOf(userid));
+                soll = getSoll(user, dt);
             }
         }
 
