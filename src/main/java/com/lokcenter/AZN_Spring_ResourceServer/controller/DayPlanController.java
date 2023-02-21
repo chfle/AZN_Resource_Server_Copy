@@ -85,9 +85,15 @@ public class DayPlanController {
      * @param data dayplan data
      *
      * @implNote Incorrect time will not be checked (only empty fields)
+     * @implNote Ignore Time if school is set
      */
     boolean validDayPlanData(Map<String, Object> data) {
         try {
+            // if school is set time should not be validated
+            if ((Boolean) data.get("school")) {
+                return true;
+            }
+
             // check if the following things are present
             return ((String) data.get("start_time")).trim().length() != 0
                     && ((String) data.get("end_time")).trim().length() != 0
@@ -136,7 +142,7 @@ public class DayPlanController {
                 Optional<DayPlanData> optionalDayPlanData = Optional.empty();
                 // see if user has some checked values for this day
                 // if glaz, school, sick, vacation is checked ignore all time values
-                if ((Boolean) data.get("school") || (Boolean) data.get("sick") || (Boolean) data.get("glaz")) {
+                if ((Boolean) data.get("sick") || (Boolean) data.get("glaz")) {
                     var dpd = new DayPlanData();
 
                     dpd.setGlaz((Boolean) data.get("glaz"));
