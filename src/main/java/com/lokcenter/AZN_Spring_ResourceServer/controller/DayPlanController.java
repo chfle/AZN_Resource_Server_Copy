@@ -238,6 +238,9 @@ public class DayPlanController {
                             dayPlanData.setValid(true);
                             optionalDayPlanData = Optional.of(dayPlanData);
                         }
+
+                        // set checked values
+
                     }
 
                 }
@@ -252,6 +255,14 @@ public class DayPlanController {
                    Optional<MonthPlan> optionalMonthPlan = monthPlanRepository.
                             findMonthPlanByMonthAndYear(c.get(Calendar.MONTH)+1,
                                     c.get(Calendar.YEAR), optionalDayPlanData.get().getUserId());
+
+
+                   // set checked values
+                   try {
+                       optionalDayPlanData.get().setGlaz((Boolean) data.get("glaz"));
+                       optionalDayPlanData.get().setSick((Boolean) data.get("sick"));
+                       optionalDayPlanData.get().setSchool((Boolean) data.get("school"));
+                   }catch (Exception ignore) {}
 
                    if (optionalMonthPlan.isEmpty()) {
                        dayPlanDataRepository.save(optionalDayPlanData.get());
