@@ -1002,6 +1002,36 @@ public class AdminController {
                 .writeValueAsString(null);
     }
 
+    /**
+     * Get a list of all years and vacation by user
+     * @param userId userid
+     *
+     * @return json string
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @GetMapping("/yearsList")
+    @ResponseBody
+    String getVacationByUser(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
+        Optional<Users> optionalUsers = userRepository.findById(Long.parseLong(userId));
+
+        if (optionalUsers.isPresent()) {
+            return new ObjectMapper().writer().
+                    withDefaultPrettyPrinter()
+                    .writeValueAsString(userInfoRepository.findByUserId(optionalUsers.get().getUserId()).get().getAvailableVacation());
+        }
+
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(null);
+    }
+
+    /**
+     * Post admin edit date
+     * @param payload user data
+     * @param userId id of user
+     *
+     * @return true or false
+     */
     @GetMapping("/edit")
     @CrossOrigin("/admin")
     @ResponseBody
