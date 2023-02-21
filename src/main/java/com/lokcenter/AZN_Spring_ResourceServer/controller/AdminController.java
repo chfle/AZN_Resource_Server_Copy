@@ -566,42 +566,33 @@ public class AdminController {
                         }
 
                         // update balance time for new year
-                        Optional<Balance> optionalBalanceThisYear = balanceRepository.
-                                findBalanceByUsersAndYear(user.get().getUserId(), e.getYear());
+                        Balance balanceNexYear = new Balance();
 
-                        if (optionalBalanceThisYear.isPresent()) {
-                            Balance balanceNexYear = new Balance();
-                            Balance balanceThisYear = optionalBalanceThisYear.get();
+                        // init base values
+                        balanceNexYear.setYear(e.getYear() + 1);
+                        balanceNexYear.setUsers(user.get());
+                        balanceNexYear.setUserId(user.get().getUserId());
+                        balanceNexYear.setBalanceHours(0);
+                        balanceNexYear.setBalanceHours(0);
+                        balanceNexYear.setBalance(UserInfo.Balance.GUTHABEN);
 
-                            // init base values
-                            balanceNexYear.setYear(e.getYear() + 1);
-                            balanceNexYear.setUsers(user.get());
-                            balanceNexYear.setUserId(user.get().getUserId());
-                            balanceNexYear.setBalanceHours(0);
-                            balanceNexYear.setBalanceHours(0);
-                            balanceNexYear.setBalance(UserInfo.Balance.GUTHABEN);
+                        // calculate time from this year put it to the new year
+                        String time = dayPlanDataRepository.getdpdAndBalaceAsSum(user.get().getUserId(), e.getYear());
 
-                            // calculate base values from this year with next year
-                            balanceNexYear.setBalanceMinutes(balanceThisYear.getBalanceMinutes()
-                                    + balanceNexYear.getBalanceMinutes());
+                        var values = time.split(":");
 
-                            if (balanceNexYear.getBalanceMinutes() > 59) {
-                                balanceNexYear.setBalanceMinutes(balanceNexYear.getBalanceMinutes() % 60);
-                                balanceNexYear.setBalanceHours(balanceNexYear.getBalanceHours() +
-                                        (Integer.parseInt(String.format("%.0f", balanceNexYear.getBalanceMinutes() / 60.0))));
-                            }
+                        balanceNexYear.setBalanceHours(Integer.parseInt(values[0]));
+                        balanceNexYear.setBalanceMinutes(Integer.parseInt(values[1]));
 
-                            balanceNexYear.setBalanceHours(balanceThisYear.getBalanceHours() +
-                                    balanceNexYear.getBalanceHours());
-
-                            if (balanceNexYear.getBalanceHours() < 0) {
-                                balanceNexYear.setBalance(UserInfo.Balance.SCHULD);
-                            }
-
-                            // save
-                            balanceRepository.save(balanceNexYear);
+                        // set the right balance
+                        if (balanceNexYear.getBalanceHours() < 0) {
+                            balanceNexYear.setBalance(UserInfo.Balance.SCHULD);
                         }
+
+                        balanceRepository.save(balanceNexYear);
+
                     }
+
                 }, user.get(), Integer.parseInt((String)payload.get("year")) ,
                         (Integer) payload.get("month")).get();
             }
@@ -1009,5 +1000,13 @@ public class AdminController {
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(null);
+    }
+
+    @GetMapping("/edit")
+    @CrossOrigin("/admin")
+    @ResponseBody
+    Boolean postAdminEditData(@RequestBody Map<String, Object> payload, @RequestParam(name = "userId") String userId) {
+        // Todo: ...
+        return true;
     }
 }
