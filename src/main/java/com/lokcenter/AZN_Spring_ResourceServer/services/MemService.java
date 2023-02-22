@@ -60,7 +60,7 @@ public class MemService {
      */
     public void storeKeyValue(String key, Object value) {
         // set key
-        boolean done = mcc.set(key, 90, value).isDone();
+        boolean done = mcc.set(key, 432000, value).isDone();
 
         log.info("isDone: " +done);
     }
