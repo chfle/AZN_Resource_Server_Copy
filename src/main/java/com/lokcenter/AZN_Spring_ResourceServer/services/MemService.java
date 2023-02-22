@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -39,18 +40,18 @@ public class MemService {
         try {
             mcc = new MemcachedClient(new InetSocketAddress(address, port));
 
-            // close connection
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                try {
-                    mcc.flush();
-                    mcc.shutdown();
-                }catch (Exception ignore){}
-            }));
-
             log.info("Memcached connected");
         } catch (Exception e) {
             log.error("Memcached connection failed");
         }
+    }
+
+    /**
+     * Close memcached connection
+     */
+    @PreDestroy
+    public void destroy(){
+        mcc.shutdown();
     }
 
     /**
