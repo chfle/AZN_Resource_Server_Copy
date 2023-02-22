@@ -110,10 +110,6 @@ public class YearPlanController {
         @Setter
         @Getter
         private int usedVacationDays;
-
-        @Setter
-        @Getter
-        private int sumVacationDays;
     }
 
     /**
@@ -177,7 +173,7 @@ public class YearPlanController {
                         Integer.parseInt(
                                 avVacation.getOrDefault(
                                         String.valueOf(Calendar.getInstance().get(Calendar.YEAR)),
-                                        "0")) + yearPlanCurrent.getVacationFromLastYear());
+                                        "0")));
 
             }
 
@@ -185,10 +181,6 @@ public class YearPlanController {
             long usedDays = dayPlanDataRepository.countByUserIdAndVacationTrue(user.get().getUserId());
 
             yearPlanCurrent.setUsedVacationDays((int) usedDays);
-
-            // sum of vacation days
-            yearPlanCurrent.setSumVacationDays( yearPlanCurrent.getUsedVacationDays()
-                            + yearPlanCurrent.totalVacationDays);
 
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()
