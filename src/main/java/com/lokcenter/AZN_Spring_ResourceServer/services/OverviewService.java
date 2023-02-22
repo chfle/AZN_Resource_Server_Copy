@@ -127,10 +127,7 @@ public class OverviewService {
 
             if (optionalUserInfo.isPresent()) {
                 UserInfo userInfo = optionalUserInfo.get();
-
-                String lastYearCount = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year -1), "0");
-
-                availableVacation =  Integer.parseInt(lastYearCount) + Integer.parseInt(userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0"));
+                availableVacation =  Integer.parseInt(userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0"));
             }
         }
 
