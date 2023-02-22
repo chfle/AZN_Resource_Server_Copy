@@ -127,6 +127,8 @@ public class DayPlanController {
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data, Authentication auth) {
+        // saved in memcached or in db
+        boolean saved = false;
         try {
             Jwt jwt = (Jwt) auth.getPrincipal();
             String name = jwt.getClaim("unique_name");
@@ -229,6 +231,7 @@ public class DayPlanController {
 
                             // save data to memcached
                             memService.storeKeyValue(AznStrings.toString(dayPlanDataKey), dayPlanData);
+                            saved = true;
                         } else {
                             // create valid data object
 
@@ -238,9 +241,6 @@ public class DayPlanController {
                             dayPlanData.setValid(true);
                             optionalDayPlanData = Optional.of(dayPlanData);
                         }
-
-                        // set checked values
-
                     }
 
                 }
@@ -266,21 +266,21 @@ public class DayPlanController {
 
                    if (optionalMonthPlan.isEmpty()) {
                        dayPlanDataRepository.save(optionalDayPlanData.get());
-                       return true;
+                       saved = true;
                    }
 
                }
 
-              return false;
+              return saved;
             }
 
         } catch (Exception exception) {
             exception.printStackTrace();
 
-            return false;
+           return false;
         }
 
-        return false;
+        return saved;
     }
 
     private Optional<DayPlanData> getDayPlanDataByUserAndDate(Optional<Users> user, Date date) throws IOException {
