@@ -39,6 +39,14 @@ public class MemService {
         try {
             mcc = new MemcachedClient(new InetSocketAddress(address, port));
 
+            // close connection
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                try {
+                    mcc.flush();
+                    mcc.shutdown();
+                }catch (Exception ignore){}
+            }));
+
             log.info("Memcached connected");
         } catch (Exception e) {
             log.error("Memcached connection failed");
