@@ -928,7 +928,8 @@ public class AdminController {
     @ResponseBody
     Boolean saveGeneralOverviewRequest(@RequestParam(name = "startDate") String startDate,
                                        @RequestParam(name = "endDate") String endDate,
-                                       @RequestParam(name = "tag") String tag) throws ParseException {
+                                       @RequestParam(name = "tag") String tag,
+                                       @RequestParam(name = "comment", required = false) String comment) throws ParseException {
 
         // get all day plans between start end date
         var formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -941,7 +942,7 @@ public class AdminController {
                 new Date(formatter.parse(endDate).getTime())
         );
 
-        // check if requested range is empy
+        // check if requested range is empty
         if (StreamSupport.stream(generals.spliterator(), false).findAny().isEmpty()) {
 
             var start = TimeConvert.convertToLocalDateViaInstant(startDate_);
@@ -958,13 +959,17 @@ public class AdminController {
                 generalVacation.setTag(Tags.valueOf(tag));
                 generalVacation.setUuid(uuid);
 
-                String comment = switch (Tags.valueOf(tag)) {
+                String commentG = switch (Tags.valueOf(tag)) {
                     case gUrlaub -> "Urlaub";
                     case gFeiertag -> "Feiertag";
                     default -> "?";
                 };
 
-                generalVacation.setComment(comment);
+                if (comment != null && !comment.isEmpty()) {
+                    commentG = comment;
+                }
+
+                generalVacation.setComment(commentG);
 
                 Calendar c = new GregorianCalendar();
                 c.setTime(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
