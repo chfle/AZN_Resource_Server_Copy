@@ -4,6 +4,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -73,8 +74,19 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             "             and checked group by extract(year from set_date);", nativeQuery = true)
     Iterable<IYearCount> getGlazDayCountGrouped(Long userId);
 
+    @Modifying
     @Transactional
-    Long deleteByUuid(UUID uuid);
+    @Query(value = "delete from day_plan_data where uuid = ?1", nativeQuery = true)
+    void deleteByUuid(UUID uuid);
+
+    @Query(value = "select count(*) from day_plan_data where uuid = ?1", nativeQuery = true)
+    Long getCountByUUid(UUID uuid);
+
+    @Query(value = "select distinct user_id from day_plan_data where uuid = ?1", nativeQuery = true)
+    Long getUserIdByUUid(UUID uuid);
+
+    @Query(value = "select count(extract(year from set_date)), extract(year from set_date) as year from day_plan_data where uuid = ?1 group by extract(year from set_date)", nativeQuery = true)
+    Iterable<IYearCount> getDayPlanDataByUuidAndYear(UUID uuid);
 
     /**
      * Get vacation by user + general vacation

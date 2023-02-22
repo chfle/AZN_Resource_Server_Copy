@@ -731,7 +731,39 @@ public class AdminController {
             if (tagV == Tags.gFeiertag || tagV == Tags.gUrlaub) {
                 return generalVacationRepository.deleteByUuid(UUID.fromString(id)) > 0;
             } else {
-                return dayPlanDataRepository.deleteByUuid(UUID.fromString(id)) > 0;
+                // add days back to vacation
+                Iterable<IYearCount>  vacationByYear = dayPlanDataRepository.getDayPlanDataByUuidAndYear(UUID.fromString(id));
+
+                if (vacationByYear.spliterator().getExactSizeIfKnown() > 0) {
+                    Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(dayPlanDataRepository.
+                            getUserIdByUUid(UUID.fromString(id)));
+
+                    if (optionalUserInfo.isPresent()) {
+                        var userInfo = optionalUserInfo.get();
+
+                        for (IYearCount yearCount : vacationByYear) {
+                            String current_vacation = userInfo.getAvailableVacation().
+                                    getOrDefault(String.valueOf(yearCount.getYear()), "0");
+
+                            userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
+                                    String.valueOf(Integer.parseInt(current_vacation) + yearCount.getCount()));
+                        }
+                        // delete vacation
+                        dayPlanDataRepository.deleteByUuid(UUID.fromString(id));
+
+                        // check if dpd was deleted
+                        if (dayPlanDataRepository.getCountByUUid(UUID.fromString(id)) == 0) {
+                            // first we need to delete
+                            userInfoRepository.deleteById(userInfo.getUserinfoId());
+                            // Then save
+                            userInfoRepository.save(userInfo);
+
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
         }catch (Exception exception) {
            exception.printStackTrace();
