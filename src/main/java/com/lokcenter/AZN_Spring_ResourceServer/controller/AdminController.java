@@ -103,7 +103,6 @@ public class AdminController {
                 // list of ROLE_User and username users
                 List<Tuple> userUsers = new ArrayList<>();
 
-
                 for (Users user: users) {
                     // user must include ROLE_User
                     Optional<String> department = Optional.empty();
@@ -735,7 +734,12 @@ public class AdminController {
             if (tagV == Tags.gFeiertag || tagV == Tags.gUrlaub) {
                 return generalVacationRepository.deleteByUuid(UUID.fromString(id)) > 0;
             } else {
-                // add days back to vacation
+                // add days back to vacation if not glaz
+                if (tagV == Tags.GLAZ) {
+                    dayPlanDataRepository.deleteByUuid(UUID.fromString(id));
+
+                   return dayPlanDataRepository.getCountByUUid(UUID.fromString(id)) == 0;
+                }
                 Iterable<IYearCount>  vacationByYear = dayPlanDataRepository.getDayPlanDataByUuidAndYear(UUID.fromString(id));
 
                 if (vacationByYear.spliterator().getExactSizeIfKnown() > 0) {
