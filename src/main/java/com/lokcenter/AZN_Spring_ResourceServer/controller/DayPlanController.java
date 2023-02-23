@@ -139,12 +139,25 @@ public class DayPlanController {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
             SimpleDateFormat sdf = new SimpleDateFormat("k:m");
             Date d = new Date(simpleDateFormat.parse((String)data.get("date")).getTime());
+            
+
 
             if (user.isPresent()) {
                 // should be empty if no valid data was found
                 Optional<DayPlanData> optionalDayPlanData = Optional.empty();
                 // see if user has some checked values for this day
                 // if glaz, school, sick, vacation is checked ignore all time values
+                Calendar calendar = Calendar.getInstance();
+
+                calendar.setTime(d);
+
+                // check if weekend
+                if ((calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SATURDAY
+                        || calendar.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY)
+                        && ((Boolean) data.get("sick") || (Boolean) data.get("school"))) {
+                    return false;
+                }
+
                 if ((Boolean) data.get("sick") || (Boolean) data.get("glaz")) {
                     var dpd = new DayPlanData();
 
