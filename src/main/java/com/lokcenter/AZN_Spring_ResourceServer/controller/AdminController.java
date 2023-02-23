@@ -1012,11 +1012,6 @@ public class AdminController {
                         String current_vacation = userInfo.getAvailableVacation().
                                 getOrDefault(String.valueOf(yearCount.getYear()), "0");
 
-                        System.out.println("current" + " " +
-                                userInfo.getAvailableVacation().getOrDefault(String.valueOf(yearCount.getYear()), "0"));
-
-                        System.out.println("count" + " " + yearCount.getCount());
-
                         userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
                                 String.valueOf(Integer.parseInt(current_vacation) - yearCount.getCount()));
                     }
@@ -1026,8 +1021,6 @@ public class AdminController {
 
                     // save
                     userInfoRepository.save(userInfo);
-
-                    System.out.println("next user");
                 }
             }
             return true;
@@ -1046,9 +1039,41 @@ public class AdminController {
         try {
             UUID uuid = UUID.fromString((String) payload.get("id"));
 
+            // get vacation count
+            Iterable<IYearCount> generalVacationCount = generalVacationRepository.getGeneralVacationByUuidAndYear(uuid);
+            Iterable<BigInteger> userIds = userRepository.getAllUserIds();
+
+            System.out.println("ids:"  + userIds);
+
             generalVacationRepository.deleteByUuid(uuid);
 
-            return generalVacationRepository.findByUuid(uuid).spliterator().getExactSizeIfKnown() == 0;
+            if (generalVacationRepository.findByUuid(uuid).spliterator().getExactSizeIfKnown() == 0) {
+                // go over all users
+                for (var userid : userIds) {
+                    System.out.println("Userid:" + userid);
+                    Optional<UserInfo> optionalUserInfoRepository = userInfoRepository.findByUserId(userid.longValue());
+
+                    if (optionalUserInfoRepository.isPresent()) {
+                        UserInfo userInfo = optionalUserInfoRepository.get();
+
+                        for (IYearCount yearCount: generalVacationCount) {
+                            String current_vacation = userInfo.getAvailableVacation().
+                                    getOrDefault(String.valueOf(yearCount.getYear()), "0");
+
+                            userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
+                                    String.valueOf(Integer.parseInt(current_vacation) + yearCount.getCount()));
+                        }
+
+                        // remove userinfo to set it back
+                        userInfoRepository.delete(userInfo);
+
+                        // save
+                        userInfoRepository.save(userInfo);
+                    }
+                }
+
+                return true;
+            }
         } catch (Exception ignored) {}
 
         return false;
