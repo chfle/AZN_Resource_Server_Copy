@@ -133,7 +133,6 @@ public class DayPlanController {
             Jwt jwt = (Jwt) auth.getPrincipal();
             String name = jwt.getClaim("unique_name");
             Optional<Users> user = userRepository.findByUsername(name);
-            Optional<Boolean> savedValue = Optional.empty();
 
             // current date
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");

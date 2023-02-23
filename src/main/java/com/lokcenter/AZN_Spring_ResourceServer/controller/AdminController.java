@@ -3,6 +3,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
+import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
@@ -286,7 +287,7 @@ public class AdminController {
                 // check if holiday or general holiday is set
                 if (StreamSupport.stream(generals.spliterator(), false).findAny().isEmpty()) {
 
-                    // check if vacation, galz, urlaub, school is set
+                    // check if vacation, glaz, urlaub, school is set
                     for (DayPlanData dpd : dayPlanData) {
                         if (dpd.getGlaz() || dpd.getSchool() || dpd.getVacation()) {
                             return false;
@@ -337,22 +338,24 @@ public class AdminController {
                     }
 
                     // remove used days from userInfo
-                    Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(users.get().getUserId());
+                    if (requests.get().getType() == RequestTypeEnum.rUrlaub) {
+                        Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(users.get().getUserId());
 
-                    if (optionalUserInfo.isPresent()) {
-                        Map<String, String> availableVacations = optionalUserInfo.get().getAvailableVacation();
+                        if (optionalUserInfo.isPresent()) {
+                            Map<String, String> availableVacations = optionalUserInfo.get().getAvailableVacation();
 
-                        int currYear = Calendar.getInstance().get(Calendar.YEAR);
+                            int currYear = Calendar.getInstance().get(Calendar.YEAR);
 
-                        availableVacations.put(String.valueOf(currYear),
-                                String.valueOf(
-                                        (Integer.parseInt(availableVacations.getOrDefault(String.valueOf(currYear),
-                                                "0")) - vacationDaysUsed)));
+                            availableVacations.put(String.valueOf(currYear),
+                                    String.valueOf(
+                                            (Integer.parseInt(availableVacations.getOrDefault(String.valueOf(currYear),
+                                                    "0")) - vacationDaysUsed)));
 
-                        optionalUserInfo.get().setAvailableVacation(availableVacations);
+                            optionalUserInfo.get().setAvailableVacation(availableVacations);
 
-                        userInfoRepository.deleteById(optionalUserInfo.get().getUserinfoId());
-                        userInfoRepository.save(optionalUserInfo.get());
+                            userInfoRepository.deleteById(optionalUserInfo.get().getUserinfoId());
+                            userInfoRepository.save(optionalUserInfo.get());
+                        }
                     }
 
                     // delete requests
