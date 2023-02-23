@@ -950,89 +950,89 @@ public class AdminController {
                 new Date(formatter.parse(endDate).getTime())
         );
 
-        // check if requested range is empty
-        if (StreamSupport.stream(generals.spliterator(), false).findAny().isEmpty()) {
+        try {
+            // check if requested range is empty
+            if (StreamSupport.stream(generals.spliterator(), false).findAny().isEmpty()) {
 
-            var start = TimeConvert.convertToLocalDateViaInstant(startDate_);
-            var end = TimeConvert.convertToLocalDateViaInstant(endDate_);
+                var start = TimeConvert.convertToLocalDateViaInstant(startDate_);
+                var end = TimeConvert.convertToLocalDateViaInstant(endDate_);
 
-            // generate uuid
-            UUID uuid = UUID.randomUUID();
+                // generate uuid
+                UUID uuid = UUID.randomUUID();
 
-            // go over each day from start to end and set request value
-            for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-                // get day
-                GeneralVacation generalVacation = new GeneralVacation();
-                generalVacation.setDate(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
-                generalVacation.setTag(Tags.valueOf(tag));
-                generalVacation.setUuid(uuid);
+                // go over each day from start to end and set request value
+                for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                    // get day
+                    GeneralVacation generalVacation = new GeneralVacation();
+                    generalVacation.setDate(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
+                    generalVacation.setTag(Tags.valueOf(tag));
+                    generalVacation.setUuid(uuid);
 
-                String commentG = switch (Tags.valueOf(tag)) {
-                    case gUrlaub -> "Urlaub";
-                    case gFeiertag -> "Feiertag";
-                    default -> "?";
-                };
+                    String commentG = switch (Tags.valueOf(tag)) {
+                        case gUrlaub -> "Urlaub";
+                        case gFeiertag -> "Feiertag";
+                        default -> "?";
+                    };
 
-                if (comment != null && !comment.isEmpty()) {
-                    commentG = comment;
-                }
-
-                generalVacation.setComment(commentG);
-
-                Calendar c = new GregorianCalendar();
-                c.setTime(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
-
-                System.out.println(TimeConvert.convertToDateViaInstant(date));
-
-                generalVacation.setYear(c.get(Calendar.YEAR));
-
-                generalVacationRepository.save(generalVacation);
-
-                // check if value was saved
-                GeneralVacationKey generalVacationKey = new GeneralVacationKey();
-                generalVacationKey.setDate(generalVacation.getDate());
-                generalVacationKey.setYear(generalVacation.getYear());
-
-                if (generalVacationRepository.findById(generalVacationKey).isEmpty()) {
-                    return false;
-                }
-
-
-
-            }
-
-            // get all users
-            Iterable<BigInteger> userIds = userRepository.getAllUserIds();
-
-            // remove vacation from all users
-            StreamSupport.stream(userIds.spliterator(), true).forEach(userid -> {
-                Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(userid.longValue());
-
-                if (optionalUserInfo.isPresent()) {
-                    // get count by year
-                    Iterable<IYearCount> generalVacationByYearCount = generalVacationRepository.
-                            getGeneralVacationByUuidAndYear(uuid);
-
-                    UserInfo userInfo = optionalUserInfo.get();
-
-                    for (IYearCount yearCount: generalVacationByYearCount) {
-                        String current_vacation = userInfo.getAvailableVacation().
-                                getOrDefault(String.valueOf(yearCount.getYear()), "0");
-
-                        userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
-                                String.valueOf(Integer.parseInt(current_vacation) - yearCount.getCount()));
+                    if (comment != null && !comment.isEmpty()) {
+                        commentG = comment;
                     }
 
-                    // remove userinfo to set it back
-                    userInfoRepository.delete(userInfo);
+                    generalVacation.setComment(commentG);
 
-                    // save
-                    userInfoRepository.save(userInfo);
+                    Calendar c = new GregorianCalendar();
+                    c.setTime(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
+
+                    System.out.println(TimeConvert.convertToDateViaInstant(date));
+
+                    generalVacation.setYear(c.get(Calendar.YEAR));
+
+                    generalVacationRepository.save(generalVacation);
+
+                    // check if value was saved
+                    GeneralVacationKey generalVacationKey = new GeneralVacationKey();
+                    generalVacationKey.setDate(generalVacation.getDate());
+                    generalVacationKey.setYear(generalVacation.getYear());
+
+                    if (generalVacationRepository.findById(generalVacationKey).isEmpty()) {
+                        return false;
+                    }
+
                 }
-            });
 
-            return true;
-        }
+                // get all users
+                Iterable<BigInteger> userIds = userRepository.getAllUserIds();
+
+                // remove vacation from all users
+                StreamSupport.stream(userIds.spliterator(), true).forEach(userid -> {
+                    Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(userid.longValue());
+
+                    if (optionalUserInfo.isPresent()) {
+                        // get count by year
+                        Iterable<IYearCount> generalVacationByYearCount = generalVacationRepository.
+                                getGeneralVacationByUuidAndYear(uuid);
+
+                        UserInfo userInfo = optionalUserInfo.get();
+
+                        for (IYearCount yearCount : generalVacationByYearCount) {
+                            String current_vacation = userInfo.getAvailableVacation().
+                                    getOrDefault(String.valueOf(yearCount.getYear()), "0");
+
+                            userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
+                                    String.valueOf(Integer.parseInt(current_vacation) - yearCount.getCount()));
+                        }
+
+                        // remove userinfo to set it back
+                        userInfoRepository.delete(userInfo);
+
+                        // save
+                        userInfoRepository.save(userInfo);
+                    }
+                });
+
+                return true;
+            }
+        }catch (Exception exception){return false;}
 
         return false;
     }
