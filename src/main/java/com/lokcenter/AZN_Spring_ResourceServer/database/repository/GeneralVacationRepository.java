@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.repository;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.GeneralVacationKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.GeneralVacation;
 import org.springframework.data.jpa.repository.Query;
@@ -23,4 +24,7 @@ public interface GeneralVacationRepository extends CrudRepository<GeneralVacatio
 
     @Query
     Iterable<GeneralVacation> findByUuid(UUID uuid);
+
+    @Query(value = "select count(extract(year from date)), extract(year from date) as year from general_vacation where uuid = ?1 and tag = 'gUrlaub' group by extract(year from date)", nativeQuery = true)
+    Iterable<IYearCount> getGeneralVacationByUuidAndYear(UUID uuid);
 }

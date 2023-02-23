@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.sql.Date;
 import java.sql.Time;
 import java.text.ParseException;
@@ -978,7 +979,6 @@ public class AdminController {
 
                 generalVacation.setYear(c.get(Calendar.YEAR));
 
-
                 generalVacationRepository.save(generalVacation);
 
                 // check if value was saved
@@ -989,8 +989,47 @@ public class AdminController {
                 if (generalVacationRepository.findById(generalVacationKey).isEmpty()) {
                     return false;
                 }
+
+
+
             }
 
+            // get all users
+            Iterable<BigInteger> userIds = userRepository.getAllUserIds();
+
+            // remove vacation from all users
+            for (var userid : userIds) {
+                Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(userid.longValue());
+
+                if (optionalUserInfo.isPresent()) {
+                    // get count by year
+                    Iterable<IYearCount> generalVacationByYearCount = generalVacationRepository.
+                            getGeneralVacationByUuidAndYear(uuid);
+
+                    UserInfo userInfo = optionalUserInfo.get();
+
+                    for (IYearCount yearCount: generalVacationByYearCount) {
+                        String current_vacation = userInfo.getAvailableVacation().
+                                getOrDefault(String.valueOf(yearCount.getYear()), "0");
+
+                        System.out.println("current" + " " +
+                                userInfo.getAvailableVacation().getOrDefault(String.valueOf(yearCount.getYear()), "0"));
+
+                        System.out.println("count" + " " + yearCount.getCount());
+
+                        userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
+                                String.valueOf(Integer.parseInt(current_vacation) - yearCount.getCount()));
+                    }
+
+                    // remove userinfo to set it back
+                    userInfoRepository.delete(userInfo);
+
+                    // save
+                    userInfoRepository.save(userInfo);
+
+                    System.out.println("next user");
+                }
+            }
             return true;
         }
 
