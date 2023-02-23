@@ -998,7 +998,7 @@ public class AdminController {
             Iterable<BigInteger> userIds = userRepository.getAllUserIds();
 
             // remove vacation from all users
-            for (var userid : userIds) {
+            StreamSupport.stream(userIds.spliterator(), true).forEach(userid -> {
                 Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(userid.longValue());
 
                 if (optionalUserInfo.isPresent()) {
@@ -1022,7 +1022,8 @@ public class AdminController {
                     // save
                     userInfoRepository.save(userInfo);
                 }
-            }
+            });
+
             return true;
         }
 
@@ -1049,7 +1050,7 @@ public class AdminController {
 
             if (generalVacationRepository.findByUuid(uuid).spliterator().getExactSizeIfKnown() == 0) {
                 // go over all users
-                for (var userid : userIds) {
+                StreamSupport.stream(userIds.spliterator(), true).forEach(userid -> {
                     System.out.println("Userid:" + userid);
                     Optional<UserInfo> optionalUserInfoRepository = userInfoRepository.findByUserId(userid.longValue());
 
@@ -1070,7 +1071,7 @@ public class AdminController {
                         // save
                         userInfoRepository.save(userInfo);
                     }
-                }
+                });
 
                 return true;
             }
