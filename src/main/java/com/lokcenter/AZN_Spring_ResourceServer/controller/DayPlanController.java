@@ -138,8 +138,6 @@ public class DayPlanController {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
             SimpleDateFormat sdf = new SimpleDateFormat("k:m");
             Date d = new Date(simpleDateFormat.parse((String)data.get("date")).getTime());
-            
-
 
             if (user.isPresent()) {
                 // should be empty if no valid data was found
@@ -157,7 +155,7 @@ public class DayPlanController {
                     return false;
                 }
 
-                if ((Boolean) data.get("sick") || (Boolean) data.get("glaz")) {
+                if ((Boolean) data.get("sick") || (Boolean) data.get("glaz") || (Boolean) data.get("vacation")) {
                     var dpd = new DayPlanData();
 
                     dpd.setGlaz((Boolean) data.get("glaz"));
@@ -277,6 +275,46 @@ public class DayPlanController {
                    }catch (Exception ignore) {}
 
                    if (optionalMonthPlan.isEmpty()) {
+                       // add or remove vacation days
+                       boolean isSick = dayPlanDataRepository.isSickByUserAndDate(d, user.get().getUserId());
+                       int year = calendar.get(Calendar.YEAR);
+
+                       // if set is set but not already set in db
+                       if (optionalDayPlanData.get().getSick() && !isSick) {
+                           Optional<UserInfo> optionalUserInfo =  userInfoRepository.findByUserId(user.get().getUserId());
+
+                           if (optionalUserInfo.isPresent()) {
+                               UserInfo userInfo = optionalUserInfo.get();
+                               // get the right year
+
+                               String vacationDays = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0");
+
+                               // add one day
+                              userInfo.getAvailableVacation().put(String.valueOf(year), String.valueOf(Integer.parseInt(vacationDays) + 1));
+
+                               // save and delete userinfo
+                               userInfoRepository.delete(userInfo);
+                               userInfoRepository.save(userInfo);
+                           }
+                           // check if sick is not set but in db
+                       } else if (!optionalDayPlanData.get().getSick() && isSick) {
+                           Optional<UserInfo> optionalUserInfo =  userInfoRepository.findByUserId(user.get().getUserId());
+
+                           if (optionalUserInfo.isPresent()) {
+                               UserInfo userInfo = optionalUserInfo.get();
+                               // get the right year
+
+                               String vacationDays = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0");
+
+                               // add one day
+                               userInfo.getAvailableVacation().put(String.valueOf(year), String.valueOf(Integer.parseInt(vacationDays) - 1));
+
+                               // save and delete userinfo
+                               userInfoRepository.delete(userInfo);
+                               userInfoRepository.save(userInfo);
+                           }
+                       }
+
                        dayPlanDataRepository.save(optionalDayPlanData.get());
                        saved = true;
                    }
