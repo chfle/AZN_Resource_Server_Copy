@@ -1141,10 +1141,11 @@ public class AdminController {
      *
      * @return true or false
      */
-    @GetMapping("/edit")
     @CrossOrigin("/admin")
+    @PostMapping("/edit")
     @ResponseBody
     Boolean postAdminEditData(@RequestBody Map<String, Object> payload, @RequestParam(name = "userId") String userId) {
+        System.out.println(payload);
         // Todo: ...
         return true;
     }
