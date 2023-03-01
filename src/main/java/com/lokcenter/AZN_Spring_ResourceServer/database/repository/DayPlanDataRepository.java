@@ -98,6 +98,9 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub')) as vacation from day_plan_data where user_id = ?1 and vacation = true and set_date not in (select date from general_vacation where tag = 'gUrlaub')", nativeQuery = true)
     long countByUserIdAndVacationTrue(Long userId);
 
+    @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub')) as vacation from day_plan_data where user_id = ?1 and vacation = true and extract(year from set_date) = ?2 and set_date not in (select date from general_vacation where tag = 'gUrlaub')", nativeQuery = true)
+    long countByUserIdAndVacationTrueByYear(Long userId, int year);
+
     @Query(value = "select sum(final_soll + timeV)\\:\\:varchar from (select (weekend_soll + weekdays) as final_soll from (select case when sum(day_plan_data.worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause -\n" +
             "       (select (w.worktime_end - w.worktime_start - w.worktime_pause) from work_time as w where w.date <= set_date and user_id = ?1 order by w.date desc limit 1 )) is null then INTERVAL '0 days' else sum(day_plan_data.worktime_end - day_plan_data.worktime_start - day_plan_data.worktime_pause -\n" +
             "       (select (w.worktime_end - w.worktime_start - w.worktime_pause) from work_time as w where w.date <= set_date and user_id = ?1 order by w.date desc limit 1 )) end as weekdays from day_plan_data where user_id=?1 and not (glaz or sick or vacation or school) and EXTRACT(ISODOW FROM set_date) not IN (6, 7)\n" +

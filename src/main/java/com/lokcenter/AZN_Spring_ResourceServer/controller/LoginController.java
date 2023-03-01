@@ -120,6 +120,7 @@ public class LoginController {
 
                         // default vacation
                         userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
+                        userInfo.setSetVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
 
                         // balance time
                         Balance balance = new Balance();
@@ -150,12 +151,16 @@ public class LoginController {
 
                                 userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()),
                                         String.valueOf(defaults.get().getDefaultVacationDays()))));
+
+                                userInfo.setSetVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()),
+                                        String.valueOf(defaults.get().getDefaultVacationDays()))));
                             }
                         }
 
                           WorkTime workTimeObj = new WorkTime();
                           workTimeObj.setWorkTime(workTime);
                           workTimeObj.setUsers(userInfo.getUsers());
+                          workTimeObj.setDate(currDate);
 
                         // save default values
                         try {
