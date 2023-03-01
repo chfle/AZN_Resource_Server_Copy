@@ -192,7 +192,7 @@ public class LoginController {
                                         getOrDefault(String.valueOf(yearAndCount.getYear()), "0");
 
                                 userInfo1.getAvailableVacation().put(String.valueOf(yearAndCount.getYear()),
-                                        String.valueOf(Integer.parseInt(current_vacation) + yearAndCount.getCount()));
+                                        String.valueOf(Integer.parseInt(current_vacation) - yearAndCount.getCount()));
                             }
 
                             userInfoRepository.delete(userInfo1);
