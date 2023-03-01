@@ -18,6 +18,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewLis
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -1146,6 +1147,7 @@ public class AdminController {
     @PostMapping("/edit")
     @ResponseBody
     Boolean postAdminEditData(@RequestBody Map<String, Object> payload, @RequestParam(name = "userId") String userId) {
+       boolean saved = false;
        try {
            // find user
            Optional<Users> optionalUsers = userRepository.findById(Long.parseLong(userId));
@@ -1177,6 +1179,7 @@ public class AdminController {
                    workTime.setWorkTime(dayTime);
 
                    workTimeRepository.save(workTime);
+                   saved = true;
                } else {
                    // create new work_time with date
                    WorkTime workTime = new WorkTime();
@@ -1186,13 +1189,36 @@ public class AdminController {
                    workTime.setUsers(optionalUsers.get());
 
                    workTimeRepository.save(workTime);
+                   saved = true;
                }
 
+               // save vacation
+               Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(optionalUsers.get().getUserId());
+
+               if (optionalUserInfo.isPresent()) {
+                   UserInfo userInfo = optionalUserInfo.get();
+
+                   var vacationData = new HashMap<String, String>();
+
+                   // go over each year from admin
+                   for (var yearData: yearsVacationList) {
+                       vacationData.put(yearData.get(0),yearData.get(1));
+                   }
+
+                   userInfo.setAvailableVacation(vacationData);
+
+                   userInfoRepository.delete(userInfo);
+                   userInfoRepository.save(userInfo);
+
+                   saved = true;
+               }
            }
 
        }catch (Exception exception) {
            exception.printStackTrace();
+           return false;
        }
-        return true;
+
+       return saved;
     }
 }
