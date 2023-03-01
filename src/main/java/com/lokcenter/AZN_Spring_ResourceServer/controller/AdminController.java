@@ -553,17 +553,6 @@ public class AdminController {
                                     userInfoData.getAvailableVacation().
                                             getOrDefault(String.valueOf(e.getYear()), "0"));
 
-                            // sick days
-                            userInfoData.getSickDays().put(String.valueOf(newYear), "0");
-
-                            // glaz days
-                            userInfoData.getGlazDays().put(String.valueOf(newYear), "0");
-
-                            // school days
-                            userInfoData.getSchool().put(String.valueOf(newYear), "0");
-
-                            // vacation sick
-                            userInfoData.getVacationSick().put(String.valueOf(newYear), "0");
 
                             System.out.println(userInfoData.getUsers().getUserId());
 
