@@ -11,6 +11,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.keys.GeneralVacationKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
+import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.TimeConvert;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.ControllerHelper;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
@@ -1145,8 +1146,47 @@ public class AdminController {
     @PostMapping("/edit")
     @ResponseBody
     Boolean postAdminEditData(@RequestBody Map<String, Object> payload, @RequestParam(name = "userId") String userId) {
-        System.out.println(payload);
-        // Todo: ...
+       try {
+           // find user
+           Optional<Users> optionalUsers = userRepository.findById(Long.parseLong(userId));
+
+           if (optionalUsers.isPresent()) {
+               String startTime = (String)payload.get("start_time");
+               String endTime = (String)payload.get("end_time");
+               String pause = (String)payload.get("pause");
+               String date = (String)payload.get("date");
+
+               List<List<String>> yearsVacationList = (List<List<String>>) payload.get("yearsVacationList");
+
+               SimpleDateFormat sdfTime = new SimpleDateFormat("hh:mm");
+               SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+               DayTime dayTime = new DayTime();
+
+               dayTime.setStart(new java.sql.Time(sdfTime.parse(startTime).getTime()));
+               dayTime.setEnd(new java.sql.Time(sdfTime.parse(endTime).getTime()));
+               dayTime.setPause(new java.sql.Time(sdfTime.parse(pause).getTime()));
+
+               Optional<WorkTime> optionalWorkTime = workTimeRepository.getWorkTimeByUserIdAndDate(
+                       optionalUsers.get().getUserId(),
+                       new java.sql.Date(sdf.parse(date).getTime()));
+
+               if (optionalWorkTime.isPresent()) {
+                   // change only the time
+                   WorkTime workTime = optionalWorkTime.get();
+                   workTime.setWorkTime(dayTime);
+
+                   workTimeRepository.save(workTime);
+               } else {
+                   // create new work_time with date
+
+               }
+
+           }
+
+       }catch (Exception exception) {
+           exception.printStackTrace();
+       }
         return true;
     }
 }
