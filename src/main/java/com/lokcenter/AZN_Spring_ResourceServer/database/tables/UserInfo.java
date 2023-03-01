@@ -51,53 +51,14 @@ public class UserInfo {
     @Getter
     private Map<String, String> availableVacation = new HashMap<>();
 
-    /**
-     * A Java Map with Year and glaz days for each year
-     */
     @Type(type = "hstore")
     @Column(
-            name = "glaz_days" ,
+            name = "set_vacation" ,
             columnDefinition = "hstore"
     )
     @Setter
     @Getter
-    private Map<String, String> glazDays = new HashMap<>();
-
-    /**
-     * A Java Map with Year and sick days for each year
-     */
-    @Type(type = "hstore")
-    @Column(
-            name = "sick_days" ,
-            columnDefinition = "hstore"
-    )
-    @Setter
-    @Getter
-    private Map<String, String> SickDays = new HashMap<>();
-
-    /**
-     * A Java Map with Year and vacation sick days for each year
-     */
-    @Type(type = "hstore")
-    @Column(
-            name = "vacation_sick" ,
-            columnDefinition = "hstore"
-    )
-    @Setter
-    @Getter
-    private Map<String, String> vacationSick = new HashMap<>();
-
-    /**
-     * A Java Map with Year and school days for each year
-     */
-    @Type(type = "hstore")
-    @Column(
-            name = "school",
-            columnDefinition = "hstore"
-    )
-    @Setter
-    @Getter
-    private Map<String, String> school = new HashMap<>();
+    private Map<String, String> setVacation = new HashMap<>();
 
     public Map<String, Map<String, Object>> yearToMap() {
         Map<String, Map<String, Object>> resultMap = new HashMap<>();

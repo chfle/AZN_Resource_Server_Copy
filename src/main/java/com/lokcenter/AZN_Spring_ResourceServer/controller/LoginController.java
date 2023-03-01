@@ -72,8 +72,6 @@ public class LoginController {
             if (payload.containsKey("username") && payload.containsKey("roles")) {
                 user.setUsername((String) payload.get("username"));
 
-                Optional<java.sql.Date> defaultDate = Optional.empty();
-
                 // convert back to a utils.date to use sql.date
                 Date currentDate = new Date();
 
@@ -122,10 +120,6 @@ public class LoginController {
 
                         // default vacation
                         userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
-                        userInfo.setSickDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
-                        userInfo.setGlazDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
-                        userInfo.setSchool(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
-                        userInfo.setVacationSick(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
 
                         // balance time
                         Balance balance = new Balance();
@@ -154,8 +148,6 @@ public class LoginController {
                                 workTime.setEnd(defaults.get().getDefaultEndTime());
                                 workTime.setPause(defaults.get().getDefaultPause());
 
-                                defaultDate = Optional.of(defaults.get().getDefaultStartDate());
-
                                 userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()),
                                         String.valueOf(defaults.get().getDefaultVacationDays()))));
                             }
@@ -163,11 +155,7 @@ public class LoginController {
 
                           WorkTime workTimeObj = new WorkTime();
                           workTimeObj.setWorkTime(workTime);
-                          if (defaultDate.isPresent()) {
-                              workTimeObj.setDate(defaultDate.get());
-                          } else {
-                              workTimeObj.setUsers(userInfo.getUsers());
-                          }
+                          workTimeObj.setUsers(userInfo.getUsers());
 
                         // save default values
                         try {
