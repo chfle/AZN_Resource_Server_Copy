@@ -72,6 +72,8 @@ public class LoginController {
             if (payload.containsKey("username") && payload.containsKey("roles")) {
                 user.setUsername((String) payload.get("username"));
 
+                Optional<java.sql.Date> defaultDate = Optional.empty();
+
                 // convert back to a utils.date to use sql.date
                 Date currentDate = new Date();
 
@@ -152,6 +154,8 @@ public class LoginController {
                                 workTime.setEnd(defaults.get().getDefaultEndTime());
                                 workTime.setPause(defaults.get().getDefaultPause());
 
+                                defaultDate = Optional.of(defaults.get().getDefaultStartDate());
+
                                 userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()),
                                         String.valueOf(defaults.get().getDefaultVacationDays()))));
                             }
@@ -159,8 +163,11 @@ public class LoginController {
 
                           WorkTime workTimeObj = new WorkTime();
                           workTimeObj.setWorkTime(workTime);
-                          workTimeObj.setDate(currDate);
-                          workTimeObj.setUsers(userInfo.getUsers());
+                          if (defaultDate.isPresent()) {
+                              workTimeObj.setDate(defaultDate.get());
+                          } else {
+                              workTimeObj.setUsers(userInfo.getUsers());
+                          }
 
                         // save default values
                         try {
