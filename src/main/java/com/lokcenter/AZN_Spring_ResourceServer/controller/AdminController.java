@@ -549,9 +549,15 @@ public class AdminController {
                             userInfoRepository.delete(userInfoData);
 
                             // set vacation days
+                            String availableVacationThisYear = userInfoData.getAvailableVacation().
+                                    getOrDefault(String.valueOf(e.getYear()), "0");
+
+                            String setVacationForNextYear = userInfoData.getSetVacation().
+                                    getOrDefault(String.valueOf(newYear), "0");
+
                             userInfoData.getAvailableVacation().put(String.valueOf(newYear),
-                                    userInfoData.getAvailableVacation().
-                                            getOrDefault(String.valueOf(e.getYear()), "0"));
+                                    String.valueOf(Integer.parseInt(availableVacationThisYear) +
+                                            Integer.parseInt(setVacationForNextYear)));
 
 
                             System.out.println(userInfoData.getUsers().getUserId());
@@ -1117,7 +1123,7 @@ public class AdminController {
         if (optionalUsers.isPresent()) {
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()
-                    .writeValueAsString(userInfoRepository.findByUserId(optionalUsers.get().getUserId()).get().getAvailableVacation());
+                    .writeValueAsString(userInfoRepository.findByUserId(optionalUsers.get().getUserId()).get().getSetVacation());
         }
 
         return new ObjectMapper().writer().
@@ -1194,7 +1200,26 @@ public class AdminController {
                        vacationData.put(yearData.get(0),yearData.get(1));
                    }
 
-                   userInfo.setAvailableVacation(vacationData);
+                   // change available vacation based on this change
+                   String currentYearVacation = vacationData.getOrDefault
+                           (String.valueOf(Calendar.getInstance().get(Calendar.YEAR)), "0");
+
+                   String oldThisYearVacation = userInfo.getSetVacation().
+                           getOrDefault(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)), "0");
+
+                   int diff = Math.abs(Integer.parseInt(currentYearVacation) - Integer.parseInt(oldThisYearVacation));
+
+                    String currentAVacation = userInfo.getAvailableVacation().
+                            getOrDefault(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)), "0");
+
+                    if (Integer.parseInt(currentYearVacation) < Integer.parseInt(oldThisYearVacation)) {
+                        diff *= -1;
+                    }
+
+                   userInfo.getAvailableVacation().put(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)),
+                           String.valueOf(Integer.parseInt(currentAVacation) + diff));
+
+                   userInfo.setSetVacation(vacationData);
 
                    userInfoRepository.delete(userInfo);
                    userInfoRepository.save(userInfo);
