@@ -1179,7 +1179,13 @@ public class AdminController {
                    workTimeRepository.save(workTime);
                } else {
                    // create new work_time with date
+                   WorkTime workTime = new WorkTime();
 
+                   workTime.setDate(new java.sql.Date(sdf.parse(date).getTime()));
+                   workTime.setWorkTime(dayTime);
+                   workTime.setUsers(optionalUsers.get());
+
+                   workTimeRepository.save(workTime);
                }
 
            }
