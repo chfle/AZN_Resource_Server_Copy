@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.controller;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
 import com.lokcenter.AZN_Spring_ResourceServer.database.repository.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.*;
 import com.lokcenter.AZN_Spring_ResourceServer.database.valueTypes.DayTime;
@@ -52,6 +53,9 @@ public class LoginController {
     @Autowired
     private final BalanceRepository balanceRepository;
 
+    @Autowired
+    private final GeneralVacationRepository generalVacationRepository;
+
 
     /**
      * First login of user. Save basic data for new user
@@ -68,7 +72,7 @@ public class LoginController {
             if (payload.containsKey("username") && payload.containsKey("roles")) {
                 user.setUsername((String) payload.get("username"));
 
-                // convert back to an utils.date to use sql.date
+                // convert back to a utils.date to use sql.date
                 Date currentDate = new Date();
 
                 user.setFirstLogin(new java.sql.Date(currentDate.getTime()));
@@ -110,12 +114,12 @@ public class LoginController {
                         SimpleDateFormat format = new SimpleDateFormat("hh:mm a");
                         // default work time
 
-                        workTime.setStart(new Time(format.parse("07:15 am").getTime()));
-                        workTime.setEnd(new Time(format.parse("16:00 pm").getTime()));
-                        workTime.setPause(new Time(format.parse("01:00 am").getTime()));
+                        workTime.setStart(new Time(format.parse("00:00 am").getTime()));
+                        workTime.setEnd(new Time(format.parse("00:00 pm").getTime()));
+                        workTime.setPause(new Time(format.parse("00:00 am").getTime()));
 
                         // default vacation
-                        userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "30")));
+                        userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setSickDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setGlazDays(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setSchool(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
@@ -172,6 +176,27 @@ public class LoginController {
                             }
                         }catch (Exception exception){
                             exception.printStackTrace();
+                        }
+
+                        Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.getUserId());
+
+                        if (optionalUserInfo.isPresent()) {
+                            UserInfo userInfo1 = optionalUserInfo.get();
+
+                            // remove general vacation days from user
+                            Iterable<IYearCount> yearCounts = generalVacationRepository.
+                                    getGeneralVacationFromDate(new java.sql.Date(currentDate.getTime()));
+
+                            for (var yearAndCount : yearCounts) {
+                                String current_vacation = userInfo1.getAvailableVacation().
+                                        getOrDefault(String.valueOf(yearAndCount.getYear()), "0");
+
+                                userInfo1.getAvailableVacation().put(String.valueOf(yearAndCount.getYear()),
+                                        String.valueOf(Integer.parseInt(current_vacation) + yearAndCount.getCount()));
+                            }
+
+                            userInfoRepository.delete(userInfo1);
+                            userInfoRepository.save(userInfo1);
                         }
                     }
                 }

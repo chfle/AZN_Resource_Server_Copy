@@ -27,4 +27,7 @@ public interface GeneralVacationRepository extends CrudRepository<GeneralVacatio
 
     @Query(value = "select count(extract(year from date)), extract(year from date) as year from general_vacation where uuid = ?1 and tag = 'gUrlaub' and extract(ISODOW  from date) not in (6, 7) group by extract(year from date)", nativeQuery = true)
     Iterable<IYearCount> getGeneralVacationByUuidAndYear(UUID uuid);
+
+    @Query(value = "select count(extract(year from date)), extract(year from date) as year from general_vacation where date >= ?1 and tag = 'gUrlaub' and extract(ISODOW  from date) not in (6, 7) group by extract(year from date)", nativeQuery = true)
+    Iterable<IYearCount> getGeneralVacationFromDate(Date date);
 }
