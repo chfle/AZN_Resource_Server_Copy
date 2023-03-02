@@ -71,7 +71,7 @@ public class WorkTimeController {
                 // create new date
                 SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyy");
                 java.sql.Date currDate = new java.sql.Date(sdf.parse(
-                        String.format("%s-%s-%s", currDayI, month, year)).getTime());
+                        String.format("%s-%s-%s", currDayI, month +1, year)).getTime());
 
                 var optionalSoll  = workTimeRepository.
                         getMostRecentSollByUserAndDate(users.get(), currDate);
