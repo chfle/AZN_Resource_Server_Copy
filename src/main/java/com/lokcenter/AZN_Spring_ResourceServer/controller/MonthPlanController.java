@@ -19,10 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -188,13 +185,12 @@ public class MonthPlanController {
     }
 
     /**
-     * Get Message if month plan was denied
-     * @return
+     * get all messages by user for a month
      */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
-    @GetMapping("/message")
-    String getMessage(@RequestBody Map<String, Object> payload, Authentication auth) throws JsonProcessingException {
-        Map<String, Object> resData = new HashMap<>();
+    @GetMapping("/messages")
+    String getMessagesByUserAndMonth(@RequestBody Map<String, Object> payload, Authentication auth) throws JsonProcessingException {
+        List<Map<String, Object>> resData = new ArrayList<>();
 
         try {
             Jwt jwt = (Jwt) auth.getPrincipal();
@@ -205,13 +201,15 @@ public class MonthPlanController {
             Optional<Users> user = userRepository.findByUsername(name);
 
             if (user.isPresent()) {
-                Optional<Messages> message =  messagesRepository.findMessagesByUserIdAndYearAndMonth(
+                Iterable<Messages> messages =  messagesRepository.findMessagesByUserIdAndYearAndMonth(
                         user.get().getUserId(), (String)payload.get("year"), (String)payload.get("month"));
 
-                if (message.isPresent()) {
-                    resData.put("message", message.get().getMessage());
-                    resData.put("date", message.get().getDate());
-                    resData.put("messageId", message.get().getMessageId());
+                // get only message date messageId from message
+                for (var message: messages) {
+                    resData.add(new HashMap<>(
+                            Map.of("message", message.getMessage(),
+                                    "date", message.getDate(),
+                                    "messageId", message.getMessageId())));
                 }
             }
         }catch (Exception exception) {

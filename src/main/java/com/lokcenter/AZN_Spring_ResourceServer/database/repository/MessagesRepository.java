@@ -10,10 +10,10 @@ import java.util.Optional;
 
 public interface MessagesRepository extends CrudRepository<Messages, Long> {
     /**
-     * Only one message should exist
+     * find all messages
      */
-    @Query(value = "select * FROM messages where user_id = ?1 and  message_type_data->'year'=?2 and message_type_data->'month'=?3 and read = false", nativeQuery = true)
-    Optional<Messages> findMessagesByUserIdAndYearAndMonth(Long userid, String year, String month);
+    @Query(value = "select * FROM messages where user_id = ?1 and  message_type_data->'year'=?2 and message_type_data->'month'=?3", nativeQuery = true)
+    Iterable<Messages> findMessagesByUserIdAndYearAndMonth(Long userid, String year, String month);
 
     @Transactional
     @Modifying
