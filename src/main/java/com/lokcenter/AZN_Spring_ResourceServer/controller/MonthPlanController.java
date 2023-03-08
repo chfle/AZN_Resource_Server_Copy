@@ -236,4 +236,12 @@ public class MonthPlanController {
             return false;
         }
     }
+
+    @DeleteMapping("/messages/delete")
+    @ResponseBody
+    Boolean deleteAllMessagesByUserAndMonthAndYear(Map<String, String> payload) {
+        System.out.println(payload);
+
+        return true;
+    }
 }
