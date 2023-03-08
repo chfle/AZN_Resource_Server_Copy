@@ -219,4 +219,21 @@ public class MonthPlanController {
                 withDefaultPrettyPrinter()
                 .writeValueAsString(resData);
     }
+
+    /**
+     * Delete message by messageId
+     * @param messageId messageId to remove
+     * @return true or false
+     */
+    @DeleteMapping("/message")
+    @ResponseBody
+    Boolean deleteMessageByMessageId(@RequestParam(name = "messageId") String messageId) {
+        // delete message
+        try {
+            messagesRepository.deleteById(Long.parseLong(messageId));
+            return !messagesRepository.existsById(Long.parseLong(messageId));
+        } catch (Exception exception) {
+            return false;
+        }
+    }
 }
