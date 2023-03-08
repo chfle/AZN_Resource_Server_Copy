@@ -83,7 +83,6 @@ public class WorkTimeController {
                 }
             }
 
-            System.out.println(sollList);
         }
 
         return sollList;

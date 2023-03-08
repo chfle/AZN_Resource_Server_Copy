@@ -559,9 +559,6 @@ public class AdminController {
                                     String.valueOf(Integer.parseInt(availableVacationThisYear) +
                                             Integer.parseInt(setVacationForNextYear)));
 
-
-                            System.out.println(userInfoData.getUsers().getUserId());
-
                             userInfoRepository.save(userInfoData);
                         }
 
@@ -819,7 +816,6 @@ public class AdminController {
 
                         // go over each day from start to end and set admin request
                         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-                            System.out.println(date);
                             // get day
                             DayPlanData dpd;
                             Optional<DayPlanData> day =
@@ -980,7 +976,6 @@ public class AdminController {
                     Calendar c = new GregorianCalendar();
                     c.setTime(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
 
-                    System.out.println(TimeConvert.convertToDateViaInstant(date));
 
                     generalVacation.setYear(c.get(Calendar.YEAR));
 
@@ -1048,14 +1043,12 @@ public class AdminController {
             Iterable<IYearCount> generalVacationCount = generalVacationRepository.getGeneralVacationByUuidAndYear(uuid);
             Iterable<BigInteger> userIds = userRepository.getAllUserIds();
 
-            System.out.println("ids:"  + userIds);
 
             generalVacationRepository.deleteByUuid(uuid);
 
             if (generalVacationRepository.findByUuid(uuid).spliterator().getExactSizeIfKnown() == 0) {
                 // go over all users
                 StreamSupport.stream(userIds.spliterator(), true).forEach(userid -> {
-                    System.out.println("Userid:" + userid);
                     Optional<UserInfo> optionalUserInfoRepository = userInfoRepository.findByUserId(userid.longValue());
 
                     if (optionalUserInfoRepository.isPresent()) {

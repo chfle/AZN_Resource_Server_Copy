@@ -231,8 +231,6 @@ public class OverviewController {
     @PostMapping()
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     Boolean postRequests(@RequestBody Map<String, Object> payload, Authentication auth) {
-        System.out.println(payload);
-
         try {
             Jwt jwt = (Jwt) auth.getPrincipal();
             String name = jwt.getClaim("unique_name");
@@ -296,8 +294,6 @@ public class OverviewController {
             for (var dpd: dayPlanData) {
                dayPlansDone.add(new SimpleDateFormat("yyyy-MM-dd").format(dpd.getSetDate()));
             }
-
-            System.out.println(dayPlansDone);
         }
 
         return new ObjectMapper().writer().

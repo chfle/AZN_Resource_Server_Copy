@@ -26,8 +26,6 @@ public class AznStrings {
 
         try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
             oos.writeObject( o );
-
-            System.out.println(DigestUtils.md2Hex(baos.toByteArray()));
             return DigestUtils.md2Hex(baos.toByteArray());
         }
     }
