@@ -20,4 +20,8 @@ public interface MessagesRepository extends CrudRepository<Messages, Long> {
     @Query(value = "update messages set read = ?1 where message_id = ?2 and user_id = ?3", nativeQuery = true)
     void setRead(boolean value, Long messageId, Long userId);
 
+    @Transactional
+    @Modifying
+    @Query(value = "delete from messages where user_id = ?1 and  message_type_data->'year'=?2 and message_type_data->'month'=?3", nativeQuery = true)
+    void deleteMessagesByUserIdAndYearAndMonth(Long userid, String year, String month);
 }

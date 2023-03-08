@@ -239,9 +239,30 @@ public class MonthPlanController {
 
     @DeleteMapping("/messages/delete")
     @ResponseBody
-    Boolean deleteAllMessagesByUserAndMonthAndYear(Map<String, String> payload) {
-        System.out.println(payload);
+    Boolean deleteAllMessagesByUserAndMonthAndYear(@RequestBody Map<String, String> payload, Authentication auth) {
+        try {
+            Jwt jwt = (Jwt) auth.getPrincipal();
 
-        return true;
+            String name = jwt.getClaim("unique_name");
+
+            // get userId;
+            Optional<Users> user = userRepository.findByUsername(name);
+
+            if (user.isPresent()) {
+                 messagesRepository.deleteMessagesByUserIdAndYearAndMonth(
+                        user.get().getUserId(), payload.get("year"), payload.get("month"));
+
+                 if (messagesRepository.findMessagesByUserIdAndYearAndMonth(user.get().getUserId(), payload.get("year"),
+                         payload.get("month")).spliterator().getExactSizeIfKnown() == 0) {
+                     return true;
+                 }
+
+            }
+        }catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
+        }
+
+        return false;
     }
 }
