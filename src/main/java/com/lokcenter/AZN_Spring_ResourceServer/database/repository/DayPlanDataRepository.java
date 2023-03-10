@@ -117,4 +117,13 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
 
     @Query(value = "select exists(select * from day_plan_data where set_date = ?1 and user_id = ?2 and sick)", nativeQuery = true)
     Boolean isSickByUserAndDate(Date date, Long userId);
+
+    @Query(value = "select exists(select * from day_plan_data where set_date = ?1 and user_id = ?2 and vacation)", nativeQuery = true)
+    Boolean hasVacationByUserAndDate(Date date, Long userId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "delete from day_plan_data where user_id = ?1 and set_date = ?2", nativeQuery = true)
+    void deleteByUserIdAndSetDate(long userId, Date date);
+
 }

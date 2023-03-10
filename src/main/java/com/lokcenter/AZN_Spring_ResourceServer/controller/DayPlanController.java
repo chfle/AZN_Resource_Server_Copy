@@ -13,9 +13,11 @@ import com.lokcenter.AZN_Spring_ResourceServer.services.MemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
+import javax.transaction.Transactional;
 import java.io.IOException;
 import java.sql.Date;
 import java.sql.Time;
@@ -57,23 +59,24 @@ public class DayPlanController {
 
     /**
      * Post User date
+     *
      * @param data user data
      * @return boolean
      */
-     Optional<DayTime> setDayTimeData(Map<String, Object> data) {
-         Optional<DayTime> optionalDateTime = Optional.empty();
-         SimpleDateFormat sdf = new SimpleDateFormat("k:m");
+    Optional<DayTime> setDayTimeData(Map<String, Object> data) {
+        Optional<DayTime> optionalDateTime = Optional.empty();
+        SimpleDateFormat sdf = new SimpleDateFormat("k:m");
 
         try {
             DayTime dayTime = new DayTime();
 
-            dayTime.setStart(new Time(sdf.parse((String)data.get("start_time")).getTime()));
-            dayTime.setEnd(new Time(sdf.parse((String)data.get("end_time")).getTime()));
-            dayTime.setPause(new Time(sdf.parse((String)data.get("pause")).getTime()));
+            dayTime.setStart(new Time(sdf.parse((String) data.get("start_time")).getTime()));
+            dayTime.setEnd(new Time(sdf.parse((String) data.get("end_time")).getTime()));
+            dayTime.setPause(new Time(sdf.parse((String) data.get("pause")).getTime()));
 
 
             optionalDateTime = Optional.of(dayTime);
-        }catch (Exception ignore) {
+        } catch (Exception ignore) {
 
         }
 
@@ -82,8 +85,8 @@ public class DayPlanController {
 
     /**
      * Validate dayplan data time values
-     * @param data dayplan data
      *
+     * @param data dayplan data
      * @implNote Incorrect time will not be checked (only empty fields)
      * @implNote Ignore Time if school is set
      */
@@ -101,7 +104,7 @@ public class DayPlanController {
                     && timeValueValid((String) data.get("start_time"))
                     && timeValueValid((String) data.get("end_time"))
                     && timeValueValid((String) data.get("pause"));
-        }catch (Exception ignore) {
+        } catch (Exception ignore) {
             return false;
         }
     }
@@ -120,15 +123,14 @@ public class DayPlanController {
 
     /**
      * Post new dayplan from user
-     * @param data Dayplan Data
      *
+     * @param data Dayplan Data
      * @return true or false
      */
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
+    @Transactional
     boolean postDayPlan(@RequestBody Map<String, Object> data, Authentication auth) {
-
-
 
         // saved in memcached or in db
         boolean saved = false;
@@ -140,7 +142,7 @@ public class DayPlanController {
             // current date
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy");
             SimpleDateFormat sdf = new SimpleDateFormat("k:m");
-            Date d = new Date(simpleDateFormat.parse((String)data.get("date")).getTime());
+            Date d = new Date(simpleDateFormat.parse((String) data.get("date")).getTime());
 
 
             if (user.isPresent()) {
@@ -157,7 +159,6 @@ public class DayPlanController {
                     data.put("vacation", false);
                 }
 
-                System.out.println("payload data: " + data);
 
                 // should be empty if no valid data was found
                 Optional<DayPlanData> optionalDayPlanData = Optional.empty();
@@ -174,6 +175,7 @@ public class DayPlanController {
                     return false;
                 }
 
+                // if not a general vacation vacation day
                 if ((Boolean) data.get("sick") || (Boolean) data.get("glaz") || (Boolean) data.get("vacation")) {
                     var dpd = new DayPlanData();
 
@@ -185,16 +187,17 @@ public class DayPlanController {
                     dpd.setSetDate(d);
                     dpd.setComment((String) data.get("comment"));
 
-                    memService.deleteKeyValue(AznStrings.toString(new DayPlanDataKey(dpd.getUserId(), dpd.getSetDate())));  ;
+                    memService.deleteKeyValue(AznStrings.toString(new DayPlanDataKey(dpd.getUserId(), dpd.getSetDate())));
+                    ;
 
                     // set dayplan data to valid
                     dpd.setValid(true);
 
                     optionalDayPlanData = Optional.of(dpd);
                     // if day is in general vacation dayplan data should be ignored and not pushed
-                } else if (isGeneralVacationDay(d)){
+                } else if (isGeneralVacationDay(d)) {
                     optionalDayPlanData = Optional.empty();
-                }else {
+                } else {
                     // check if we have something in memcached
                     DayPlanDataKey dayPlanDataKey = new DayPlanDataKey();
 
@@ -204,7 +207,7 @@ public class DayPlanController {
                     Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
 
                     if (obj != null) {
-                        var cachedDayPlanData = (DayPlanData)obj;
+                        var cachedDayPlanData = (DayPlanData) obj;
 
                         // check if post data is valid
                         if (validDayPlanData(data)) {
@@ -228,28 +231,28 @@ public class DayPlanController {
                             memService.deleteKeyValue(AznStrings.toString((dayPlanDataKey)));
                         }
                     } else {
-                           ObjectMapper objectMapper = new ObjectMapper();
-                            //if all properties are not in class use this
-                            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-                            DayPlanData dayPlanData = objectMapper.convertValue(data, DayPlanData.class);
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        //if all properties are not in class use this
+                        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                        DayPlanData dayPlanData = objectMapper.convertValue(data, DayPlanData.class);
 
-                            dayPlanData.setUserId(user.get().getUserId());
-                            dayPlanData.setSetDate(d);
-                            dayPlanData.setUsers(user.get());
+                        dayPlanData.setUserId(user.get().getUserId());
+                        dayPlanData.setSetDate(d);
+                        dayPlanData.setUsers(user.get());
 
                         // save to memcached if data is not valid
                         if (!validDayPlanData(data)) {
                             // set time
                             DayTime dayTime = new DayTime();
 
-                            dayTime.setStart(((String)data.get("start_time")).trim().length() == 0 ?
-                                    null : new Time(sdf.parse((String)data.get("start_time")).getTime()));
+                            dayTime.setStart(((String) data.get("start_time")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String) data.get("start_time")).getTime()));
 
-                            dayTime.setEnd(((String)data.get("end_time")).trim().length() == 0 ?
-                                    null : new Time(sdf.parse((String)data.get("end_time")).getTime()));
+                            dayTime.setEnd(((String) data.get("end_time")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String) data.get("end_time")).getTime()));
 
-                            dayTime.setPause(((String)data.get("pause")).trim().length() == 0 ?
-                                    null : new Time(sdf.parse((String)data.get("pause")).getTime()));
+                            dayTime.setPause(((String) data.get("pause")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String) data.get("pause")).getTime()));
 
 
                             dayPlanData.setWorkTime(dayTime);
@@ -274,79 +277,102 @@ public class DayPlanController {
 
                 }
 
+
                 // check if Dayplan Data is valid
-               if (optionalDayPlanData.isPresent() && optionalDayPlanData.get().isValid()) {
-                   optionalDayPlanData.get().setUuid(UUID.randomUUID());
-                   // check if dayplan is inside a checked month
-                   Calendar c = Calendar.getInstance();
-                   c.setTime(optionalDayPlanData.get().getSetDate());
+                if ((optionalDayPlanData.isPresent() && optionalDayPlanData.get().isValid()) || isGeneralVacationDay(d)) {
 
-                   Optional<MonthPlan> optionalMonthPlan = monthPlanRepository.
-                            findMonthPlanByMonthAndYear(c.get(Calendar.MONTH)+1,
-                                    c.get(Calendar.YEAR), optionalDayPlanData.get().getUserId());
+                    optionalDayPlanData.ifPresent(dayPlanData -> dayPlanData.setUuid(UUID.randomUUID()));
+                    // check if dayplan is inside a checked month
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(d);
+
+                    Optional<MonthPlan> optionalMonthPlan = monthPlanRepository.
+                            findMonthPlanByMonthAndYear(c.get(Calendar.MONTH) + 1,
+                                    c.get(Calendar.YEAR), user.get().getUserId());
 
 
-                   // set checked values
-                   try {
-                       optionalDayPlanData.get().setGlaz((Boolean) data.get("glaz"));
-                       optionalDayPlanData.get().setSick((Boolean) data.get("sick"));
-                       optionalDayPlanData.get().setSchool((Boolean) data.get("school"));
-                   }catch (Exception ignore) {}
+                    // set checked values
+                    try {
+                        optionalDayPlanData.get().setGlaz((Boolean) data.get("glaz"));
+                        optionalDayPlanData.get().setSick((Boolean) data.get("sick"));
+                        optionalDayPlanData.get().setSchool((Boolean) data.get("school"));
+                    } catch (Exception ignore) {
+                    }
 
-                   if (optionalMonthPlan.isEmpty()) {
-                       // add or remove vacation days
-                       boolean isSick = dayPlanDataRepository.isSickByUserAndDate(d, user.get().getUserId());
-                       int year = calendar.get(Calendar.YEAR);
+                    if (optionalMonthPlan.isEmpty()) {
+                        // add or remove vacation days
+                        boolean isSick = dayPlanDataRepository.isSickByUserAndDate(d, user.get().getUserId());
+                        boolean hasVacation = dayPlanDataRepository.hasVacationByUserAndDate(d, user.get().getUserId());
+                        boolean hasGVacation = generalVacationRepository.hasVacation(d);
+                        boolean vacationSet = hasGVacation || hasVacation;
+                        boolean currentSickFromUser = false;
 
-                       // if set is set but not already set in db
-                       if (optionalDayPlanData.get().getSick() && !isSick) {
-                           Optional<UserInfo> optionalUserInfo =  userInfoRepository.findByUserId(user.get().getUserId());
+                        try {
+                            currentSickFromUser = (boolean) data.get("sick");
+                        }catch (Exception e){}
 
-                           if (optionalUserInfo.isPresent()) {
-                               UserInfo userInfo = optionalUserInfo.get();
-                               // get the right year
+                        int year = calendar.get(Calendar.YEAR);
 
-                               String vacationDays = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0");
+                        System.out.println("find me");
+                        System.out.println(vacationSet);
+                        System.out.println(isSick);
+                        System.out.println(currentSickFromUser);
 
-                               // add one day
-                              userInfo.getAvailableVacation().put(String.valueOf(year), String.valueOf(Integer.parseInt(vacationDays) + 1));
+                        // if sick is set but not already set in db but only if user has vacation
+                        if ((currentSickFromUser && !isSick) && vacationSet) {
+                            Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
 
-                               // save and delete userinfo
-                               userInfoRepository.delete(userInfo);
-                               userInfoRepository.save(userInfo);
-                           }
-                           // check if sick is not set but in db
-                       } else if (!optionalDayPlanData.get().getSick() && isSick) {
-                           Optional<UserInfo> optionalUserInfo =  userInfoRepository.findByUserId(user.get().getUserId());
+                            if (optionalUserInfo.isPresent()) {
+                                UserInfo userInfo = optionalUserInfo.get();
+                                // get the right year
 
-                           if (optionalUserInfo.isPresent()) {
-                               UserInfo userInfo = optionalUserInfo.get();
-                               // get the right year
+                                String vacationDays = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0");
 
-                               String vacationDays = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0");
+                                // add one day
+                                userInfo.getAvailableVacation().put(String.valueOf(year), String.valueOf(Integer.parseInt(vacationDays) + 1));
 
-                               // add one day
-                               userInfo.getAvailableVacation().put(String.valueOf(year), String.valueOf(Integer.parseInt(vacationDays) - 1));
+                                // save and delete userinfo
+                                userInfoRepository.delete(userInfo);
+                                userInfoRepository.save(userInfo);
+                            }
+                            // check if sick is not set but in db
+                        } else if ((!currentSickFromUser && isSick) && vacationSet) {
+                            Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
 
-                               // save and delete userinfo
-                               userInfoRepository.delete(userInfo);
-                               userInfoRepository.save(userInfo);
-                           }
-                       }
+                            if (optionalUserInfo.isPresent()) {
+                                UserInfo userInfo = optionalUserInfo.get();
+                                // get the right year
 
-                       dayPlanDataRepository.save(optionalDayPlanData.get());
-                       saved = true;
-                   }
+                                String vacationDays = userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0");
 
-               }
+                                // add one day
+                                userInfo.getAvailableVacation().put(String.valueOf(year), String.valueOf(Integer.parseInt(vacationDays) - 1));
 
-              return saved;
+                                // save and delete userinfo
+                                userInfoRepository.delete(userInfo);
+                                userInfoRepository.save(userInfo);
+                            }
+                        }
+
+                        if (isGeneralVacationDay(d) && !currentSickFromUser)  {
+                            dayPlanDataRepository.deleteByUserIdAndSetDate(user.get().getUserId(), d);
+                            saved = true;
+                        } else {
+                            optionalDayPlanData.ifPresent(dayPlanData -> dayPlanDataRepository.save(dayPlanData));
+                            saved = true;
+                        }
+
+                    }
+
+                }
+
+                return saved;
             }
 
         } catch (Exception exception) {
             exception.printStackTrace();
 
-           return false;
+            return false;
         }
 
         return saved;
@@ -361,20 +387,28 @@ public class DayPlanController {
 
             // check general vacation for requested day
             Optional<GeneralVacation> optionalGeneralVacation = generalVacationRepository.getGeneralVacationByDate(date);
+            dayPlanData = dayPlanDataRepository.findByDateAndUserId(date, user.get().getUserId());
+
 
             if (optionalGeneralVacation.isPresent()) {
-                    var dpdTemp = new DayPlanData();
+                var dpdTemp = new DayPlanData();
 
-                    // must be set for later usage
-                    dpdTemp.setSetDate(date);
-                    dpdTemp.setUsers(user.get());
-                    dpdTemp.setUserId(dayPlanDataKey.getUserId());
+                // must be set for later usage
+                dpdTemp.setSetDate(date);
+                dpdTemp.setUsers(user.get());
+                dpdTemp.setUserId(dayPlanDataKey.getUserId());
 
-                  switch (optionalGeneralVacation.get().getTag()) {
-                      case gUrlaub -> dpdTemp.setVacation(true);
-                      case gFeiertag -> dpdTemp.setHoliday(true);
-                  }
-                  dayPlanData = Optional.of(dpdTemp);
+                switch (optionalGeneralVacation.get().getTag()) {
+                    case gUrlaub -> dpdTemp.setVacation(true);
+                    case gFeiertag -> dpdTemp.setHoliday(true);
+                }
+
+                if (dayPlanData.isEmpty()) {
+                    dayPlanData = Optional.of(dpdTemp);
+                } else {
+                    dayPlanData.get().setHoliday(dpdTemp.getHoliday());
+                    dayPlanData.get().setVacation(dpdTemp.getVacation());
+                }
             } else {
                 // check if day plan data is in memcached
                 Object obj = memService.getKeyValue(AznStrings.toString(dayPlanDataKey));
@@ -409,11 +443,11 @@ public class DayPlanController {
     @GetMapping
     String getDayPlanData(@RequestParam(name = "date", required = true) String date,
                           @RequestParam(name = "role", required = true) String role,
-                          @RequestParam(name = "userid", required = false) String userid,  Authentication auth)
+                          @RequestParam(name = "userid", required = false) String userid, Authentication auth)
             throws IOException, ParseException {
         Optional<DayPlanData> dayPlanData = Optional.empty();
         Date askedDate = new java.sql.Date(new SimpleDateFormat("dd-MM-yyyy")
-                                               .parse(date).getTime());
+                .parse(date).getTime());
         if (userid == null) {
             Jwt jwt = (Jwt) auth.getPrincipal();
 
@@ -433,6 +467,6 @@ public class DayPlanController {
         return new ObjectMapper().writer().
                 withDefaultPrettyPrinter()
                 .writeValueAsString(dayPlanData.orElse(new DayPlanData())
-        );
+                );
     }
 }

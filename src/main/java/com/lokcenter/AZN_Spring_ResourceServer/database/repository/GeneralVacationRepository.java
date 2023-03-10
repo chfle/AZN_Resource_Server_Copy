@@ -33,4 +33,7 @@ public interface GeneralVacationRepository extends CrudRepository<GeneralVacatio
 
     @Query(value = "select count(*) from general_vacation where date >= ?1 and extract(year from date) = ?2 ", nativeQuery = true)
     Long getVacationCountByYear(Date date, int year);
+
+    @Query(value = "select exists(select * from general_vacation where date = ?1 and tag = 'gUrlaub')", nativeQuery = true)
+    Boolean hasVacation(Date date);
 }
