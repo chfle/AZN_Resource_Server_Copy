@@ -112,6 +112,9 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             "as timeV from balance where user_id = ?1 and year = ?2) as b;", nativeQuery = true)
     String getdpdAndBalaceAsSum(Long userId, int year);
 
+    @Query(value = "select * from day_plan_data where set_date = ?1 and user_id = ?2", nativeQuery = true)
+    Optional<DayPlanData> findByDateAndUserId(Date date, Long userId);
+
     @Query(value = "select exists(select * from day_plan_data where set_date = ?1 and user_id = ?2 and sick)", nativeQuery = true)
     Boolean isSickByUserAndDate(Date date, Long userId);
 }

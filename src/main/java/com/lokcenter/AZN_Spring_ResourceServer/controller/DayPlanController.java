@@ -127,6 +127,9 @@ public class DayPlanController {
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
     @PostMapping()
     boolean postDayPlan(@RequestBody Map<String, Object> data, Authentication auth) {
+
+
+
         // saved in memcached or in db
         boolean saved = false;
         try {
@@ -139,7 +142,23 @@ public class DayPlanController {
             SimpleDateFormat sdf = new SimpleDateFormat("k:m");
             Date d = new Date(simpleDateFormat.parse((String)data.get("date")).getTime());
 
+
             if (user.isPresent()) {
+                // check if glaz or vacation was altered by a hacker
+                Optional<DayPlanData> tdp = dayPlanDataRepository.findByDateAndUserId(d, user.get().getUserId());
+
+                if (tdp.isPresent()) {
+                    // if dpd is present get the glaz and vacation values from the database
+                    data.put("glaz", tdp.get().getGlaz());
+                    data.put("vacation", tdp.get().getVacation());
+                } else {
+                    // there is no dpd, so we can't have any glaz or vacation
+                    data.put("glaz", false);
+                    data.put("vacation", false);
+                }
+
+                System.out.println("payload data: " + data);
+
                 // should be empty if no valid data was found
                 Optional<DayPlanData> optionalDayPlanData = Optional.empty();
                 // see if user has some checked values for this day
