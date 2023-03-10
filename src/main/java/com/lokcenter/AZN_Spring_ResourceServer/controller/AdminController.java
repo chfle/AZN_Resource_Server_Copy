@@ -782,6 +782,7 @@ public class AdminController {
     Boolean saveAdminOverviewRequestedDate(@RequestBody Map<String, Object> data) {
         try {
             Optional<Users> user = userRepository.findById(Long.parseLong((String) data.get("id")));
+            long countDays = 0;
 
             if (user.isPresent()) {
                 Optional<Requests> requests = controllerHelper.getValidNonExistingRequest(data, user.get());
@@ -816,6 +817,12 @@ public class AdminController {
 
                         // go over each day from start to end and set admin request
                         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+                            // check if date is a weekend day
+                            if (date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                                continue;
+                            }
+
+                            countDays++;
                             // get day
                             DayPlanData dpd;
                             Optional<DayPlanData> day =
@@ -831,6 +838,11 @@ public class AdminController {
                                 dpd = day.get();
                             }
 
+                            // count days only on weekday
+                            Calendar calendar = Calendar.getInstance();
+
+                            calendar.setTime(new Date(TimeConvert.convertToDateViaInstant(date).getTime()));
+
                             // set request value
                             switch (requests.get().getType()) {
                                 case rGLAZ -> dpd.setGlaz(true);
@@ -842,6 +854,24 @@ public class AdminController {
 
                             // save dpd
                             dayPlanDataRepository.save(dpd);
+                        }
+
+                        Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
+
+                        if (optionalUserInfo.isPresent()) {
+                            Map<String, String> availableVacations = optionalUserInfo.get().getAvailableVacation();
+
+                            int currYear = Calendar.getInstance().get(Calendar.YEAR);
+
+                            availableVacations.put(String.valueOf(currYear),
+                                    String.valueOf(
+                                            (Integer.parseInt(availableVacations.getOrDefault(String.valueOf(currYear),
+                                                    "0")) - countDays)));
+
+                            optionalUserInfo.get().setAvailableVacation(availableVacations);
+
+                            userInfoRepository.deleteById(optionalUserInfo.get().getUserinfoId());
+                            userInfoRepository.save(optionalUserInfo.get());
                         }
                         return true;
                     }

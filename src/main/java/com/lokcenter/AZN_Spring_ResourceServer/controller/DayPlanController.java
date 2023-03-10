@@ -314,11 +314,6 @@ public class DayPlanController {
 
                         int year = calendar.get(Calendar.YEAR);
 
-                        System.out.println("find me");
-                        System.out.println(vacationSet);
-                        System.out.println(isSick);
-                        System.out.println(currentSickFromUser);
-
                         // if sick is set but not already set in db but only if user has vacation
                         if ((currentSickFromUser && !isSick) && vacationSet) {
                             Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
