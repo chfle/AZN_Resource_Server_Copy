@@ -60,8 +60,8 @@ public class MemService {
      * @param value value
      */
     public void storeKeyValue(String key, Object value) {
-        // set key
-        boolean done = mcc.set(key, 432000, value).isDone();
+        // set key and store 36 hours
+        boolean done = mcc.set(key, 129600, value).isDone();
 
         log.info("isDone: " +done);
     }
