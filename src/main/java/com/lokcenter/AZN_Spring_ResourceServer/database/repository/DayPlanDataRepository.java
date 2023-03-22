@@ -49,7 +49,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
      * @return IYearCount object
      */
     @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id=?1 and" +
-            "            checked and ((not glaz or glaz is null) and" +
+            "            ((not glaz or glaz is null) and" +
             "            (not school or school is null) and (not vacation or vacation is null) and" +
             "            (not sick or sick is null)) group by extract(year from set_date);", nativeQuery = true)
     Iterable<IYearCount> getWorkDayCountGrouped(Long userId);
@@ -60,8 +60,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
      *
      * @return IYearCount object
      */
-    @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id = ?1 and sick" +
-            " and checked group by extract(year from set_date);", nativeQuery = true)
+    @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id = ?1 and sick group by extract(year from set_date);", nativeQuery = true)
     Iterable<IYearCount> getSickDayCountGrouped(Long userId);
 
     @Query(value = "select count(*) from day_plan_data where user_id = ?1 and sick and extract(year from set_date) = ?2", nativeQuery = true)
@@ -70,8 +69,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select count(*) from day_plan_data where user_id = ?1 and glaz and extract(year from set_date) = ?2", nativeQuery = true)
     long glazCountByUserAndYear(Long userid, int year);
 
-    @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id = ?1 and glaz" +
-            "             and checked group by extract(year from set_date);", nativeQuery = true)
+    @Query(value = "select extract(year from set_date) as year, count(*) from day_plan_data where user_id = ?1 and glaz group by extract(year from set_date);", nativeQuery = true)
     Iterable<IYearCount> getGlazDayCountGrouped(Long userId);
 
     @Modifying
