@@ -139,7 +139,7 @@ public class OverviewService {
         AtomicInteger vacationDays = new AtomicInteger();
 
         if (users.isPresent()) {
-            Iterable<Requests> requests = requestsRepository.getVacationRequestsByYear(year);
+            Iterable<Requests> requests = requestsRepository.getVacationRequestsByYear(year, users.get().getUserId());
 
             StreamSupport.stream(requests.spliterator(), true).forEach((req) -> {
                 var start = TimeConvert.convertToLocalDateViaInstant(new java.util.Date(req.getStartDate().getTime()));

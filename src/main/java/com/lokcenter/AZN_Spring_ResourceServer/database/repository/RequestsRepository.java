@@ -34,6 +34,6 @@ public interface RequestsRepository extends CrudRepository<Requests, RequestsKey
     @Query(value = "delete from requests where start_date = ?1 and end_date = ?2 and user_id = ?3", nativeQuery = true)
     void deleteRequestsByStartDateAndEndDateAndUsers(Date startDate, Date endDate, Long userid);
 
-    @Query(value = "select * from requests where (extract(year from  start_date) = ?1 or extract(year from  end_date) = ?1) and type = 'rUrlaub' ", nativeQuery = true)
-    Iterable<Requests> getVacationRequestsByYear(int year);
+    @Query(value = "select * from requests where (extract(year from  start_date) = ?1 or extract(year from  end_date) = ?1) and type = 'rUrlaub' and user_id = ?2 ", nativeQuery = true)
+    Iterable<Requests> getVacationRequestsByYear(int year, long userId);
 }
