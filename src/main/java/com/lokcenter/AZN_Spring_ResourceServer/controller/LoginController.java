@@ -91,7 +91,10 @@ public class LoginController {
                 // try to insert user but check if not a junit test
                 if (!JunitHelper.isJUnitTest()) {
                    try {
-                       userRepository.save(user);
+                       // check if user exists
+                       if (userRepository.findByUsername(user.getUsername()).isEmpty()) {
+                           userRepository.save(user);
+                       }
                    }catch (Exception exception) {
                        //exception.printStackTrace();
                    }
