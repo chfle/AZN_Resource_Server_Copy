@@ -77,6 +77,16 @@ public class LoginController {
 
                 user.setFirstLogin(new java.sql.Date(currentDate.getTime()));
 
+                // end date generated with 3 years
+                Calendar c = Calendar.getInstance();
+
+                c.setTime(currentDate);
+                c.add(Calendar.YEAR, 3);
+                c.set(Calendar.MONTH, Calendar.AUGUST);
+                c.set(Calendar.DAY_OF_MONTH , 31);
+
+                user.setEndDate(new java.sql.Date(c.getTime().getTime()));
+
                 // Add roles
                 var roles = (ArrayList<LinkedHashMap<String, String>>) payload.get("roles");
 
