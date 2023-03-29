@@ -22,6 +22,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.StreamSupport;
 
@@ -39,6 +40,9 @@ public class OverviewService {
 
     @Autowired
     private UserInfoRepository userInfoRepository;
+
+    @Autowired
+    private VacationService vacationService;
 
 
     /**
@@ -119,19 +123,12 @@ public class OverviewService {
      * Free vacation from userinfo
      */
     @Async
-    public CompletableFuture<Integer> getFreeVacationDays(int year, Optional<Users> users) {
-        int availableVacation = 0;
-
+    public CompletableFuture<Long> getFreeVacationDays(int year, Optional<Users> users) throws ExecutionException, InterruptedException {
         if (users.isPresent()) {
-            Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(users.get().getUserId());
-
-            if (optionalUserInfo.isPresent()) {
-                UserInfo userInfo = optionalUserInfo.get();
-                availableVacation =  Integer.parseInt(userInfo.getAvailableVacation().getOrDefault(String.valueOf(year), "0"));
-            }
+            return vacationService.getAvailabeVacation(year, users.get().getUserId());
         }
 
-        return CompletableFuture.completedFuture(availableVacation);
+        return CompletableFuture.completedFuture(0L);
     }
 
     @Async

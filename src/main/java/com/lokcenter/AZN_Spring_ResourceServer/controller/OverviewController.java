@@ -328,13 +328,14 @@ public class OverviewController {
             var one  = overviewService.getFreeVacationDays(Integer.parseInt(year), user);
             var two  = overviewService.getVacationDaysUsedByRequests(Integer.parseInt(year), user);
 
-            stats.setAvailableVacation(one.get());
-            stats.setAvailableVacationWithRequestedCount(one.get() - two.get());
+            stats.setAvailableVacation(Math.toIntExact(one.get()));
+            stats.setAvailableVacationWithRequestedCount((int) (one.get() - two.get()));
         } else {
             // user must be admin to use userid
             if (role.equals("ROLE_Admin")) {
                 Optional<Users> user = userRepository.findById(Long.valueOf(userid));
-                stats.setAvailableVacation(overviewService.getFreeVacationDays(Integer.parseInt(year), user).get());
+                stats.setAvailableVacation(Math.toIntExact(overviewService.
+                        getFreeVacationDays(Integer.parseInt(year), user).get()));
             }
         }
 
