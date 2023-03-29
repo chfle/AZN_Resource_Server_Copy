@@ -132,7 +132,6 @@ public class LoginController {
                         workTime.setPause(new Time(format.parse("00:00 am").getTime()));
 
                         // default vacation
-                        userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
                         userInfo.setSetVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()), "0")));
 
                         // balance time
@@ -162,9 +161,6 @@ public class LoginController {
                                 workTime.setEnd(defaults.get().getDefaultEndTime());
                                 workTime.setPause(defaults.get().getDefaultPause());
 
-                                userInfo.setAvailableVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()),
-                                        String.valueOf(defaults.get().getDefaultVacationDays()))));
-
                                 userInfo.setSetVacation(new HashMap<>(Map.of(String.valueOf(Year.now().getValue()),
                                         String.valueOf(defaults.get().getDefaultVacationDays()))));
                             }
@@ -189,27 +185,6 @@ public class LoginController {
                             }
                         }catch (Exception exception){
                             exception.printStackTrace();
-                        }
-
-                        Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.getUserId());
-
-                        if (optionalUserInfo.isPresent()) {
-                            UserInfo userInfo1 = optionalUserInfo.get();
-
-                            // remove general vacation days from user
-                            Iterable<IYearCount> yearCounts = generalVacationRepository.
-                                    getGeneralVacationFromDate(new java.sql.Date(currentDate.getTime()));
-
-                            for (var yearAndCount : yearCounts) {
-                                String current_vacation = userInfo1.getAvailableVacation().
-                                        getOrDefault(String.valueOf(yearAndCount.getYear()), "0");
-
-                                userInfo1.getAvailableVacation().put(String.valueOf(yearAndCount.getYear()),
-                                        String.valueOf(Integer.parseInt(current_vacation) - yearAndCount.getCount()));
-                            }
-
-                            userInfoRepository.delete(userInfo1);
-                            userInfoRepository.save(userInfo1);
                         }
                     }
                 }

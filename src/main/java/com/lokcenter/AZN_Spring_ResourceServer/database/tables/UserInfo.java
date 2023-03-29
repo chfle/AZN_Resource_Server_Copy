@@ -39,18 +39,6 @@ public class UserInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userinfoId;
 
-    /**
-     * A Java Map with Year and available Vacation for each year
-     */
-    @Type(type = "hstore")
-    @Column(
-            name = "available_vacation" ,
-            columnDefinition = "hstore"
-    )
-    @Setter
-    @Getter
-    private Map<String, String> availableVacation = new HashMap<>();
-
     @Type(type = "hstore")
     @Column(
             name = "set_vacation" ,

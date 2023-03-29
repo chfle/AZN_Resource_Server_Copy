@@ -18,6 +18,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewLis
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
+import com.lokcenter.AZN_Spring_ResourceServer.services.VacationService;
 import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
@@ -79,6 +81,9 @@ public class AdminController {
 
     @Autowired
     private WorkTimeRepository workTimeRepository;
+
+    @Autowired
+    private VacationService vacationService;
 
 
     public static TupleType TupleThreeType = TupleType.DefaultFactory.create(
@@ -138,7 +143,6 @@ public class AdminController {
                    Calendar calendar = Calendar.getInstance();
 
                    // get userinfo from each user
-                   Optional<UserInfo> userInfo = userInfoRepository.findByUserId(data.getNthValue(0));
                    Long glazCount = dayPlanDataRepository.glazCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
                    Long sickCount = dayPlanDataRepository.sickCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
 
@@ -146,12 +150,9 @@ public class AdminController {
                    currentUserData.put("sick", sickCount);
                    currentUserData.put("glaz", glazCount);
 
-                   if (userInfo.isPresent()) {
-                       String availableVacation = userInfo.get().getAvailableVacation()
-                               .getOrDefault(String.valueOf(calendar.get(Calendar.YEAR)), "0");
-
-                       currentUserData.put("availableVacation", Integer.parseInt(availableVacation));
-                   }
+                   // available vacation generated
+                   currentUserData.put("availableVacation", vacationService.getAvailabeVacation(calendar.get(Calendar.YEAR),
+                           data.getNthValue(0)).get());
 
                    currentUserData.put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(data.getNthValue(0), calendar.get(Calendar.YEAR)));
 
@@ -336,27 +337,6 @@ public class AdminController {
 
                         // save dpd
                         dayPlanDataRepository.save(dpd);
-                    }
-
-                    // remove used days from userInfo
-                    if (requests.get().getType() == RequestTypeEnum.rUrlaub) {
-                        Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(users.get().getUserId());
-
-                        if (optionalUserInfo.isPresent()) {
-                            Map<String, String> availableVacations = optionalUserInfo.get().getAvailableVacation();
-
-                            int currYear = Calendar.getInstance().get(Calendar.YEAR);
-
-                            availableVacations.put(String.valueOf(currYear),
-                                    String.valueOf(
-                                            (Integer.parseInt(availableVacations.getOrDefault(String.valueOf(currYear),
-                                                    "0")) - vacationDaysUsed)));
-
-                            optionalUserInfo.get().setAvailableVacation(availableVacations);
-
-                            userInfoRepository.deleteById(optionalUserInfo.get().getUserinfoId());
-                            userInfoRepository.save(optionalUserInfo.get());
-                        }
                     }
 
                     // delete requests
@@ -549,14 +529,20 @@ public class AdminController {
                             userInfoRepository.delete(userInfoData);
 
                             // set vacation days
-                            String availableVacationThisYear = userInfoData.getAvailableVacation().
-                                    getOrDefault(String.valueOf(e.getYear()), "0");
+                            Long availableVacationThisYear = null;
+
+                            try {
+                                availableVacationThisYear = vacationService.getAvailabeVacation(e.getYear(),
+                                        user.get().getUserId()).get();
+                            } catch (InterruptedException | ExecutionException ex) {
+                                throw new RuntimeException(ex);
+                            }
 
                             String setVacationForNextYear = userInfoData.getSetVacation().
                                     getOrDefault(String.valueOf(newYear), "0");
 
-                            userInfoData.getAvailableVacation().put(String.valueOf(newYear),
-                                    String.valueOf(Integer.parseInt(availableVacationThisYear) +
+                            userInfoData.getSetVacation().put(String.valueOf(newYear),
+                                    String.valueOf(Integer.parseInt(String.valueOf(availableVacationThisYear)) +
                                             Integer.parseInt(setVacationForNextYear)));
 
                             userInfoRepository.save(userInfoData);
@@ -743,13 +729,6 @@ public class AdminController {
                     if (optionalUserInfo.isPresent()) {
                         var userInfo = optionalUserInfo.get();
 
-                        for (IYearCount yearCount : vacationByYear) {
-                            String current_vacation = userInfo.getAvailableVacation().
-                                    getOrDefault(String.valueOf(yearCount.getYear()), "0");
-
-                            userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
-                                    String.valueOf(Integer.parseInt(current_vacation) + yearCount.getCount()));
-                        }
                         // delete vacation
                         dayPlanDataRepository.deleteByUuid(UUID.fromString(id));
 
@@ -858,21 +837,6 @@ public class AdminController {
 
                         Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
 
-                        if (optionalUserInfo.isPresent()) {
-                            Map<String, String> availableVacations = optionalUserInfo.get().getAvailableVacation();
-
-                            int currYear = Calendar.getInstance().get(Calendar.YEAR);
-
-                            availableVacations.put(String.valueOf(currYear),
-                                    String.valueOf(
-                                            (Integer.parseInt(availableVacations.getOrDefault(String.valueOf(currYear),
-                                                    "0")) - countDays)));
-
-                            optionalUserInfo.get().setAvailableVacation(availableVacations);
-
-                            userInfoRepository.deleteById(optionalUserInfo.get().getUserinfoId());
-                            userInfoRepository.save(optionalUserInfo.get());
-                        }
                         return true;
                     }
                 }
@@ -1025,33 +989,6 @@ public class AdminController {
                 // get all users
                 Iterable<BigInteger> userIds = userRepository.getAllUserIds();
 
-                // remove vacation from all users
-                StreamSupport.stream(userIds.spliterator(), true).forEach(userid -> {
-                    Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(userid.longValue());
-
-                    if (optionalUserInfo.isPresent()) {
-                        // get count by year
-                        Iterable<IYearCount> generalVacationByYearCount = generalVacationRepository.
-                                getGeneralVacationByUuidAndYear(uuid);
-
-                        UserInfo userInfo = optionalUserInfo.get();
-
-                        for (IYearCount yearCount : generalVacationByYearCount) {
-                            String current_vacation = userInfo.getAvailableVacation().
-                                    getOrDefault(String.valueOf(yearCount.getYear()), "0");
-
-                            userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
-                                    String.valueOf(Integer.parseInt(current_vacation) - yearCount.getCount()));
-                        }
-
-                        // remove userinfo to set it back
-                        userInfoRepository.delete(userInfo);
-
-                        // save
-                        userInfoRepository.save(userInfo);
-                    }
-                });
-
                 return true;
             }
         }catch (Exception exception){return false;}
@@ -1068,40 +1005,7 @@ public class AdminController {
     Boolean deleteGeneralOverViewItem(@RequestBody Map<String, Object> payload) {
         try {
             UUID uuid = UUID.fromString((String) payload.get("id"));
-
-            // get vacation count
-            Iterable<IYearCount> generalVacationCount = generalVacationRepository.getGeneralVacationByUuidAndYear(uuid);
-            Iterable<BigInteger> userIds = userRepository.getAllUserIds();
-
-
             generalVacationRepository.deleteByUuid(uuid);
-
-            if (generalVacationRepository.findByUuid(uuid).spliterator().getExactSizeIfKnown() == 0) {
-                // go over all users
-                StreamSupport.stream(userIds.spliterator(), true).forEach(userid -> {
-                    Optional<UserInfo> optionalUserInfoRepository = userInfoRepository.findByUserId(userid.longValue());
-
-                    if (optionalUserInfoRepository.isPresent()) {
-                        UserInfo userInfo = optionalUserInfoRepository.get();
-
-                        for (IYearCount yearCount: generalVacationCount) {
-                            String current_vacation = userInfo.getAvailableVacation().
-                                    getOrDefault(String.valueOf(yearCount.getYear()), "0");
-
-                            userInfo.getAvailableVacation().put(String.valueOf(yearCount.getYear()),
-                                    String.valueOf(Integer.parseInt(current_vacation) + yearCount.getCount()));
-                        }
-
-                        // remove userinfo to set it back
-                        userInfoRepository.delete(userInfo);
-
-                        // save
-                        userInfoRepository.save(userInfo);
-                    }
-                });
-
-                return true;
-            }
         } catch (Exception ignored) {}
 
         return false;
@@ -1223,31 +1127,10 @@ public class AdminController {
                        vacationData.put(yearData.get(0),yearData.get(1));
                    }
 
-                   // change available vacation based on this change
-                   String currentYearVacation = vacationData.getOrDefault
-                           (String.valueOf(Calendar.getInstance().get(Calendar.YEAR)), "0");
-
-                   String oldThisYearVacation = userInfo.getSetVacation().
-                           getOrDefault(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)), "0");
-
-                   int diff = Math.abs(Integer.parseInt(currentYearVacation) - Integer.parseInt(oldThisYearVacation));
-
-                    String currentAVacation = userInfo.getAvailableVacation().
-                            getOrDefault(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)), "0");
-
-                    if (Integer.parseInt(currentYearVacation) < Integer.parseInt(oldThisYearVacation)) {
-                        diff *= -1;
-                    }
-
-                   userInfo.getAvailableVacation().put(String.valueOf(Calendar.getInstance().get(Calendar.YEAR)),
-                           String.valueOf(Integer.parseInt(currentAVacation) + diff));
-
                    userInfo.setSetVacation(vacationData);
 
                    userInfoRepository.delete(userInfo);
                    userInfoRepository.save(userInfo);
-
-                   saved = true;
                }
            }
 
