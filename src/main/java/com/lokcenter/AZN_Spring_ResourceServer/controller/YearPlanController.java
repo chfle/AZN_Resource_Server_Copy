@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Yearplan related controller
@@ -52,6 +53,7 @@ public class YearPlanController {
 
     @Autowired
     private VacationService vacationService;
+
 
     /**
      * Store all needed Year Plan Data
@@ -167,22 +169,20 @@ public class YearPlanController {
             // userinfo stuff
             if (optionalUserInfo.isPresent()) {
                 // get vacation from last year
-                Map<String, String> avVacation = optionalUserInfo.get().getAvailableVacation();
+                CompletableFuture<Long> avVacation = vacationService.getAvailabeVacation(lastYear+1, user.get().getUserId());
+                CompletableFuture<Long> avVacationLastYear = vacationService.getAvailabeVacation(lastYear, user.get().getUserId());
 
-                yearPlanCurrent.setVacationFromLastYear(Integer.
-                        parseInt(avVacation.getOrDefault(String.valueOf(lastYear), "0")));
+                System.out.println("lastyear: " + lastYear);
+
+                yearPlanCurrent.setVacationFromLastYear(Math.toIntExact(avVacationLastYear.get()));
 
                 // get available vacation days from this year
-                yearPlanCurrent.setTotalVacationDays(
-                        Integer.parseInt(
-                                avVacation.getOrDefault(
-                                        String.valueOf(Calendar.getInstance().get(Calendar.YEAR)),
-                                        "0")));
+                yearPlanCurrent.setTotalVacationDays(Math.toIntExact(avVacation.get()));
 
             }
 
             // count used vacation days from day plan data
-            long usedDays = dayPlanDataRepository.countByUserIdAndVacationTrue(user.get().getUserId());
+            long usedDays = dayPlanDataRepository.usedVacationByYearAndUser(user.get().getUserId(), lastYear+1);
 
             yearPlanCurrent.setUsedVacationDays((int) usedDays);
 
