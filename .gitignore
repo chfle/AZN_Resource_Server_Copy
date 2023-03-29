@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### readonly
+/src/main/resources/application.properties
+/src/main/java/com/lokcenter/AZN_Spring_ResourceServer/config/AadOAuth2ResourceServerSecurityConfig.java
