@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -23,7 +24,7 @@ public class VacationService {
     private final DayPlanDataRepository dayPlanDataRepository;
 
     private CompletableFuture<Long> getSetVacation(String year, Long userId) {
-        return CompletableFuture.completedFuture(Long.parseLong(userInfoRepository.getSetVacationByUser(year, userId)));
+        return CompletableFuture.completedFuture(userInfoRepository.getSetVacationByUser(year, userId));
     }
 
     private CompletableFuture<Long> getAvVacation(int year, Long userId) {
@@ -32,8 +33,8 @@ public class VacationService {
 
     @Async
     public CompletableFuture<Long> getAvailabeVacation(int year, Long userId) throws ExecutionException, InterruptedException {
-        var setVacation = getSetVacation(String.valueOf(year), userId);
-        var avVacation = getAvVacation(year, userId);
+        CompletableFuture<Long> setVacation = getSetVacation(String.valueOf(year), userId);
+        CompletableFuture<Long> avVacation = getAvVacation(year, userId);
 
         return CompletableFuture.completedFuture(setVacation.get() - avVacation.get());
     }

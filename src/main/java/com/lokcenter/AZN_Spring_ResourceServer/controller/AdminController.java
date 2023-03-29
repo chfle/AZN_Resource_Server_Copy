@@ -526,10 +526,8 @@ public class AdminController {
 
                             var userInfoData = userInfo.get();
 
-                            userInfoRepository.delete(userInfoData);
-
                             // set vacation days
-                            Long availableVacationThisYear = null;
+                            Long availableVacationThisYear;
 
                             try {
                                 availableVacationThisYear = vacationService.getAvailabeVacation(e.getYear(),
@@ -545,6 +543,7 @@ public class AdminController {
                                     String.valueOf(Integer.parseInt(String.valueOf(availableVacationThisYear)) +
                                             Integer.parseInt(setVacationForNextYear)));
 
+                            userInfoRepository.delete(userInfoData);
                             userInfoRepository.save(userInfoData);
                         }
 
@@ -731,16 +730,6 @@ public class AdminController {
 
                         // delete vacation
                         dayPlanDataRepository.deleteByUuid(UUID.fromString(id));
-
-                        // check if dpd was deleted
-                        if (dayPlanDataRepository.getCountByUUid(UUID.fromString(id)) == 0) {
-                            // first we need to delete
-                            userInfoRepository.deleteById(userInfo.getUserinfoId());
-                            // Then save
-                            userInfoRepository.save(userInfo);
-
-                            return true;
-                        }
                     }
                 }
 
@@ -761,7 +750,6 @@ public class AdminController {
     Boolean saveAdminOverviewRequestedDate(@RequestBody Map<String, Object> data) {
         try {
             Optional<Users> user = userRepository.findById(Long.parseLong((String) data.get("id")));
-            long countDays = 0;
 
             if (user.isPresent()) {
                 Optional<Requests> requests = controllerHelper.getValidNonExistingRequest(data, user.get());
@@ -801,7 +789,6 @@ public class AdminController {
                                 continue;
                             }
 
-                            countDays++;
                             // get day
                             DayPlanData dpd;
                             Optional<DayPlanData> day =
@@ -834,8 +821,6 @@ public class AdminController {
                             // save dpd
                             dayPlanDataRepository.save(dpd);
                         }
-
-                        Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.get().getUserId());
 
                         return true;
                     }
