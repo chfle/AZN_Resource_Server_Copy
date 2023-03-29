@@ -41,6 +41,11 @@ public class Users implements Serializable {
     @Column(nullable = false)
     private Date firstLogin;
 
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private Date endDate;
+
     /**
      * All App user roles
      *
