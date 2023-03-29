@@ -9,6 +9,7 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.WorkTime;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.components.YearOverViewList;
+import com.lokcenter.AZN_Spring_ResourceServer.services.VacationService;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -48,6 +49,9 @@ public class YearPlanController {
 
     @Autowired
     private DayPlanDataRepository dayPlanDataRepository;
+
+    @Autowired
+    private VacationService vacationService;
 
     /**
      * Store all needed Year Plan Data

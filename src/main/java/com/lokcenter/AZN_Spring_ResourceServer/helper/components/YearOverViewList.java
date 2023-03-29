@@ -40,17 +40,28 @@ public class YearOverViewList {
         // Note: Only checked Month plan data will be set here.
 
         Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(user.getUserId());
-        Map<String, Map<String, Object>> yearDataMap = new HashMap<>();
+        Map<String, Map<String, Object>> yearDataMap;
 
         if (optionalUserInfo.isPresent()) {
             var userinfo = optionalUserInfo.get();
 
             yearDataMap = userinfo.yearToMap();
 
-            for (var year: yearDataMap.entrySet()) {
-                yearDataMap.get(year.getKey()).put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(user.getUserId(),
-                        Integer.parseInt(year.getKey())));
-            }
+            yearDataMap.entrySet().parallelStream().forEach((year) -> {
+                yearDataMap.get(year.getKey()).put("balance",
+                    dayPlanDataRepository.getdpdAndBalaceAsSum(user.getUserId(),
+                    Integer.parseInt(year.getKey())));
+
+                // get available vacation
+                Long av = Long.parseLong((String)yearDataMap.get(
+                        year.getKey()).getOrDefault("setVacation", "0"))
+                        - dayPlanDataRepository.usedVacationByYearAndUser(user.getUserId(), Integer.parseInt(year.getKey()));
+
+                System.out.println("av: " + av );
+
+
+                yearDataMap.get(year.getKey()).put("availableVacation", av);
+            });
 
             // work days grouped by year
             Iterable<IYearCount> workYearCountIterable = dayPlanDataRepository.getWorkDayCountGrouped(user.getUserId());
@@ -87,6 +98,8 @@ public class YearOverViewList {
                 }
             }
 
+        } else {
+            yearDataMap = new HashMap<>();
         }
         return yearDataMap;
     }

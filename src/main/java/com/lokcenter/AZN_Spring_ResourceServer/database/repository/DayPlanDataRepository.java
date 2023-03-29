@@ -83,7 +83,8 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     @Query(value = "select distinct user_id from day_plan_data where uuid = ?1", nativeQuery = true)
     Long getUserIdByUUid(UUID uuid);
 
-    @Query(value = "select count(extract(year from set_date)), extract(year from set_date) as year from day_plan_data where uuid = ?1 group by extract(year from set_date)", nativeQuery = true)
+    @Query(value = "select count(extract(year from set_date)), extract(year from set_date) " +
+            "as year from day_plan_data where uuid = ?1 group by extract(year from set_date)", nativeQuery = true)
     Iterable<IYearCount> getDayPlanDataByUuidAndYear(UUID uuid);
 
     /**
@@ -93,11 +94,15 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
      *
      * @return count
      */
-    @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub')) as vacation from day_plan_data where user_id = ?1 and vacation = true and set_date not in (select date from general_vacation where tag = 'gUrlaub')", nativeQuery = true)
+    @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub')) " +
+            "as vacation from day_plan_data where user_id = ?1 and vacation = true and set_date " +
+            "not in (select date from general_vacation where tag = 'gUrlaub')", nativeQuery = true)
     long countByUserIdAndVacationTrue(Long userId);
 
-    @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub')) as vacation from day_plan_data where user_id = ?1 and vacation = true and extract(year from set_date) = ?2 and set_date not in (select date from general_vacation where tag = 'gUrlaub')", nativeQuery = true)
-    long countByUserIdAndVacationTrueByYear(Long userId, int year);
+    @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub')) " +
+            "as vacation from day_plan_data where user_id = ?1 and vacation = true and extract(year from set_date) " +
+            "= ?2 and set_date not in (select date from general_vacation where tag = 'gUrlaub')", nativeQuery = true)
+    long usedVacationByYearAndUser(Long userId, int year);
 
     @Query(value = "select (f + (select case when sum(interval '0 days' - (select case when (worktime_end - work_time.worktime_start - work_time.worktime_pause) is null\n" +
             "                                             then INTERVAL '0 days' else (work_time.worktime_end - work_time.worktime_start - work_time.worktime_pause) end\n" +
