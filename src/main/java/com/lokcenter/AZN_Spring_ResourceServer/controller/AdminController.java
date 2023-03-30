@@ -111,21 +111,19 @@ public class AdminController {
                 // list of ROLE_User and username users
                 List<Tuple> userUsers = new ArrayList<>();
 
-                StreamSupport.stream(users.spliterator(), false).forEach(user -> {
-                    // user must include ROLE_User
-                    Optional<String> department = Optional.empty();
+                StreamSupport.stream(users.spliterator(), false)
+                        .filter(user -> user.getRoles().containsKey("ROLE_User"))
+                        .map(user -> {
+                            Optional<String> department;
 
-                    if (user.getRoles().containsKey("ROLE_KBM")) {
-                        department = Optional.of("KBM");
-                    } else if (user.getRoles().containsKey("ROLE_IT")) {
-                        department = Optional.of("IT");
-                    }
+                            department = user.getRoles().containsKey("ROLE_KBM") ? Optional.of("KBM") :
+                                    user.getRoles().containsKey("ROLE_IT") ? Optional.of("IT") :
+                                            Optional.empty();
 
-                    if (user.getRoles().containsKey("ROLE_User") && department.isPresent()) {
-                        userUsers.add(TupleThreeType.createTuple(user.getUserId(), user.getUsername(), department.get()));
-                    }
-                });
-
+                            return department.map(s -> TupleThreeType.createTuple(user.getUserId(), user.getUsername(), s)).orElse(null);
+                        })
+                        .filter(Objects::nonNull)
+                        .forEach(userUsers::add);
 
                 // return data
 
@@ -228,7 +226,6 @@ public class AdminController {
 
         if (user.isPresent()) {
             Iterable<Requests> requestsByUser = requestsRepository.findByUserId(user.get().getUserId());
-
             List<Map<String, Object>> shortedRequestsData = new ArrayList<>();
 
             StreamSupport.stream(requestsByUser.spliterator(), false).forEach(requests -> {
