@@ -1106,4 +1106,14 @@ public class AdminController {
 
        return saved;
     }
+
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @GetMapping("/startend")
+    @ResponseBody
+    String getUserStartEndData(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(userRepository.getStartEndDateByUser(Long.valueOf(userId)));
+    }
+
 }

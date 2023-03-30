@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.repository;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IStartEnd;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -12,4 +13,8 @@ public interface UserRepository extends CrudRepository<Users, Long> {
 
     @Query(value = "select user_id from users", nativeQuery = true)
     Iterable<BigInteger> getAllUserIds();
+
+    @Query(value = "select first_login as start, case when end_date is null " +
+            "then '1970-01-01' else end_date end as last from users where user_id = ?1", nativeQuery = true)
+    IStartEnd getStartEndDateByUser(Long userId);
 }
