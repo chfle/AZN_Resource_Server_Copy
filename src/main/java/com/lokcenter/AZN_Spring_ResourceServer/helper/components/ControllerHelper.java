@@ -68,31 +68,39 @@ public class ControllerHelper {
      * @return Pair of first and last date
      */
     public Pair<String, String> parseStartEndDate(String firstDay, String lastDay, String year, String month) {
-        String format = "dd-MM-yyyy";
-
         int yearParsed = Integer.parseInt(year);
-        var sdf = new SimpleDateFormat(format);
+        int monthParsed = Integer.parseInt(month);
 
         // we should use last year for start year
-        if (month.equals("01")) {
+        if (monthParsed == 1) {
             yearParsed -= 1;
+            monthParsed = 12;
+        } else {
+            monthParsed -= 1;
         }
-        String startDate = String.format("%s-%s-%s", firstDay,
-                month.equals("01")? 12 : Integer.parseInt(month) - 1,
-                yearParsed);
+
+        StringBuilder startDateBuilder = new StringBuilder();
+        startDateBuilder.append(firstDay).append("-").append(String.format("%02d", monthParsed)).append("-").append(yearParsed);
+        String startDate = startDateBuilder.toString();
 
         yearParsed = Integer.parseInt(year);
+        monthParsed = Integer.parseInt(month);
 
         // should use new year as start year
-        if (month.equals("12")) {
+        if (monthParsed == 12) {
             yearParsed += 1;
+            monthParsed = 1;
+        } else {
+            monthParsed += 1;
         }
 
-        String endDate = String.format("%s-%s-%s", lastDay,
-                month.equals("12") ? 1 : Integer.parseInt(month) + 1, yearParsed);
+        StringBuilder endDateBuilder = new StringBuilder();
+        endDateBuilder.append(lastDay).append("-").append(String.format("%02d", monthParsed)).append("-").append(yearParsed);
+        String endDate = endDateBuilder.toString();
 
         return new Pair<>(startDate, endDate);
     }
+
 
     /**
      * Map uuid

@@ -315,7 +315,6 @@ public class AdminController {
 
                         if (day.isEmpty()) {
                             dpd = new DayPlanData();
-
                             dpd.setUserId(users.get().getUserId());
                             dpd.setSetDate(new Date(TimeConvert.convertToDateViaInstant(date).getTime()) );
                         } else {
@@ -403,7 +402,6 @@ public class AdminController {
           defaults.setDefaultStartTime(new Time(timeFormat.parse((String)payload.get("start_time")).getTime()));
           defaults.setDefaultEndTime(new Time(timeFormat.parse((String)payload.get("end_time")).getTime()));
           defaults.setDefaultPause(new Time(timeFormat.parse((String)payload.get("pause")).getTime()));
-
           defaults.setDefaultVacationDays(Integer.parseInt((String)payload.get("vacation")));
 
           defaultsRepository.save(defaults);
@@ -955,9 +953,6 @@ public class AdminController {
                     }
 
                 }
-
-                // get all users
-                Iterable<BigInteger> userIds = userRepository.getAllUserIds();
 
                 return true;
             }
