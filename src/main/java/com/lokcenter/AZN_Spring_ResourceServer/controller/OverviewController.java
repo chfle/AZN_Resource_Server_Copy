@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.StreamSupport;
 
 /**
  * OverviewController
@@ -185,7 +186,8 @@ public class OverviewController {
         String startDate = dates.getKey();
         String endDate = dates.getValue();
 
-         CompletableFuture<Set<DateRange>> genRange = generalVacationService.MinMaxGeneralVacation(new java.sql.Date(sdf.parse(startDate).getTime()),
+         CompletableFuture<Set<DateRange>> genRange = generalVacationService.MinMaxGeneralVacation(
+                new java.sql.Date(sdf.parse(startDate).getTime()),
                 new java.sql.Date(sdf.parse(endDate).getTime()));
 
         // roles and userid stuff
@@ -291,9 +293,8 @@ public class OverviewController {
                             (new Date(sdf.parse(startDate).getTime()), new Date(sdf.parse(endDate).getTime()), user.get().getUserId());
 
 
-            for (var dpd: dayPlanData) {
-               dayPlansDone.add(new SimpleDateFormat("yyyy-MM-dd").format(dpd.getSetDate()));
-            }
+            StreamSupport.stream(dayPlanData.spliterator(), true).forEach(dpd ->
+                    dayPlansDone.add(new SimpleDateFormat("yyyy-MM-dd").format(dpd.getSetDate())));
         }
 
         return new ObjectMapper().writer().

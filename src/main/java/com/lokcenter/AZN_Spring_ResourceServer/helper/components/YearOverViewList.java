@@ -28,6 +28,9 @@ public class YearOverViewList {
     @Autowired
     private BalanceRepository balanceRepository;
 
+    /**
+     * Go over each IYearValue and add the data to the right key
+     */
     private void groupIYearCount(Iterable<IYearCount> iYearCounts, String key, Map<String, Map<String, Object>> yearDataMap) {
         StreamSupport.stream(iYearCounts.spliterator(), true).forEach(sickYearCount -> {
             if (yearDataMap.containsKey(String.valueOf(sickYearCount.getYear()))) {
