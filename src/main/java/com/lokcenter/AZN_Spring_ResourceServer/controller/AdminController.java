@@ -185,7 +185,7 @@ public class AdminController {
      */
     @GetMapping( "/years")
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
-    String getYearsPlanInfoByUser(@RequestParam(name = "userid", required = true) String userId) throws JsonProcessingException {
+    String getYearsPlanInfoByUser(@RequestParam(name = "userid", required = true) String userId) throws JsonProcessingException, ExecutionException, InterruptedException {
         // find user by id
         Optional<Users> user = userRepository.findById((long) Integer.parseInt(userId));
 

@@ -10,10 +10,9 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.StreamSupport;
 
 /**
  * Helper class to get Year Overviews from users
@@ -28,6 +27,17 @@ public class YearOverViewList {
 
     @Autowired
     private BalanceRepository balanceRepository;
+
+    private void groupIYearCount(Iterable<IYearCount> iYearCounts, String key, Map<String, Map<String, Object>> yearDataMap) {
+        StreamSupport.stream(iYearCounts.spliterator(), true).forEach(sickYearCount -> {
+            if (yearDataMap.containsKey(String.valueOf(sickYearCount.getYear()))) {
+                yearDataMap.get(String.valueOf(sickYearCount.getYear())).put(key, sickYearCount.getCount());
+            } else {
+                yearDataMap.put(String.valueOf(sickYearCount.getYear()),
+                        new HashMap<>(Map.of(key, sickYearCount.getCount())));
+            }
+        });
+    }
 
     /**
      * Get All Years and Data as list by user
@@ -63,40 +73,33 @@ public class YearOverViewList {
                 yearDataMap.get(year.getKey()).put("availableVacation", av);
             });
 
-            // work days grouped by year
-            Iterable<IYearCount> workYearCountIterable = dayPlanDataRepository.getWorkDayCountGrouped(user.getUserId());
+            List<Thread> threads = new ArrayList<>();
 
-            for (var workYearCount: workYearCountIterable) {
-                if (yearDataMap.containsKey(String.valueOf(workYearCount.getYear()))) {
-                    yearDataMap.get(String.valueOf(workYearCount.getYear())).put("workDay", workYearCount.getCount());
-                } else {
-                    yearDataMap.put(String.valueOf(workYearCount.getYear()),
-                            new HashMap<>(Map.of("workDay", workYearCount.getCount())));
+            threads.add(new Thread(() -> {
+                Iterable<IYearCount> sickYearCountIterable = dayPlanDataRepository.getSickDayCountGrouped(user.getUserId());
+                groupIYearCount(sickYearCountIterable, "sickDay", yearDataMap);
+            }));
+
+            threads.add(new Thread(() -> {
+                Iterable<IYearCount> glazYearCountIterable = dayPlanDataRepository.getGlazDayCountGrouped(user.getUserId());
+                groupIYearCount(glazYearCountIterable, "glazDay", yearDataMap);
+            }));
+
+            threads.add(new Thread(() -> {
+                Iterable<IYearCount> workYearCountIterable = dayPlanDataRepository.getWorkDayCountGrouped(user.getUserId());
+                groupIYearCount(workYearCountIterable, "workDay", yearDataMap);
+            }));
+
+            threads.parallelStream().forEach(Thread::start);
+            threads.parallelStream().forEach(thread -> {
+                if (thread.isAlive()) {
+                    try {
+                        thread.join();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-            }
-
-            // sick days
-            Iterable<IYearCount> sickYearCountIterable = dayPlanDataRepository.getSickDayCountGrouped(user.getUserId());
-
-            for (var sickYearCount: sickYearCountIterable) {
-                if (yearDataMap.containsKey(String.valueOf(sickYearCount.getYear()))) {
-                    yearDataMap.get(String.valueOf(sickYearCount.getYear())).put("sickDay", sickYearCount.getCount());
-                } else {
-                    yearDataMap.put(String.valueOf(sickYearCount.getYear()),
-                            new HashMap<>(Map.of("sickDay", sickYearCount.getCount())));
-                }
-            }
-
-            Iterable<IYearCount> glazYearCountIterable = dayPlanDataRepository.getGlazDayCountGrouped(user.getUserId());
-
-            for (var glazYearCount: glazYearCountIterable) {
-                if (yearDataMap.containsKey(String.valueOf(glazYearCount.getYear()))) {
-                    yearDataMap.get(String.valueOf(glazYearCount.getYear())).put("glazDay", glazYearCount.getCount());
-                } else {
-                    yearDataMap.put(String.valueOf(glazYearCount.getYear()),
-                            new HashMap<>(Map.of("glazDay", glazYearCount.getCount())));
-                }
-            }
+            });
 
         } else {
             yearDataMap = new HashMap<>();
