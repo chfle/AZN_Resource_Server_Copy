@@ -3,7 +3,6 @@ package com.lokcenter.AZN_Spring_ResourceServer.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
-import com.lokcenter.AZN_Spring_ResourceServer.database.enums.RequestTypeEnum;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.Tags;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
@@ -19,7 +18,6 @@ import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.Pair;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.Tuple;
 import com.lokcenter.AZN_Spring_ResourceServer.helper.ds.tuple.TupleType;
 import com.lokcenter.AZN_Spring_ResourceServer.services.VacationService;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +31,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.Year;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
@@ -69,6 +69,7 @@ public class AdminController {
 
     @Autowired
     private MonthPlanRepository monthPlanRepository;
+
 
     @Autowired
     private MessagesRepository messagesRepository;
@@ -127,46 +128,46 @@ public class AdminController {
 
 
                 // return data
-                List<Map<String, Object>> listUserData = new ArrayList<>();
 
                 // go over each valid user
-                userUsers.stream().forEach(data -> {
-                    Map<String, Object> currentUserData = new HashMap<>();
+                List<Map<String, Object>> listUserData = new ArrayList<>(userUsers.stream()
+                        .map(data -> {
+                            Map<String, Object> currentUserData = new HashMap<>();
+                            currentUserData.put("name", data.getNthValue(1));
+                            currentUserData.put("userId", data.getNthValue(0));
+                            currentUserData.put("department", data.getNthValue(2));
 
-                    currentUserData.put("name", data.getNthValue(1));
-                    currentUserData.put("userId", data.getNthValue(0));
-                    currentUserData.put("department", data.getNthValue(2));
+                            // current year
+                            Year currentYear = Year.now();
 
-                    // current year
-                    Calendar calendar = Calendar.getInstance();
+                            // get userinfo from each user
+                            Long glazCount = dayPlanDataRepository.glazCountByUserAndYear(data.getNthValue(0), currentYear.getValue());
+                            Long sickCount = dayPlanDataRepository.sickCountByUserAndYear(data.getNthValue(0), currentYear.getValue());
 
-                    // get userinfo from each user
-                    Long glazCount = dayPlanDataRepository.glazCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
-                    Long sickCount = dayPlanDataRepository.sickCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
+                            // add values
+                            currentUserData.put("sick", sickCount);
+                            currentUserData.put("glaz", glazCount);
 
-                    // add values
-                    currentUserData.put("sick", sickCount);
-                    currentUserData.put("glaz", glazCount);
+                            // available vacation generated
+                            try {
+                                currentUserData.put("availableVacation", vacationService.getAvailabeVacation(currentYear.getValue(), data.getNthValue(0)).get());
+                            } catch (InterruptedException | ExecutionException e) {
+                                throw new RuntimeException(e);
+                            }
 
-                    // available vacation generated
-                    try {
-                        currentUserData.put("availableVacation", vacationService.getAvailabeVacation(calendar.get(Calendar.YEAR),
-                                data.getNthValue(0)).get());
-                    } catch (InterruptedException | ExecutionException e) {
-                        throw new RuntimeException(e);
-                    }
+                            currentUserData.put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(data.getNthValue(0), currentYear.getValue()));
 
-                    currentUserData.put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(data.getNthValue(0), calendar.get(Calendar.YEAR)));
+                            // get total requests
+                            currentUserData.put("requests", StreamSupport.stream(requestsRepository.findByUserId(data.getNthValue(0)).spliterator(), false)
+                                    .count());
 
-                    // get total requests
-                    Iterable<Requests> requests = requestsRepository.findByUserId(data.getNthValue(0));
+                            currentUserData.put("azn_count", StreamSupport.stream(monthPlanRepository.findSubmittedByUser(data.getNthValue(0)).spliterator(), false)
+                                    .count());
 
-                    currentUserData.put("requests", requests.spliterator().getExactSizeIfKnown());
+                            return currentUserData;
+                        })
+                        .collect(Collectors.toList()));
 
-                    currentUserData.put("azn_count", monthPlanRepository.findSubmittedByUser(data.getNthValue(0)).spliterator().getExactSizeIfKnown());
-
-                    listUserData.add(currentUserData);
-                });
 
                 return new ResponseEntity<>(new ObjectMapper().writer().
                         withDefaultPrettyPrinter()
@@ -616,15 +617,15 @@ public class AdminController {
     @GetMapping("/azn/get")
     @ResponseBody
     String getAZNSubmittedByUserId(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
-        List<Map<String, Object>> resList = new ArrayList<>();
+        List<Map<String, Integer>> resList = new ArrayList<>();
         Optional<Users> user = userRepository.findById(Long.parseLong(userId));
 
         if (user.isPresent()) {
             Iterable<MonthPlan> submittedMonthPlans = monthPlanRepository.findSubmittedByUser(user.get().getUserId());
+            resList = StreamSupport.stream(submittedMonthPlans.spliterator(), false)
+                    .map(month -> Map.of("year", month.getYear(), "month", month.getMonth()))
+                    .collect(Collectors.toList());
 
-            for (var month : submittedMonthPlans) {
-                resList.add(new HashMap<>(Map.of("year", month.getYear(), "month", month.getMonth())));
-            }
         }
 
         return new ObjectMapper().writer().
