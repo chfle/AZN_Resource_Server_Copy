@@ -863,31 +863,20 @@ public class AdminController {
 
         // show data in the right representation
         // get min and max date from general vacation
-        for (var gv: generalVacationByUUID.entrySet()) {
-            // check if general vacation goes over more than one day
-            if (gv.getValue().size() > 1) {
-                dateRanges.add(new OverviewController.DateRangeComment(
-                        //get the right start and end date by using min and max
-                        gv.getValue().stream().map(uuiDable ->
-                                ((GeneralVacation)uuiDable).getDate()).min(Date::compareTo).get(),
-                        gv.getValue().stream().map(uuiDable ->
-                                ((GeneralVacation)uuiDable).getDate()).max(Date::compareTo).get(),
-                        // set the right tag
-                        ((GeneralVacation)gv.getValue().get(0)).getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
-                        gv.getKey(),
-                        ((GeneralVacation)gv.getValue().get(0)).getComment()
-                ));
-            } else {
-                GeneralVacation generalVacation = (GeneralVacation)gv.getValue().get(0);
-                dateRanges.add(
-                        new OverviewController.DateRangeComment(generalVacation.getDate(),
-                                generalVacation.getDate(),
-                                // set the right tag
-                                generalVacation.getTag() == Tags.gFeiertag ? Tags.gFeiertag: Tags.gUrlaub,
-                                gv.getKey(),
-                                generalVacation.getComment()
-                        ));
-            }
+        for (var gv : generalVacationByUUID.entrySet()) {
+            var gvValue = gv.getValue();
+            var gvSize = gvValue.size();
+            var firstGv = (GeneralVacation) gvValue.get(0);
+
+            var dateRange = new OverviewController.DateRangeComment(
+                    gvSize > 1 ? gvValue.stream().map(uuiDable -> ((GeneralVacation) uuiDable).getDate()).min(Date::compareTo).get() : firstGv.getDate(),
+                    gvSize > 1 ? gvValue.stream().map(uuiDable -> ((GeneralVacation) uuiDable).getDate()).max(Date::compareTo).get() : firstGv.getDate(),
+                    firstGv.getTag() == Tags.gFeiertag ? Tags.gFeiertag : Tags.gUrlaub,
+                    gv.getKey(),
+                    firstGv.getComment()
+            );
+
+            dateRanges.add(dateRange);
         }
 
         return new ObjectMapper().writer().
