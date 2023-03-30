@@ -110,7 +110,7 @@ public class AdminController {
                 // list of ROLE_User and username users
                 List<Tuple> userUsers = new ArrayList<>();
 
-                StreamSupport.stream(users.spliterator(), true).forEach(user -> {
+                StreamSupport.stream(users.spliterator(), false).forEach(user -> {
                     // user must include ROLE_User
                     Optional<String> department = Optional.empty();
 
@@ -130,7 +130,7 @@ public class AdminController {
                 List<Map<String, Object>> listUserData = new ArrayList<>();
 
                 // go over each valid user
-                userUsers.parallelStream().forEach(data -> {
+                userUsers.stream().forEach(data -> {
                     Map<String, Object> currentUserData = new HashMap<>();
 
                     currentUserData.put("name", data.getNthValue(1));
@@ -230,7 +230,7 @@ public class AdminController {
 
             List<Map<String, Object>> shortedRequestsData = new ArrayList<>();
 
-            StreamSupport.stream(requestsByUser.spliterator(), true).forEach(requests -> {
+            StreamSupport.stream(requestsByUser.spliterator(), false).forEach(requests -> {
                 var dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 
                 shortedRequestsData.add(new HashMap<>(
