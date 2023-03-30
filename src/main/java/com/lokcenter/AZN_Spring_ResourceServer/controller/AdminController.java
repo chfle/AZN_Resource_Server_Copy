@@ -110,7 +110,7 @@ public class AdminController {
                 // list of ROLE_User and username users
                 List<Tuple> userUsers = new ArrayList<>();
 
-                for (Users user: users) {
+                StreamSupport.stream(users.spliterator(), true).forEach(user -> {
                     // user must include ROLE_User
                     Optional<String> department = Optional.empty();
 
@@ -123,48 +123,50 @@ public class AdminController {
                     if (user.getRoles().containsKey("ROLE_User") && department.isPresent()) {
                         userUsers.add(TupleThreeType.createTuple(user.getUserId(), user.getUsername(), department.get()));
                     }
+                });
 
-                    // check if user as any department
-
-                }
 
                 // return data
                 List<Map<String, Object>> listUserData = new ArrayList<>();
 
-               // go over each valid user
-               for (Tuple data: userUsers) {
-                   Map<String, Object> currentUserData = new HashMap<>();
+                // go over each valid user
+                userUsers.parallelStream().forEach(data -> {
+                    Map<String, Object> currentUserData = new HashMap<>();
 
-                   currentUserData.put("name", data.getNthValue(1));
-                   currentUserData.put("userId", data.getNthValue(0));
-                   currentUserData.put("department", data.getNthValue(2));
+                    currentUserData.put("name", data.getNthValue(1));
+                    currentUserData.put("userId", data.getNthValue(0));
+                    currentUserData.put("department", data.getNthValue(2));
 
-                   // current year
-                   Calendar calendar = Calendar.getInstance();
+                    // current year
+                    Calendar calendar = Calendar.getInstance();
 
-                   // get userinfo from each user
-                   Long glazCount = dayPlanDataRepository.glazCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
-                   Long sickCount = dayPlanDataRepository.sickCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
+                    // get userinfo from each user
+                    Long glazCount = dayPlanDataRepository.glazCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
+                    Long sickCount = dayPlanDataRepository.sickCountByUserAndYear(data.getNthValue(0), calendar.get(Calendar.YEAR));
 
-                   // add values
-                   currentUserData.put("sick", sickCount);
-                   currentUserData.put("glaz", glazCount);
+                    // add values
+                    currentUserData.put("sick", sickCount);
+                    currentUserData.put("glaz", glazCount);
 
-                   // available vacation generated
-                   currentUserData.put("availableVacation", vacationService.getAvailabeVacation(calendar.get(Calendar.YEAR),
-                           data.getNthValue(0)).get());
+                    // available vacation generated
+                    try {
+                        currentUserData.put("availableVacation", vacationService.getAvailabeVacation(calendar.get(Calendar.YEAR),
+                                data.getNthValue(0)).get());
+                    } catch (InterruptedException | ExecutionException e) {
+                        throw new RuntimeException(e);
+                    }
 
-                   currentUserData.put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(data.getNthValue(0), calendar.get(Calendar.YEAR)));
+                    currentUserData.put("balance", dayPlanDataRepository.getdpdAndBalaceAsSum(data.getNthValue(0), calendar.get(Calendar.YEAR)));
 
-                   // get total requests
-                   Iterable<Requests> requests = requestsRepository.findByUserId(data.getNthValue(0));
+                    // get total requests
+                    Iterable<Requests> requests = requestsRepository.findByUserId(data.getNthValue(0));
 
-                   currentUserData.put("requests", requests.spliterator().getExactSizeIfKnown());
+                    currentUserData.put("requests", requests.spliterator().getExactSizeIfKnown());
 
-                   currentUserData.put("azn_count", monthPlanRepository.findSubmittedByUser(data.getNthValue(0)).spliterator().getExactSizeIfKnown());
+                    currentUserData.put("azn_count", monthPlanRepository.findSubmittedByUser(data.getNthValue(0)).spliterator().getExactSizeIfKnown());
 
-                   listUserData.add(currentUserData);
-               }
+                    listUserData.add(currentUserData);
+                });
 
                 return new ResponseEntity<>(new ObjectMapper().writer().
                         withDefaultPrettyPrinter()
@@ -185,7 +187,7 @@ public class AdminController {
      */
     @GetMapping( "/years")
     @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
-    String getYearsPlanInfoByUser(@RequestParam(name = "userid", required = true) String userId) throws JsonProcessingException, ExecutionException, InterruptedException {
+    String getYearsPlanInfoByUser(@RequestParam(name = "userid") String userId) throws JsonProcessingException, ExecutionException, InterruptedException {
         // find user by id
         Optional<Users> user = userRepository.findById((long) Integer.parseInt(userId));
 
@@ -228,18 +230,16 @@ public class AdminController {
 
             List<Map<String, Object>> shortedRequestsData = new ArrayList<>();
 
-            for (Requests requests: requestsByUser) {
+            StreamSupport.stream(requestsByUser.spliterator(), true).forEach(requests -> {
                 var dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 
                 shortedRequestsData.add(new HashMap<>(
-
                 Map.of(
                                 "tag", requests.getType().name(),
                                 "startdate", dateFormat.format(requests.getStartDate()),
                                 "enddate", dateFormat.format(requests.getEndDate())
                 )));
-            }
-
+            });
 
             return new ObjectMapper().writer().
                     withDefaultPrettyPrinter()
@@ -258,7 +258,6 @@ public class AdminController {
                                 @RequestParam(name = "userid", required = true) String userId) throws ParseException {
 
         Optional<Users> users = userRepository.findById(Long.parseLong(userId));
-        int vacationDaysUsed = 0;
 
         if (users.isPresent()) {
             // get all day plans between start end date
@@ -310,7 +309,6 @@ public class AdminController {
                         }
 
                         // add 1 to vacationDaysUsed
-                        vacationDaysUsed++;
                         // get day
                         DayPlanData dpd;
                         Optional<DayPlanData> day =
