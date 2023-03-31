@@ -87,6 +87,14 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             "as year from day_plan_data where uuid = ?1 group by extract(year from set_date)", nativeQuery = true)
     Iterable<IYearCount> getDayPlanDataByUuidAndYear(UUID uuid);
 
+    /**
+     * Get all vacation days by user including general vacation
+     * @param userId userid
+     * @param year year
+     * @return Long value with the count
+     *
+     * @implNote FirstLogin and endDate from user must be checked
+     */
     @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub' and extract(year from date) = ?2 and " +
             "date >= (select first_login from users where user_id = ?1) and date <= (select end_date from users where user_id = ?1))) " +
             "as vacation from day_plan_data where user_id = ?1 and vacation = true and extract(year from set_date) " +
@@ -95,6 +103,13 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             "(select end_date from users where user_id = ?1)", nativeQuery = true)
     long usedVacationByYearAndUser(Long userId, int year);
 
+    /**
+     * Calculate Zeitkonto including all needed Tables
+     * @return Count as String
+     *
+     * @implNote String is used to display this value.
+     * @implNote null values should be replaced with '0 days' interval to avoid wrong calculations
+     */
     @Query(value = "select (f + (select case when sum(interval '0 days' - (select case when (worktime_end - work_time.worktime_start - work_time.worktime_pause) is null\n" +
             "                                             then INTERVAL '0 days' else (work_time.worktime_end - work_time.worktime_start - work_time.worktime_pause) end\n" +
             "from work_time where date <= day_plan_data.set_date order by date desc limit 1)) is null then Interval '0 days'\n" +
