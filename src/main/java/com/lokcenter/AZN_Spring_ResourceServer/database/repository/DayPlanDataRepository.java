@@ -88,10 +88,11 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
     Iterable<IYearCount> getDayPlanDataByUuidAndYear(UUID uuid);
 
     @Query(value = "select (count(*) + (select count(*) from general_vacation where tag = 'gUrlaub' and extract(year from date) = ?2 and " +
-            "date >= (select first_login from users where user_id = ?1))) " +
+            "date >= (select first_login from users where user_id = ?1) and date <= (select end_date from users where user_id = ?1))) " +
             "as vacation from day_plan_data where user_id = ?1 and vacation = true and extract(year from set_date) " +
             "= ?2 and set_date not in (select date from general_vacation where tag = 'gUrlaub') " +
-            "and set_date >= (select first_login from users where user_id = ?1)", nativeQuery = true)
+            "and set_date >= (select first_login from users where user_id = ?1) and set_date <= " +
+            "(select end_date from users where user_id = ?1)", nativeQuery = true)
     long usedVacationByYearAndUser(Long userId, int year);
 
     @Query(value = "select (f + (select case when sum(interval '0 days' - (select case when (worktime_end - work_time.worktime_start - work_time.worktime_pause) is null\n" +
