@@ -1,6 +1,8 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.enums;
 
-// TODO: Assign types???
+/**
+ * Needed for every Request
+ */
 public enum RequestTypeEnum {
     rUrlaub, rGLAZ
 }

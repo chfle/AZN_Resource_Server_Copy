@@ -9,6 +9,9 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.sql.Date;
 
+/**
+ * Composite Key for Request Table
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestsKey implements Serializable {

@@ -1,6 +1,7 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.repository;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.RequestsKey;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.MonthPlan;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Requests;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import org.springframework.data.jpa.repository.Modifying;

@@ -5,11 +5,11 @@ import com.vladmihalcea.hibernate.type.array.ListArrayType;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLHStoreType;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import org.hibernate.annotations.*;
+import org.springframework.beans.Mergeable;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +26,8 @@ public class UserInfo {
         GUTHABEN
     }
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @OneToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @Setter
     @Getter

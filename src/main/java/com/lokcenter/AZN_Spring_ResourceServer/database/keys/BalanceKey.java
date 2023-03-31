@@ -7,6 +7,9 @@ import javax.persistence.Column;
 import java.io.Serializable;
 import java.sql.Date;
 
+/**
+ * Composite Key for Balance Table
+ */
 public class BalanceKey implements Serializable {
     @Setter
     @Getter

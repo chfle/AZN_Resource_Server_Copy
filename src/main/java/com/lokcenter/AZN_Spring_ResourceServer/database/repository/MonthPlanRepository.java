@@ -1,11 +1,14 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.repository;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.MonthPlanKey;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Messages;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.MonthPlan;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.util.Optional;
 
 @Repository

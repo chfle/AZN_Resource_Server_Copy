@@ -8,6 +8,9 @@ import lombok.Setter;
 import java.io.Serializable;
 import java.sql.Date;
 
+/**
+ * Composite Key GeneralVacation Table
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 public class GeneralVacationKey implements Serializable {

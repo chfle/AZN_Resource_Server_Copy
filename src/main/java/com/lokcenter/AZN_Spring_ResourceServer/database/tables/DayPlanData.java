@@ -9,6 +9,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.LazyToOne;
 import org.hibernate.annotations.LazyToOneOption;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import java.io.Serial;
@@ -23,8 +25,9 @@ public class DayPlanData implements Serializable, IUuidable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @LazyToOne(LazyToOneOption.NO_PROXY)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @Setter
     @Getter

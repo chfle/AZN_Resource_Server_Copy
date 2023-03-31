@@ -6,6 +6,9 @@ import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IUuidable;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.RequestsKey;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.beans.Mergeable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -16,7 +19,8 @@ import java.util.UUID;
 @IdClass(RequestsKey.class)
 public class Requests implements Serializable, IUuidable {
     @Id
-    @ManyToOne(optional = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @Setter
     @Getter

@@ -1,13 +1,16 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.repository;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.UserInfo;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.WorkTime;
 import com.vladmihalcea.hibernate.type.interval.PostgreSQLIntervalType;
 import org.hibernate.jdbc.Work;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
 import java.sql.Date;
 import java.sql.Time;
 import java.util.Optional;

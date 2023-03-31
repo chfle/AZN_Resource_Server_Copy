@@ -2,6 +2,7 @@ package com.lokcenter.AZN_Spring_ResourceServer.database.repository;
 
 import com.lokcenter.AZN_Spring_ResourceServer.database.interfaces.IYearCount;
 import com.lokcenter.AZN_Spring_ResourceServer.database.keys.DayPlanDataKey;
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Balance;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Users;
 import org.springframework.data.jpa.repository.Modifying;

@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -62,43 +64,43 @@ public class Users implements Serializable {
 
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "users")
+    @OneToMany(mappedBy = "users", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Set<Requests> requests = new HashSet<>();
 
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonManagedReference
     private Set<Messages> messages = new HashSet<>();
 
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "users")
     @JsonManagedReference
     private Set<DayPlanData> dayPlanData = new HashSet<>();
 
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "users")
     @JsonManagedReference
     private Set<MonthPlan> monthplans = new HashSet<>();
 
     @Setter
     @Getter
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToOne(cascade = CascadeType.ALL)
     @JsonManagedReference
     private UserInfo userInfo;
 
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "users")
     @JsonManagedReference
     private Set<WorkTime> worktimes = new HashSet<>();
 
     @Setter
     @Getter
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "users")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "users")
     @JsonManagedReference
     private Set<WorkTime> balanceTimes = new HashSet<>();
 }

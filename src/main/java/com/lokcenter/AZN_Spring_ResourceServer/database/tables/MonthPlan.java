@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.LazyToOne;
 import org.hibernate.annotations.LazyToOneOption;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+import org.springframework.beans.Mergeable;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -20,7 +23,8 @@ import java.io.Serializable;
 @Entity
 public class MonthPlan implements Serializable {
     @LazyToOne(LazyToOneOption.NO_PROXY)
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     @Setter
     @Getter

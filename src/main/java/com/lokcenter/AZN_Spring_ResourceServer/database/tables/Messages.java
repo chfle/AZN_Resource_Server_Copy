@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.lokcenter.AZN_Spring_ResourceServer.database.enums.MessageTypes;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -30,6 +32,7 @@ public class Messages implements Serializable {
     private String message;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @Setter
     @Getter
     @JoinColumn(name = "user_id", nullable = false)

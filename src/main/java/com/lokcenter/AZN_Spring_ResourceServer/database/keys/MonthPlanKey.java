@@ -8,6 +8,9 @@ import lombok.Setter;
 import javax.persistence.Column;
 import java.io.Serializable;
 
+/**
+ * Composite Key for MonthPlan Table
+ */
 @AllArgsConstructor
 @NoArgsConstructor
 public class MonthPlanKey implements Serializable {

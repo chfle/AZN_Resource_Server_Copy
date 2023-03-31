@@ -1118,7 +1118,10 @@ public class AdminController {
        return saved;
     }
 
-    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    /**
+     * get Start and endDate from user
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Read')")
     @GetMapping("/startend")
     @ResponseBody
     String getUserStartEndData(@RequestParam(name = "userId") String userId) throws JsonProcessingException {
@@ -1127,4 +1130,24 @@ public class AdminController {
                 .writeValueAsString(userRepository.getStartEndDateByUser(Long.valueOf(userId)));
     }
 
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @DeleteMapping("/deleteUser")
+    @ResponseBody
+    Boolean deleteUserById(@RequestParam(name = "userId") String userId) {
+        Optional<Users> optionalUsers = userRepository.findById(Long.valueOf(userId));
+
+        if (optionalUsers.isPresent()) {
+            try {
+
+                // delete user table
+                userRepository.delete(optionalUsers.get());
+
+                return true;
+            }catch (Exception exception) {
+               exception.printStackTrace();
+            }
+        }
+
+        return false;
+    }
 }

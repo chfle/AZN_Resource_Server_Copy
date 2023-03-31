@@ -11,9 +11,11 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Date;
 
+/**
+ * Composite Key for DayPlanData
+ */
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class DayPlanDataKey implements Serializable {
     @Setter
     @Getter

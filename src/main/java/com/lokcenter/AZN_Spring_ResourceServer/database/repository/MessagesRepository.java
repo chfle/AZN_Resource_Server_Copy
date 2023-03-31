@@ -1,5 +1,6 @@
 package com.lokcenter.AZN_Spring_ResourceServer.database.repository;
 
+import com.lokcenter.AZN_Spring_ResourceServer.database.tables.DayPlanData;
 import com.lokcenter.AZN_Spring_ResourceServer.database.tables.Messages;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
