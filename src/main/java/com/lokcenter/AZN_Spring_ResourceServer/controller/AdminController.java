@@ -1060,24 +1060,24 @@ public class AdminController {
                        optionalUsers.get().getUserId(),
                        new java.sql.Date(sdf.parse(date).getTime()));
 
+               WorkTime workTime;
+
                if (optionalWorkTime.isPresent()) {
                    // change only the time
-                   WorkTime workTime = optionalWorkTime.get();
+                   workTime = optionalWorkTime.get();
                    workTime.setWorkTime(dayTime);
 
-                   workTimeRepository.save(workTime);
-                   saved = true;
                } else {
                    // create new work_time with date
-                   WorkTime workTime = new WorkTime();
+                   workTime = new WorkTime();
 
                    workTime.setDate(new java.sql.Date(sdf.parse(date).getTime()));
                    workTime.setWorkTime(dayTime);
                    workTime.setUsers(optionalUsers.get());
 
-                   workTimeRepository.save(workTime);
-                   saved = true;
                }
+               workTimeRepository.save(workTime);
+               saved = true;
 
                // save vacation
                Optional<UserInfo> optionalUserInfo = userInfoRepository.findByUserId(optionalUsers.get().getUserId());
@@ -1097,6 +1097,17 @@ public class AdminController {
                    userInfoRepository.delete(userInfo);
                    userInfoRepository.save(userInfo);
                }
+
+               // save first and last date from user
+               String first = (String)payload.get("start");
+               String last = (String)payload.get("last");
+
+               Users users = optionalUsers.get();
+
+               users.setFirstLogin(new java.sql.Date(sdf.parse(first).getTime()));
+               users.setEndDate(new java.sql.Date(sdf.parse(last).getTime()));
+
+               userRepository.save(users);
            }
 
        }catch (Exception exception) {
