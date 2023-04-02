@@ -978,6 +978,22 @@ public class AdminController {
     }
 
     /**
+     * Get general Vacation count by Year
+     * @param year
+     *
+     * @implNote Vacation on the weekend will be counted!
+     */
+    @PreAuthorize("hasAuthority('SCOPE_UserApi.Write')")
+    @GetMapping("/generalOverview/stats")
+    @ResponseBody
+    String generalVacationStats(@RequestParam(name = "year") String year) throws JsonProcessingException {
+        return new ObjectMapper().writer().
+                withDefaultPrettyPrinter()
+                .writeValueAsString(generalVacationRepository.getGeneralVacationCountByYear(Long.parseLong(year)));
+    }
+
+
+    /**
      * Worktime list for admin panel
      * @param userId userid
      * @return Worktime list
