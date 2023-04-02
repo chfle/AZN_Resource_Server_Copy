@@ -971,6 +971,7 @@ public class AdminController {
         try {
             UUID uuid = UUID.fromString((String) payload.get("id"));
             generalVacationRepository.deleteByUuid(uuid);
+            return true;
         } catch (Exception ignored) {}
 
         return false;
