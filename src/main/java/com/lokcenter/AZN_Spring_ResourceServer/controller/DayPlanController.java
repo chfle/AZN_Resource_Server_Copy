@@ -189,7 +189,6 @@ public class DayPlanController {
                     dpd.setComment((String) data.get("comment"));
 
                     memService.deleteKeyValue(AznStrings.toString(new DayPlanDataKey(dpd.getUserId(), dpd.getSetDate())));
-                    ;
 
                     // set dayplan data to valid
                     dpd.setValid(true);
@@ -230,6 +229,32 @@ public class DayPlanController {
 
                             // delete invalid cached data
                             memService.deleteKeyValue(AznStrings.toString((dayPlanDataKey)));
+                        } else {
+                            // save back to memcached if not valid
+                            memService.deleteKeyValue(AznStrings.toString(dayPlanDataKey));
+                            // set time
+                            DayTime dayTime = new DayTime();
+
+                            dayTime.setStart(((String) data.get("start_time")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String) data.get("start_time")).getTime()));
+
+                            dayTime.setEnd(((String) data.get("end_time")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String) data.get("end_time")).getTime()));
+
+                            dayTime.setPause(((String) data.get("pause")).trim().length() == 0 ?
+                                    null : new Time(sdf.parse((String) data.get("pause")).getTime()));
+
+
+                            cachedDayPlanData.setWorkTime(dayTime);
+                            cachedDayPlanData.setComment((String) data.get("comment"));
+
+                            // mark dayplan data as not valid
+                            cachedDayPlanData.setValid(false);
+
+                            // save data to memcached
+                            memService.storeKeyValue(AznStrings.toString(dayPlanDataKey), cachedDayPlanData);
+                            saved = true;
+
                         }
                     } else {
                         ObjectMapper objectMapper = new ObjectMapper();
