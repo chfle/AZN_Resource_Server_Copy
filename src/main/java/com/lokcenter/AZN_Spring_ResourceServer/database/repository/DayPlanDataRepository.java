@@ -118,7 +118,7 @@ public interface DayPlanDataRepository extends CrudRepository<DayPlanData, DayPl
             "sum(interval '0 days' - (select case when (worktime_end - work_time.worktime_start - work_time.worktime_pause) is null\n" +
             "                                             then INTERVAL '0 days' else (work_time.worktime_end - work_time.worktime_start - work_time.worktime_pause) end\n" +
             "from work_time where date <= day_plan_data.set_date order by date desc limit 1)) end\n" +
-            "from day_plan_data where user_id  = ?1 and glaz and extract(ISODOW from set_date) not IN (6, 7)))\\:\\:varchar from (select case when sum(final_soll + timeV) is null\n" +
+            "from day_plan_data where user_id  = ?1 and glaz and not sick and extract(ISODOW from set_date) not IN (6, 7)))\\:\\:varchar from (select case when sum(final_soll + timeV) is null\n" +
             "    then INTERVAL  '0 days'\n" +
             "    else sum(final_soll + timeV) end as f\n" +
             "from (select (weekend_soll + weekdays) as final_soll\n" +
