@@ -76,7 +76,10 @@ public class ControllerHelper {
             yearParsed -= 1;
             monthParsed = 12;
         } else {
-            monthParsed -= 1;
+            // if firs day starts on a monday
+            if (Integer.parseInt(firstDay) != 1) {
+                monthParsed -= 1;
+            }
         }
 
         StringBuilder startDateBuilder = new StringBuilder();
@@ -91,7 +94,9 @@ public class ControllerHelper {
             yearParsed += 1;
             monthParsed = 1;
         } else {
-            monthParsed += 1;
+            if (Integer.parseInt(lastDay) < 7) {
+                monthParsed += 1;
+            }
         }
 
         StringBuilder endDateBuilder = new StringBuilder();
